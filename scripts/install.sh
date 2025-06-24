@@ -159,15 +159,19 @@ echo "------------------------------------------------------------"
 #
 if ask_yes_no "Do you want to copy local Hyprland config files (.conf) to ~/.config/hypr/?"; then
     SCRIPT_DIR=$(dirname "$0")
+    CONFIG_SRC_DIR="$SCRIPT_DIR/../../configs/hypr"
     CONFIG_DEST_DIR="$HOME/.config/hypr"
-    
-    echo "Ensuring destination directory exists: $CONFIG_DEST_DIR"
-    mkdir -p "$CONFIG_DEST_DIR"
-    
-    echo "Copying .conf files from $SCRIPT_DIR to $CONFIG_DEST_DIR..."
-    cp "$SCRIPT_DIR"/*.conf "$CONFIG_DEST_DIR/"
-    
-    echo "Configuration files copied successfully."
+
+    if [ -d "$CONFIG_SRC_DIR" ]; then
+        echo "Ensuring destination directory exists: $CONFIG_DEST_DIR"
+        mkdir -p "$CONFIG_DEST_DIR"
+
+        echo "Copying .conf files from $CONFIG_SRC_DIR to $CONFIG_DEST_DIR..."
+        cp "$CONFIG_SRC_DIR"/*.conf "$CONFIG_DEST_DIR/"
+        echo "Configuration files copied successfully."
+    else
+        echo "Error: Source directory '$CONFIG_SRC_DIR' not found. Skipping config file copy."
+    fi
 else
     echo "Skipping Hyprland config file copy."
 fi
