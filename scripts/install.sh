@@ -82,6 +82,7 @@ install_hyprspace() {
     yay -S --noconfirm cpio cmake git meson gcc
     
     echo "Adding and enabling Hyprspace plugin via hyprpm..."
+    hyprpm update
     hyprpm add https://github.com/KZDKM/Hyprspace
     hyprpm enable Hyprspace
     echo "Hyprspace plugin has been enabled."
