@@ -29,6 +29,7 @@ install_hyde() {
     echo "Cloning and running HyDE installer..."
     git clone --depth 1 https://github.com/HyDE-Project/HyDE ~/HyDE
     cd ~/HyDE/Scripts
+    git pull
     ./install.sh
     cd - &> /dev/null
 }
@@ -104,6 +105,30 @@ copy_hypr_configs() {
     fi
 }
 
+install_youtube_music() {
+    echo "Installing YouTube Music (youtube-music-bin) using yay..."
+    yay -S --noconfirm youtube-music-bin
+    echo "YouTube Music installation completed successfully."
+}
+
+install_wallpaper_engine() {
+    echo "Installing Wallpaper Engine (linux-wallpaperengine-git) using yay..."
+    yay -S --noconfirm linux-wallpaperengine-git
+    echo "Wallpaper Engine installation completed successfully."
+}
+
+install_steam() {
+    echo "Installing Steam..."
+    yay -S --noconfirm steam
+    echo "Steam installation completed successfully."
+}
+
+install_sddm_theme() {
+    echo "Installing SDDM Astronaut Theme..."
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/keyitdev/sddm-astronaut-theme/master/setup.sh)"
+    echo "SDDM Astronaut Theme installation attempted."
+}
+
 #-------------------------------------------------------
 # Main Logic
 #-------------------------------------------------------
@@ -122,17 +147,21 @@ show_menu() {
     echo " 6) Install Mission Center"
     echo " 7) Install FUSE (Filesystem in Userspace)"
     echo " 8) Install the Hyprspace plugin for Hyprland"
-    echo " 9) Copy local Hyprland config files to ~/.config/hypr/"
+    echo " 9) Install YouTube Music"
+    echo " 10) Install Wallpaper Engine"
+    echo " 11) Install Steam"
+    echo " 12) Copy local Hyprland config files to ~/.config/hypr/"
+    echo " 13) Install SDDM Astronaut Theme"
     echo "------------------------------------------------------------"
-    echo " 10) Install ALL components and apply configurations"
-    echo " 11) Exit"
+    echo " 14) Install ALL components and apply configurations"
+    echo " 15) Exit"
     echo "------------------------------------------------------------"
 }
 
 main_menu() {
     while true; do
         show_menu
-        read -p "Enter your choice [1-11]: " choice
+        read -p "Enter your choice [1-15]: " choice
         
         echo "------------------------------------------------------------"
 
@@ -145,8 +174,12 @@ main_menu() {
             6) install_mission_center ;;
             7) install_fuse ;;
             8) install_hyprspace ;;
-            9) copy_hypr_configs ;;
-            10)
+            9) install_youtube_music ;;
+            10) install_wallpaper_engine ;;
+            11) install_steam ;;
+            12) copy_hypr_configs ;;
+            13) install_sddm_theme ;;
+            14)
                 echo "Starting full installation of all components..."
                 install_hyde
                 install_power_options
@@ -156,10 +189,14 @@ main_menu() {
                 install_mission_center
                 install_fuse
                 install_hyprspace
+                install_youtube_music
+                install_wallpaper_engine
+                install_steam
                 copy_hypr_configs
+                install_sddm_theme
                 echo "Full installation complete."
                 ;;
-            11)
+            15)
                 echo "Exiting script. Goodbye!"
                 break
                 ;;
@@ -168,7 +205,7 @@ main_menu() {
                 ;;
         esac
         
-        if [[ "$choice" != "11" ]]; then
+        if [[ "$choice" != "15" ]]; then
             echo "------------------------------------------------------------"
             read -p "Press Enter to return to the menu..."
         fi
