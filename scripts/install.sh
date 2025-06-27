@@ -130,6 +130,46 @@ install_sddm_theme() {
     echo "SDDM Astronaut Theme installation attempted."
 }
 
+install_caprine() {
+    if ! command -v flatpak &> /dev/null; then
+        echo "Error: Flatpak is not installed. Skipping Caprine installation."
+        echo "Please install Flatpak first."
+        return 1
+    fi
+    echo "Installing Caprine from Flathub..."
+    flatpak install flathub com.sindresorhus.Caprine -y
+    echo "Caprine installation completed."
+}
+
+override_caprine() {
+    echo "Applying Flatpak override for Caprine..."
+    flatpak override --user --socket=wayland com.sindresorhus.Caprine
+    echo "Caprine override completed."
+}
+
+clone_thai_fonts_css() {
+    local script_dir
+    script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+    local source_file="$script_dir/../configs/thai_fonts.css"
+    local dest_file="$HOME/.var/app/dev.vencord.Vesktop/config/vesktop/settings/quickCss.css"
+    local dest_dir
+
+    dest_dir=$(dirname "$dest_file")
+
+    echo "Cloning Thai fonts CSS for Vesktop..."
+
+    if [ ! -f "$source_file" ]; then
+        echo "Error: Source file not found at $source_file"
+        return 1
+    fi
+
+    echo "Ensuring destination directory exists: $dest_dir"
+    mkdir -p "$dest_dir"
+
+    cp -v "$source_file" "$dest_file"
+    echo "Successfully cloned thai_fonts.css to the Vesktop directory."
+}
+
 #-------------------------------------------------------
 # Main Logic
 #-------------------------------------------------------
@@ -140,64 +180,76 @@ show_menu() {
     echo " AzP Arch Setup Script - Main Menu"
     echo "------------------------------------------------------------"
     echo "Please select an option:"
-    echo " 1) Install HyDE"
-    echo " 2) Install Power Options (power-options-gtk-git)"
-    echo " 3) Install the Flatpak package manager"
-    echo " 4) Install Vesktop (requires Flatpak)"
-    echo " 5) Set up Vencord/Vesktop Activity Status"
-    echo " 6) Install Mission Center"
-    echo " 7) Install FUSE (Filesystem in Userspace)"
-    echo " 8) Install the Hyprspace plugin for Hyprland"
-    echo " 9) Install YouTube Music"
-    echo " 10) Install Wallpaper Engine"
-    echo " 11) Install Steam"
-    echo " 12) Copy local Hyprland config files to ~/.config/hypr/"
-    echo " 13) Install SDDM Astronaut Theme"
+    echo " 1) Install ALL components and apply configurations"
+    echo " 2) Install HyDE"
+    echo " 3) Install Power Options (power-options-gtk-git)"
+    echo " 4) Install the Flatpak package manager"
+    echo " 5) Install Vesktop (requires Flatpak)"
+    echo " 6) Set up Vencord/Vesktop Activity Status"
+    echo " 7) Install Mission Center"
+    echo " 8) Install FUSE (Filesystem in Userspace)"
+    echo " 9) Install the Hyprspace plugin for Hyprland"
+    echo " 10) Install YouTube Music"
+    echo " 11) Install Wallpaper Engine"
+    echo " 12) Install Steam"
+    echo " 13) Copy local Hyprland config files to ~/.config/hypr/"
+    echo " 14) Install SDDM Astronaut Theme"
+    echo " 15) Install Caprine"
+    echo " 16) Add Flatpak override for Caprine"
+    echo " 17) Clone thai_fonts.css for Vesktop"
     echo "------------------------------------------------------------"
-    echo " 14) Install ALL components and apply configurations"
-    echo " 15) Exit"
+    echo " 18) Exit"
     echo "------------------------------------------------------------"
 }
 
 main_menu() {
     while true; do
         show_menu
-        read -p "Enter your choice [1-15]: " choice
+        read -p "Enter your choice [1-18]: " choice
         
         echo "------------------------------------------------------------"
 
         case $choice in
-            1) install_hyde ;;
-            2) install_power_options ;;
-            3) install_flatpak ;;
-            4) install_vesktop ;;
-            5) setup_vesktop_rpc ;;
-            6) install_mission_center ;;
-            7) install_fuse ;;
-            8) install_hyprspace ;;
-            9) install_youtube_music ;;
-            10) install_wallpaper_engine ;;
-            11) install_steam ;;
-            12) copy_hypr_configs ;;
-            13) install_sddm_theme ;;
-            14)
-                echo "Starting full installation of all components..."
-                install_hyde
-                install_power_options
-                install_flatpak
-                install_vesktop
-                setup_vesktop_rpc
-                install_mission_center
-                install_fuse
-                install_hyprspace
-                install_youtube_music
-                install_wallpaper_engine
-                install_steam
-                copy_hypr_configs
-                install_sddm_theme
-                echo "Full installation complete."
+            1)
+                echo "Starting full installation process..."
+                echo "You will be asked to confirm each step."
+
+                if ask_yes_no "Install HyDE?"; then install_hyde; fi
+                if ask_yes_no "Install Power Options?"; then install_power_options; fi
+                if ask_yes_no "Install Flatpak?"; then install_flatpak; fi
+                if ask_yes_no "Install Vesktop?"; then install_vesktop; fi
+                if ask_yes_no "Set up Vencord/Vesktop Activity Status?"; then setup_vesktop_rpc; fi
+                if ask_yes_no "Install Mission Center?"; then install_mission_center; fi
+                if ask_yes_no "Install FUSE?"; then install_fuse; fi
+                if ask_yes_no "Install the Hyprspace plugin for Hyprland?"; then install_hyprspace; fi
+                if ask_yes_no "Install YouTube Music?"; then install_youtube_music; fi
+                if ask_yes_no "Install Wallpaper Engine?"; then install_wallpaper_engine; fi
+                if ask_yes_no "Install Steam?"; then install_steam; fi
+                if ask_yes_no "Copy local Hyprland config files?"; then copy_hypr_configs; fi
+                if ask_yes_no "Install SDDM Astronaut Theme?"; then install_sddm_theme; fi
+                if ask_yes_no "Install Caprine?"; then install_caprine; fi
+                if ask_yes_no "Add Flatpak override for Caprine?"; then override_caprine; fi
+                if ask_yes_no "Clone thai_fonts.css for Vesktop?"; then clone_thai_fonts_css; fi
+
+                echo "Full installation process finished."
                 ;;
-            15)
+            2) install_hyde ;;
+            3) install_power_options ;;
+            4) install_flatpak ;;
+            5) install_vesktop ;;
+            6) setup_vesktop_rpc ;;
+            7) install_mission_center ;;
+            8) install_fuse ;;
+            9) install_hyprspace ;;
+            10) install_youtube_music ;;
+            11) install_wallpaper_engine ;;
+            12) install_steam ;;
+            13) copy_hypr_configs ;;
+            14) install_sddm_theme ;;
+            15) install_caprine ;;
+            16) override_caprine ;;
+            17) clone_thai_fonts_css ;;
+            18)
                 echo "Exiting script. Goodbye!"
                 break
                 ;;
@@ -206,7 +258,7 @@ main_menu() {
                 ;;
         esac
         
-        if [[ "$choice" != "15" ]]; then
+        if [[ "$choice" != "18" ]]; then
             echo "------------------------------------------------------------"
             read -p "Press Enter to return to the menu..."
         fi
