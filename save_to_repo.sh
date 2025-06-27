@@ -3,9 +3,9 @@
 #-------------------------------------------------------
 # Configuration
 #-------------------------------------------------------
-SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+REPO_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 SOURCE_DIR="$HOME/.config/hypr"
-DEST_DIR="$SCRIPT_DIR/../configs/hypr"
+DEST_DIR="$REPO_DIR/configs/hypr"
 
 #-------------------------------------------------------
 # Main Logic

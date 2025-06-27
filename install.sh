@@ -1,6 +1,11 @@
 #!/bin/bash
 
 #-------------------------------------------------------
+# Global Variables
+#-------------------------------------------------------
+repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+
+#-------------------------------------------------------
 # Helper Functions
 #-------------------------------------------------------
 
@@ -89,9 +94,7 @@ install_hyprspace() {
 }
 
 copy_hypr_configs() {
-    local script_dir
-    script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    local config_src_dir="$script_dir/../configs/hypr"
+    local config_src_dir="$repo_dir/configs/hypr"
     local config_dest_dir="$HOME/.config/hypr"
 
     if [ -d "$config_src_dir" ]; then
@@ -148,9 +151,7 @@ override_caprine() {
 }
 
 clone_thai_fonts_css() {
-    local script_dir
-    script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-    local source_file="$script_dir/../configs/thai_fonts.css"
+    local source_file="$repo_dir/configs/thai_fonts.css"
     local dest_file="$HOME/.var/app/dev.vencord.Vesktop/config/vesktop/settings/quickCss.css"
     local dest_dir
 
