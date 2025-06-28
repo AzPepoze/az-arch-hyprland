@@ -28,7 +28,7 @@ fi
 for dest_file in "$DEST_DIR"/*; do
     if [ -f "$dest_file" ]; then
         filename=$(basename "$dest_file")
-        source_file="$SOURCE_DonceIR/$filename"
+        source_file="$SOURCE_DIR/$filename"
 
         if [ -f "$source_file" ]; then
             echo "Updating '$filename'..."
