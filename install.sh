@@ -120,12 +120,15 @@ install_hyde() {
     echo "Checking for and installing necessary dependencies (git, base-devel)..."
     sudo pacman -S --needed git base-devel --noconfirm
     
-    echo "Cloning and running HyDE installer..."
-    git clone --depth 1 https://github.com/HyDE-Project/HyDE ~/HyDE
-    cd ~/HyDE/Scripts
-    git pull
-    ./install.sh
-    cd - &> /dev/null
+    echo "Cloning and running HyDE installer..."    
+    if [ ! -d "$HOME/HyDE" ]; then
+        git clone --depth 1 https://github.com/HyDE-Project/HyDE ~/HyDE
+    fi
+    (
+        cd ~/HyDE/Scripts || { echo "Error: Failed to cd into ~/HyDE/Scripts"; exit 1; }
+        git pull
+        ./install.sh
+    )
 }
 
 install_hyprspace() {
@@ -249,7 +252,7 @@ install_ms_edge() {
 }
 
 install_zen_browser() {
-    install_flatpak_package "io.github.zen_browser.Zen" "Zen Browser"
+    install_flatpak_package "app.zen_browser.zen" "Zen Browser"
 }
 
 #-------------------------------------------------------
