@@ -23,8 +23,97 @@ ask_yes_no() {
     done
 }
 
+install_pacman_package() {
+    local package="$1"
+    local friendly_name="$2"
+    echo "Installing $friendly_name..."
+    sudo pacman -S --needed "$package" --noconfirm
+    echo "$friendly_name installation completed successfully."
+}
+
+install_paru_package() {
+    local package="$1"
+    local friendly_name="$2"
+    if ! command -v paru &> /dev/null; then
+        echo "Error: paru is not installed. Skipping $friendly_name installation."
+        echo "Please install paru first."
+        return 1
+    fi
+    echo "Installing $friendly_name ($package) using paru..."
+    paru -S --noconfirm "$package"
+    echo "$friendly_name installation completed successfully."
+}
+
+install_flatpak_package() {
+    local package_id="$1"
+    local friendly_name="$2"
+    if ! command -v flatpak &> /dev/null; then
+        echo "Error: Flatpak is not installed. Skipping $friendly_name installation."
+        echo "Please install Flatpak first."
+        return 1
+    fi
+    echo "Installing $friendly_name from Flathub..."
+    flatpak install flathub "$package_id" -y
+    echo "$friendly_name installation completed."
+}
+
+
 #-------------------------------------------------------
-# Installation Tasks
+# Group: Core System & Package Management
+#-------------------------------------------------------
+
+install_paru() {
+    echo "Installing paru (AUR Helper)..."
+    if command -v paru &> /dev/null; then
+        echo "paru is already installed."
+        return 0
+    fi
+
+    echo "Installing dependencies for paru (git, base-devel)..."
+    sudo pacman -S --needed git base-devel --noconfirm
+
+    local temp_dir
+    temp_dir=$(mktemp -d)
+    if [ -z "$temp_dir" ]; then
+        echo "Error: Could not create temporary directory."
+        return 1
+    fi
+
+    echo "Cloning paru from AUR into a temporary directory..."
+    if ! git clone https://aur.archlinux.org/paru.git "$temp_dir/paru"; then
+        echo "Error: Failed to clone paru repository."
+        rm -rf "$temp_dir"
+        return 1
+    fi
+
+    (
+        cd "$temp_dir/paru" || exit 1
+        echo "Building and installing paru..."
+        makepkg -si --noconfirm
+    )
+
+    echo "Cleaning up..."
+    rm -rf "$temp_dir"
+}
+
+install_flatpak() {
+    install_pacman_package "flatpak" "Flatpak"
+}
+
+install_fuse() {
+    install_paru_package "fuse" "FUSE (Filesystem in Userspace)"
+}
+
+install_npm() {
+    install_pacman_package "npm" "npm"
+}
+
+install_pnpm() {
+    install_paru_package "pnpm" "pnpm"
+}
+
+#-------------------------------------------------------
+# Group: Desktop Environment - Hyprland
 #-------------------------------------------------------
 
 install_hyde() {
@@ -39,52 +128,14 @@ install_hyde() {
     cd - &> /dev/null
 }
 
-install_power_options() {
-    echo "Installing Power Options (power-options-gtk-git) using yay..."
-    yay -S --noconfirm power-options-gtk-git
-    echo "Power Options installation completed successfully."
-}
-
-install_flatpak() {
-    echo "Installing Flatpak..."
-    sudo pacman -S --needed flatpak --noconfirm
-    echo "Flatpak installation completed."
-}
-
-install_vesktop() {
-    if ! command -v flatpak &> /dev/null; then
-        echo "Error: Flatpak is not installed. Skipping Vesktop installation."
-        echo "Please install Flatpak first."
+install_hyprspace() {
+    if ! command -v paru &> /dev/null; then
+        echo "Error: paru is not installed. Skipping Hyprspace dependency installation."
+        echo "Please install paru first."
         return 1
     fi
-    echo "Installing Vesktop from Flathub..."
-    flatpak install flathub dev.vencord.Vesktop -y
-    echo "Vesktop installation completed."
-}
-
-setup_vesktop_rpc() {
-    echo "Setting up Vencord/Vesktop Activity Status (for Flatpak)..."
-    mkdir -p ~/.config/user-tmpfiles.d
-    echo 'L %t/discord-ipc-0 - - - - .flatpak/dev.vencord.Vesktop/xdg-run/discord-ipc-0' > ~/.config/user-tmpfiles.d/discord-rpc.conf
-    systemctl --user enable --now systemd-tmpfiles-setup.service
-    echo "Activity Status setup completed successfully."
-}
-
-install_mission_center() {
-    echo "Installing Mission Center..."
-    yay -S --noconfirm mission-center
-    echo "Mission Center installation completed."
-}
-
-install_fuse() {
-    echo "Installing FUSE (Filesystem in Userspace)..."
-    yay -S --noconfirm fuse
-    echo "FUSE installation completed."
-}
-
-install_hyprspace() {
     echo "Installing Hyprspace dependencies (cpio, cmake, etc.)..."
-    yay -S --noconfirm cpio cmake git meson gcc
+    paru -S --noconfirm cpio cmake git meson gcc
     
     echo "Adding and enabling Hyprspace plugin via hyprpm..."
     hyprpm update
@@ -109,45 +160,59 @@ copy_hypr_configs() {
     fi
 }
 
-install_youtube_music() {
-    echo "Installing YouTube Music (youtube-music-bin) using yay..."
-    yay -S --noconfirm youtube-music-bin
-    echo "YouTube Music installation completed successfully."
+#-------------------------------------------------------
+# Group: System Utilities
+#-------------------------------------------------------
+
+install_power_options() {
+    install_paru_package "power-options-gtk-git" "Power Options"
 }
 
-install_wallpaper_engine() {
-    echo "Installing Wallpaper Engine (linux-wallpaperengine-git) using yay..."
-    yay -S --noconfirm linux-wallpaperengine-git
-    echo "Wallpaper Engine installation completed successfully."
+install_mission_center() {
+    install_paru_package "mission-center" "Mission Center"
 }
 
-install_steam() {
-    echo "Installing Steam..."
-    yay -S --noconfirm steam
-    echo "Steam installation completed successfully."
+install_rclone() {
+    install_paru_package "rclone" "rclone"
 }
 
-install_sddm_theme() {
-    echo "Installing SDDM Astronaut Theme..."
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/keyitdev/sddm-astronaut-theme/master/setup.sh)"
-    echo "SDDM Astronaut Theme installation attempted."
+setup_rclone_gdrive() {
+    echo "Starting rclone configuration for Google Drive..."
+    echo "You will be guided through the setup process by rclone."
+    echo "When asked, choose 'n' for a new remote."
+    echo "Name it 'gdrive' (or a name of your choice)."
+    echo "Select the number corresponding to 'drive' (Google Drive)."
+    echo "Leave client_id and client_secret blank."
+    echo "Choose '1' for full access to all files."
+    echo "Leave root_folder_id and service_account_file blank."
+    echo "Choose 'n' for Edit advanced config."
+    echo "Choose 'y' for Use auto config."
+    echo "Follow the browser instructions to authorize rclone."
+    echo "Choose 'y' to confirm the new remote."
+    echo "Finally, choose 'q' to quit the configuration."
+    echo
+
+    mkdir -p ~/GoogleDrive
+    
+    rclone config
+
+    echo "rclone configuration Google Drive finished."
 }
 
-install_caprine() {
-    if ! command -v flatpak &> /dev/null; then
-        echo "Error: Flatpak is not installed. Skipping Caprine installation."
-        echo "Please install Flatpak first."
-        return 1
-    fi
-    echo "Installing Caprine from Flathub..."
-    flatpak install flathub com.sindresorhus.Caprine -y
-    echo "Caprine installation completed."
+#-------------------------------------------------------
+# Group: Applications
+#-------------------------------------------------------
+
+install_vesktop() {
+    install_flatpak_package "dev.vencord.Vesktop" "Vesktop"
 }
 
-override_caprine() {
-    echo "Applying Flatpak override for Caprine..."
-    flatpak override --user --socket=wayland com.sindresorhus.Caprine
-    echo "Caprine override completed."
+setup_vesktop_rpc() {
+    echo "Setting up Vencord/Vesktop Activity Status (for Flatpak)..."
+    mkdir -p ~/.config/user-tmpfiles.d
+    echo 'L %t/discord-ipc-0 - - - - .flatpak/dev.vencord.Vesktop/xdg-run/discord-ipc-0' > ~/.config/user-tmpfiles.d/discord-rpc.conf
+    systemctl --user enable --now systemd-tmpfiles-setup.service
+    echo "Activity Status setup completed successfully."
 }
 
 clone_thai_fonts_css() {
@@ -171,6 +236,37 @@ clone_thai_fonts_css() {
     echo "Successfully cloned thai_fonts.css to the Vesktop directory."
 }
 
+install_youtube_music() {
+    install_paru_package "youtube-music-bin" "YouTube Music"
+}
+
+install_steam() {
+    install_paru_package "steam" "Steam"
+}
+
+install_ms_edge() {
+    install_paru_package "microsoft-edge-dev-bin" "Microsoft Edge (Dev)"
+}
+
+install_zen_browser() {
+    install_flatpak_package "io.github.zen_browser.Zen" "Zen Browser"
+}
+
+#-------------------------------------------------------
+# Group: Theming & Customization
+#-------------------------------------------------------
+
+install_wallpaper_engine() {
+    install_paru_package "linux-wallpaperengine-git" "Wallpaper Engine"
+}
+
+install_sddm_theme() {
+    echo "Installing SDDM Astronaut Theme..."
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/keyitdev/sddm-astronaut-theme/master/setup.sh)"
+    echo "SDDM Astronaut Theme installation attempted."
+}
+
+
 #-------------------------------------------------------
 # Main Logic
 #-------------------------------------------------------
@@ -181,32 +277,49 @@ show_menu() {
     echo " AzP Arch Setup Script - Main Menu"
     echo "------------------------------------------------------------"
     echo "Please select an option:"
+    echo
+    echo "--- Installation Suite ---"
     echo " 1) Install ALL components and apply configurations"
-    echo " 2) Install HyDE"
-    echo " 3) Install Power Options (power-options-gtk-git)"
-    echo " 4) Install the Flatpak package manager"
-    echo " 5) Install Vesktop (requires Flatpak)"
-    echo " 6) Set up Vencord/Vesktop Activity Status"
-    echo " 7) Install Mission Center"
-    echo " 8) Install FUSE (Filesystem in Userspace)"
-    echo " 9) Install the Hyprspace plugin for Hyprland"
-    echo " 10) Install YouTube Music"
-    echo " 11) Install Wallpaper Engine"
-    echo " 12) Install Steam"
-    echo " 13) Copy local Hyprland config files to ~/.config/hypr/"
-    echo " 14) Install SDDM Astronaut Theme"
-    echo " 15) Install Caprine"
-    echo " 16) Add Flatpak override for Caprine"
-    echo " 17) Clone thai_fonts.css for Vesktop"
+    echo
+    echo "--- Core System & Package Management ---"
+    echo " 2) Install paru (AUR Helper)"
+    echo " 3) Install the Flatpak package manager"
+    echo " 4) Install FUSE (Filesystem in Userspace)"
+    echo " 5) Install npm"
+    echo " 6) Install pnpm"
+    echo
+    echo "--- Desktop Environment - Hyprland ---"
+    echo " 7) Install HyDE"
+    echo " 8) Install the Hyprspace plugin for Hyprland"
+    echo " 9) Copy local Hyprland config files to ~/.config/hypr/"
+    echo
+    echo "--- System Utilities ---"
+    echo " 10) Install Power Options (power-options-gtk-git)"
+    echo " 11) Install Mission Center"
+    echo " 12) Install rclone"
+    echo " 13) Setup Google Drive with rclone"
+    echo
+    echo "--- Applications ---"
+    echo " 14) Install Vesktop (requires Flatpak)"
+    echo " 15) Set up Vencord/Vesktop Activity Status"
+    echo " 16) Clone thai_fonts.css for Vesktop"
+    echo " 17) Install YouTube Music"
+    echo " 18) Install Steam"
+    echo " 19) Install Microsoft Edge (Dev)"
+    echo " 20) Install Zen Browser (requires Flatpak)"
+    echo
+    echo "--- Theming & Customization ---"
+    echo " 21) Install Wallpaper Engine"
+    echo " 22) Install SDDM Astronaut Theme"
     echo "------------------------------------------------------------"
-    echo " 18) Exit"
+    echo " 23) Exit"
     echo "------------------------------------------------------------"
 }
 
 main_menu() {
     while true; do
         show_menu
-        read -p "Enter your choice [1-18]: " choice
+        read -p "Enter your choice [1-23]: " choice
         
         echo "------------------------------------------------------------"
 
@@ -215,42 +328,56 @@ main_menu() {
                 echo "Starting full installation process..."
                 echo "You will be asked to confirm each step."
 
-                if ask_yes_no "Install HyDE?"; then install_hyde; fi
-                if ask_yes_no "Install Power Options?"; then install_power_options; fi
+                if ask_yes_no "Install paru (AUR Helper)?"; then install_paru; fi
                 if ask_yes_no "Install Flatpak?"; then install_flatpak; fi
+                if ask_yes_no "Install FUSE?"; then install_fuse; fi
+                if ask_yes_no "Install npm?"; then install_npm; fi
+                if ask_yes_no "Install pnpm?"; then install_pnpm; fi
+
+                if ask_yes_no "Install HyDE?"; then install_hyde; fi
+                if ask_yes_no "Install the Hyprspace plugin for Hyprland?"; then install_hyprspace; fi
+                if ask_yes_no "Copy local Hyprland config files?"; then copy_hypr_configs; fi
+                
+                if ask_yes_no "Install Power Options?"; then install_power_options; fi
+                if ask_yes_no "Install Mission Center?"; then install_mission_center; fi
+                if ask_yes_no "Install rclone?"; then install_rclone; fi
+                if ask_yes_no "Setup Google Drive with rclone?"; then setup_rclone_gdrive; fi
+
                 if ask_yes_no "Install Vesktop?"; then install_vesktop; fi
                 if ask_yes_no "Set up Vencord/Vesktop Activity Status?"; then setup_vesktop_rpc; fi
-                if ask_yes_no "Install Mission Center?"; then install_mission_center; fi
-                if ask_yes_no "Install FUSE?"; then install_fuse; fi
-                if ask_yes_no "Install the Hyprspace plugin for Hyprland?"; then install_hyprspace; fi
-                if ask_yes_no "Install YouTube Music?"; then install_youtube_music; fi
-                if ask_yes_no "Install Wallpaper Engine?"; then install_wallpaper_engine; fi
-                if ask_yes_no "Install Steam?"; then install_steam; fi
-                if ask_yes_no "Copy local Hyprland config files?"; then copy_hypr_configs; fi
-                if ask_yes_no "Install SDDM Astronaut Theme?"; then install_sddm_theme; fi
-                if ask_yes_no "Install Caprine?"; then install_caprine; fi
-                if ask_yes_no "Add Flatpak override for Caprine?"; then override_caprine; fi
                 if ask_yes_no "Clone thai_fonts.css for Vesktop?"; then clone_thai_fonts_css; fi
+                if ask_yes_no "Install YouTube Music?"; then install_youtube_music; fi
+                if ask_yes_no "Install Steam?"; then install_steam; fi
+                if ask_yes_no "Install Microsoft Edge (Dev)?"; then install_ms_edge; fi
+                if ask_yes_no "Install Zen Browser?"; then install_zen_browser; fi
+
+                if ask_yes_no "Install Wallpaper Engine?"; then install_wallpaper_engine; fi
+                if ask_yes_no "Install SDDM Astronaut Theme?"; then install_sddm_theme; fi
 
                 echo "Full installation process finished."
                 ;;
-            2) install_hyde ;;
-            3) install_power_options ;;
-            4) install_flatpak ;;
-            5) install_vesktop ;;
-            6) setup_vesktop_rpc ;;
-            7) install_mission_center ;;
-            8) install_fuse ;;
-            9) install_hyprspace ;;
-            10) install_youtube_music ;;
-            11) install_wallpaper_engine ;;
-            12) install_steam ;;
-            13) copy_hypr_configs ;;
-            14) install_sddm_theme ;;
-            15) install_caprine ;;
-            16) override_caprine ;;
-            17) clone_thai_fonts_css ;;
-            18)
+            2) install_paru ;;
+            3) install_flatpak ;;
+            4) install_fuse ;;
+            5) install_npm ;;
+            6) install_pnpm ;;
+            7) install_hyde ;;
+            8) install_hyprspace ;;
+            9) copy_hypr_configs ;;
+            10) install_power_options ;;
+            11) install_mission_center ;;
+            12) install_rclone ;;
+            13) setup_rclone_gdrive ;;
+            14) install_vesktop ;;
+            15) setup_vesktop_rpc ;;
+            16) clone_thai_fonts_css ;;
+            17) install_youtube_music ;;
+            18) install_steam ;;
+            19) install_ms_edge ;;
+            20) install_zen_browser ;;
+            21) install_wallpaper_engine ;;
+            22) install_sddm_theme ;;
+            23)
                 echo "Exiting script. Goodbye!"
                 break
                 ;;
@@ -259,7 +386,7 @@ main_menu() {
                 ;;
         esac
         
-        if [[ "$choice" != "18" ]]; then
+        if [[ "$choice" != "23" ]]; then
             echo "------------------------------------------------------------"
             read -p "Press Enter to return to the menu..."
         fi
