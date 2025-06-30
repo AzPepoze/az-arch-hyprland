@@ -257,6 +257,14 @@ install_zen_browser() {
      install_flatpak_package "app.zen_browser.zen" "Zen Browser"
 }
 
+install_pinta() {
+     install_pacman_package "pinta" "Pinta"
+}
+
+install_switcheroo() {
+     install_paru_package "switcheroo-adw-gtk-theme-switcher" "Switcheroo"
+}
+
 #-------------------------------------------------------
 # Group: Theming & Customization
 #-------------------------------------------------------
@@ -356,20 +364,22 @@ show_menu() {
      echo " 18) Install Steam"
      echo " 19) Install Microsoft Edge (Dev)"
      echo " 20) Install Zen Browser (requires Flatpak)"
+     echo " 21) Install Pinta"
+     echo " 22) Install Switcheroo"
      echo
      echo "--- Theming & Customization ---"
-     echo " 21) Install Wallpaper Engine"
-     echo " 22) Install Linux Wallpaper Engine GUI (Manual Build)"
-     echo " 23) Install SDDM Astronaut Theme"
+     echo " 23) Install Wallpaper Engine"
+     echo " 24) Install Linux Wallpaper Engine GUI (Manual Build)"
+     echo " 25) Install SDDM Astronaut Theme"
      echo "------------------------------------------------------------"
-     echo " 24) Exit"
+     echo " 26) Exit"
      echo "------------------------------------------------------------"
 }
 
 main_menu() {
      while true; do
           show_menu
-          read -p "Enter your choice [1-24]: " choice
+          read -p "Enter your choice [1-26]: " choice
 
           echo "------------------------------------------------------------"
 
@@ -400,6 +410,8 @@ main_menu() {
                if ask_yes_no "Install Steam?"; then install_steam; fi
                if ask_yes_no "Install Microsoft Edge (Dev)?"; then install_ms_edge; fi
                if ask_yes_no "Install Zen Browser?"; then install_zen_browser; fi
+               if ask_yes_no "Install Pinta?"; then install_pinta; fi
+               if ask_yes_no "Install Switcheroo?"; then install_switcheroo; fi
 
                if ask_yes_no "Install Wallpaper Engine?"; then install_wallpaper_engine; fi
                if ask_yes_no "Install Linux Wallpaper Engine GUI (Manual Build)?"; then install_wallpaper_engine_gui_manual; fi
@@ -426,10 +438,12 @@ main_menu() {
           18) install_steam ;;
           19) install_ms_edge ;;
           20) install_zen_browser ;;
-          21) install_wallpaper_engine ;;
-          22) install_wallpaper_engine_gui_manual ;;
-          23) install_sddm_theme ;;
-          24)
+          21) install_pinta ;;
+          22) install_switcheroo ;;
+          23) install_wallpaper_engine ;;
+          24) install_wallpaper_engine_gui_manual ;;
+          25) install_sddm_theme ;;
+          26)
                echo "Exiting script. Goodbye!"
                break
                ;;
@@ -438,7 +452,7 @@ main_menu() {
                ;;
           esac
 
-          if [[ "$choice" != "24" ]]; then
+          if [[ "$choice" != "26" ]]; then
                echo "------------------------------------------------------------"
                read -p "Press Enter to return to the menu..."
           fi
