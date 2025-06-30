@@ -265,6 +265,10 @@ install_switcheroo() {
      install_paru_package "switcheroo-adw-gtk-theme-switcher" "Switcheroo"
 }
 
+install_ferdium() {
+     install_paru_package "ferdium-bin" "Ferdium"
+}
+
 #-------------------------------------------------------
 # Group: Theming & Customization
 #-------------------------------------------------------
@@ -366,20 +370,21 @@ show_menu() {
      echo " 20) Install Zen Browser (requires Flatpak)"
      echo " 21) Install Pinta"
      echo " 22) Install Switcheroo"
+     echo " 23) Install Ferdium"
      echo
      echo "--- Theming & Customization ---"
-     echo " 23) Install Wallpaper Engine"
-     echo " 24) Install Linux Wallpaper Engine GUI (Manual Build)"
-     echo " 25) Install SDDM Astronaut Theme"
+     echo " 24) Install Wallpaper Engine"
+     echo " 25) Install Linux Wallpaper Engine GUI (Manual Build)"
+     echo " 26) Install SDDM Astronaut Theme"
      echo "------------------------------------------------------------"
-     echo " 26) Exit"
+     echo " 27) Exit"
      echo "------------------------------------------------------------"
 }
 
 main_menu() {
      while true; do
           show_menu
-          read -p "Enter your choice [1-26]: " choice
+          read -p "Enter your choice [1-27]: " choice
 
           echo "------------------------------------------------------------"
 
@@ -412,6 +417,7 @@ main_menu() {
                if ask_yes_no "Install Zen Browser?"; then install_zen_browser; fi
                if ask_yes_no "Install Pinta?"; then install_pinta; fi
                if ask_yes_no "Install Switcheroo?"; then install_switcheroo; fi
+               if ask_yes_no "Install Ferdium?"; then install_ferdium; fi
 
                if ask_yes_no "Install Wallpaper Engine?"; then install_wallpaper_engine; fi
                if ask_yes_no "Install Linux Wallpaper Engine GUI (Manual Build)?"; then install_wallpaper_engine_gui_manual; fi
@@ -440,10 +446,11 @@ main_menu() {
           20) install_zen_browser ;;
           21) install_pinta ;;
           22) install_switcheroo ;;
-          23) install_wallpaper_engine ;;
-          24) install_wallpaper_engine_gui_manual ;;
-          25) install_sddm_theme ;;
-          26)
+          23) install_ferdium ;;
+          24) install_wallpaper_engine ;;
+          25) install_wallpaper_engine_gui_manual ;;
+          26) install_sddm_theme ;;
+          27)
                echo "Exiting script. Goodbye!"
                break
                ;;
@@ -452,7 +459,7 @@ main_menu() {
                ;;
           esac
 
-          if [[ "$choice" != "26" ]]; then
+          if [[ "$choice" != "27" ]]; then
                echo "------------------------------------------------------------"
                read -p "Press Enter to return to the menu..."
           fi
