@@ -182,6 +182,7 @@ install_rclone() {
 }
 
 setup_rclone_gdrive() {
+     echo
      echo "Starting rclone configuration for Google Drive..."
      echo "You will be guided through the setup process by rclone."
      echo "When asked, choose 'n' for a new remote."
@@ -262,7 +263,7 @@ install_pinta() {
 }
 
 install_switcheroo() {
-     install_paru_package "switcheroo-adw-gtk-theme-switcher" "Switcheroo"
+     install_paru_package "switcheroo" "Switcheroo"
 }
 
 install_ferdium() {
