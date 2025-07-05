@@ -271,8 +271,8 @@ install_switcheroo() {
      install_paru_package "switcheroo" "Switcheroo"
 }
 
-install_bitbleach() {
-     install_paru_package "bitbleach" "BitBleach"
+install_bleachbit() {
+     install_paru_package "bleachbit" "BleachBit"
 }
 
 
@@ -379,7 +379,7 @@ show_menu() {
      echo " 20) Install Zen Browser (requires Flatpak)"
      echo " 22) Install Pinta"
      echo " 23) Install Switcheroo"
-     echo " 24) Install BitBleach"
+     echo " 24) Install BleachBit"
      echo
      echo "--- Theming & Customization ---"
      echo " 24) Install Wallpaper Engine"
@@ -427,7 +427,7 @@ main_menu() {
                if ask_yes_no "Install Zen Browser?"; then install_zen_browser; fi
                if ask_yes_no "Install Pinta?"; then install_pinta; fi
                if ask_yes_no "Install Switcheroo?"; then install_switcheroo; fi
-               if ask_yes_no "Install BitBleach?"; then install_bitbleach; fi
+               if ask_yes_no "Install BleachBit?"; then install_bleachbit; fi
 
                if ask_yes_no "Install Wallpaper Engine?"; then install_wallpaper_engine; fi
                if ask_yes_no "Install Linux Wallpaper Engine GUI (Manual Build)?"; then install_wallpaper_engine_gui_manual; fi
@@ -457,7 +457,7 @@ main_menu() {
           21) install_zen_browser ;;
           22) install_pinta ;;
           23) install_switcheroo ;;
-          24) install_bitbleach ;;
+          24) install_bleachbit ;;
           25) install_wallpaper_engine ;;
           26) install_wallpaper_engine_gui_manual ;;
           27) install_sddm_theme ;;
