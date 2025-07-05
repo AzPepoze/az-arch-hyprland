@@ -169,6 +169,10 @@ copy_hypr_configs() {
 # Group: System Utilities
 #-------------------------------------------------------
 
+install_inotify_tools() {
+     install_pacman_package "inotify-tools" "inotify-tools"
+}
+
 install_power_options() {
      install_paru_package "power-options-gtk-git" "Power Options"
 }
@@ -267,9 +271,11 @@ install_switcheroo() {
      install_paru_package "switcheroo" "Switcheroo"
 }
 
-install_ferdium() {
-     install_paru_package "ferdium-bin" "Ferdium"
+install_bitbleach() {
+     install_paru_package "bitbleach" "BitBleach"
 }
+
+
 
 #-------------------------------------------------------
 # Group: Theming & Customization
@@ -357,10 +363,11 @@ show_menu() {
      echo " 9) Copy local Hyprland config files to ~/.config/hypr/"
      echo
      echo "--- System Utilities ---"
-     echo " 10) Install Power Options (power-options-gtk-git)"
-     echo " 11) Install Mission Center"
-     echo " 12) Install rclone"
-     echo " 13) Setup Google Drive with rclone"
+     echo " 10) Install inotify-tools"
+     echo " 11) Install Power Options (power-options-gtk-git)"
+     echo " 12) Install Mission Center"
+     echo " 13) Install rclone"
+     echo " 14) Setup Google Drive with rclone"
      echo
      echo "--- Applications ---"
      echo " 14) Install Vesktop (requires Flatpak)"
@@ -370,9 +377,9 @@ show_menu() {
      echo " 18) Install Steam"
      echo " 19) Install Microsoft Edge (Dev)"
      echo " 20) Install Zen Browser (requires Flatpak)"
-     echo " 21) Install Pinta"
-     echo " 22) Install Switcheroo"
-     echo " 23) Install Ferdium"
+     echo " 22) Install Pinta"
+     echo " 23) Install Switcheroo"
+     echo " 24) Install BitBleach"
      echo
      echo "--- Theming & Customization ---"
      echo " 24) Install Wallpaper Engine"
@@ -405,6 +412,7 @@ main_menu() {
                if ask_yes_no "Install the Hyprspace plugin for Hyprland?"; then install_hyprspace; fi
                if ask_yes_no "Copy local Hyprland config files?"; then copy_hypr_configs; fi
 
+               if ask_yes_no "Install inotify-tools?"; then install_inotify_tools; fi
                if ask_yes_no "Install Power Options?"; then install_power_options; fi
                if ask_yes_no "Install Mission Center?"; then install_mission_center; fi
                if ask_yes_no "Install rclone?"; then install_rclone; fi
@@ -419,7 +427,7 @@ main_menu() {
                if ask_yes_no "Install Zen Browser?"; then install_zen_browser; fi
                if ask_yes_no "Install Pinta?"; then install_pinta; fi
                if ask_yes_no "Install Switcheroo?"; then install_switcheroo; fi
-               if ask_yes_no "Install Ferdium?"; then install_ferdium; fi
+               if ask_yes_no "Install BitBleach?"; then install_bitbleach; fi
 
                if ask_yes_no "Install Wallpaper Engine?"; then install_wallpaper_engine; fi
                if ask_yes_no "Install Linux Wallpaper Engine GUI (Manual Build)?"; then install_wallpaper_engine_gui_manual; fi
@@ -435,24 +443,25 @@ main_menu() {
           7) install_hyde ;;
           8) install_hyprspace ;;
           9) copy_hypr_configs ;;
-          10) install_power_options ;;
-          11) install_mission_center ;;
-          12) install_rclone ;;
-          13) setup_rclone_gdrive ;;
-          14) install_vesktop ;;
-          15) setup_vesktop_rpc ;;
-          16) clone_thai_fonts_css ;;
-          17) install_youtube_music ;;
-          18) install_steam ;;
-          19) install_ms_edge ;;
-          20) install_zen_browser ;;
-          21) install_pinta ;;
-          22) install_switcheroo ;;
-          23) install_ferdium ;;
-          24) install_wallpaper_engine ;;
-          25) install_wallpaper_engine_gui_manual ;;
-          26) install_sddm_theme ;;
-          27)
+          10) install_inotify_tools ;;
+          11) install_power_options ;;
+          12) install_mission_center ;;
+          13) install_rclone ;;
+          14) setup_rclone_gdrive ;;
+          15) install_vesktop ;;
+          16) setup_vesktop_rpc ;;
+          17) clone_thai_fonts_css ;;
+          18) install_youtube_music ;;
+          19) install_steam ;;
+          20) install_ms_edge ;;
+          21) install_zen_browser ;;
+          22) install_pinta ;;
+          23) install_switcheroo ;;
+          24) install_bitbleach ;;
+          25) install_wallpaper_engine ;;
+          26) install_wallpaper_engine_gui_manual ;;
+          27) install_sddm_theme ;;
+          28)
                echo "Exiting script. Goodbye!"
                break
                ;;
