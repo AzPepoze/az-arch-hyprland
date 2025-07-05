@@ -275,6 +275,10 @@ install_bleachbit() {
      install_paru_package "bleachbit" "BleachBit"
 }
 
+install_qdirstat() {
+     install_paru_package "qdirstat" "QDirStat"
+}
+
 
 
 #-------------------------------------------------------
@@ -380,13 +384,14 @@ show_menu() {
      echo " 22) Install Pinta"
      echo " 23) Install Switcheroo"
      echo " 24) Install BleachBit"
+     echo " 25) Install QDirStat"
      echo
      echo "--- Theming & Customization ---"
-     echo " 24) Install Wallpaper Engine"
-     echo " 25) Install Linux Wallpaper Engine GUI (Manual Build)"
-     echo " 26) Install SDDM Astronaut Theme"
+     echo " 26) Install Wallpaper Engine"
+     echo " 27) Install Linux Wallpaper Engine GUI (Manual Build)"
+     echo " 28) Install SDDM Astronaut Theme"
      echo "------------------------------------------------------------"
-     echo " 27) Exit"
+     echo " 29) Exit"
      echo "------------------------------------------------------------"
 }
 
@@ -428,6 +433,7 @@ main_menu() {
                if ask_yes_no "Install Pinta?"; then install_pinta; fi
                if ask_yes_no "Install Switcheroo?"; then install_switcheroo; fi
                if ask_yes_no "Install BleachBit?"; then install_bleachbit; fi
+               if ask_yes_no "Install QDirStat?"; then install_qdirstat; fi
 
                if ask_yes_no "Install Wallpaper Engine?"; then install_wallpaper_engine; fi
                if ask_yes_no "Install Linux Wallpaper Engine GUI (Manual Build)?"; then install_wallpaper_engine_gui_manual; fi
@@ -458,10 +464,11 @@ main_menu() {
           22) install_pinta ;;
           23) install_switcheroo ;;
           24) install_bleachbit ;;
-          25) install_wallpaper_engine ;;
-          26) install_wallpaper_engine_gui_manual ;;
-          27) install_sddm_theme ;;
-          28)
+          25) install_qdirstat ;;
+          26) install_wallpaper_engine ;;
+          27) install_wallpaper_engine_gui_manual ;;
+          28) install_sddm_theme ;;
+          29)
                echo "Exiting script. Goodbye!"
                break
                ;;
