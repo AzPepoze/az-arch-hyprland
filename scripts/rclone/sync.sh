@@ -14,7 +14,23 @@ fi
 #-------------------------------------------------------
 RCLONE_LOG_FILE="$HOME/arch-setup/scripts/rclone/rclone.log"
 WATCH_DIR="$HOME/GoogleDrive"
-REMOTE_CHECK_INTERVAL=10
+REMOTE_CHECK_INTERVAL=60
+
+#-------------------------------------------------------
+# Functions
+#-------------------------------------------------------
+run_bisync() {
+     # Run rclone bisync with all specified arguments
+     # The first argument ($1) can be used for additional flags like --resync
+     rclone bisync gdrive: "$WATCH_DIR" \
+          --transfers=24 \
+          --checkers=48 \
+          --drive-chunk-size=64M \
+          --fast-list \
+          --progress \
+          --drive-acknowledge-abuse \
+          $1 # Pass the first argument as an extra flag
+}
 
 #-------------------------------------------------------
 # Main Logging Block
@@ -24,13 +40,7 @@ REMOTE_CHECK_INTERVAL=10
      # Initial Sync
      #-------------------------------------------------------
      echo "[$(date)] Performing initial sync on startup..."
-     rclone bisync gdrive: "$WATCH_DIR" \
-          --transfers=24 \
-          --checkers=48 \
-          --drive-chunk-size=64M \
-          --fast-list \
-          --progress \
-          --drive-acknowledge-abuse
+     run_bisync --resync
 
      #-------------------------------------------------------
      # Main Loop
@@ -52,16 +62,17 @@ REMOTE_CHECK_INTERVAL=10
                echo "[$(date)] Warning: inotifywait exited with code ${exit_code}. Triggering sync anyway and retrying."
           fi
 
-          # Run the sync command
-          rclone bisync gdrive: "$WATCH_DIR" \
-               --transfers=24 \
-               --checkers=48 \
-               --drive-chunk-size=64M \
-               --fast-list \
-               --progress \
-               --drive-acknowledge-abuse
+          # Run the sync command and capture output
+          sync_output=$(run_bisync 2>&1)
+          sync_exit_code=$?
+
+          # Check for the specific error requiring --resync
+          if [ $sync_exit_code -ne 0 ] && echo "$sync_output" | grep -q "Must run --resync to recover"; then
+               echo "[$(date)] Bisync aborted. Attempting to recover with --resync..."
+               run_bisync --resync
+          fi
 
           echo "[$(date)] Sync finished. Resuming watch."
      done
 
-} >>"$RCLONE_LOG_FILE" 2>&1
+}
