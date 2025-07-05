@@ -31,19 +31,24 @@ pre_sync_check() {
      # Check for a stale lock file before running sync
      if [ -f "$LOCK_FILE_PATH" ]; then
           log_message "Lock file found at ${LOCK_FILE_PATH}."
-          # Check if an rclone process is actually running
+          # Check if an rclone process is actually running and kill it
           if pgrep -x "rclone" >/dev/null; then
-               log_message "An rclone process is currently running. Skipping sync to avoid conflict."
-               return 1 # Return 1 to indicate that sync should be skipped
+               log_message "An rclone process is currently running. Killing it to proceed with sync..."
+               pkill -x "rclone"
+               sleep 1 # Give it a moment to terminate
+               log_message "Old rclone process killed."
           else
-               log_message "No rclone process found. Removing stale lock file..."
-               rclone deletefile "$LOCK_FILE_PATH"
-               if [ $? -eq 0 ]; then
-                    log_message "Stale lock file removed successfully."
-               else
-                    log_message "Error: Failed to remove stale lock file. Please check permissions."
-                    return 1 # Return 1 to indicate failure
-               fi
+               log_message "No rclone process found, treating lock file as stale."
+          fi
+
+          # Now that any running process is killed, we can remove the stale lock file.
+          log_message "Removing stale lock file..."
+          rclone deletefile "$LOCK_FILE_PATH"
+          if [ $? -eq 0 ]; then
+               log_message "Stale lock file removed successfully."
+          else
+               log_message "Error: Failed to remove stale lock file. Please check permissions."
+               return 1 # Return 1 to indicate failure
           fi
      fi
      return 0 # Return 0 to indicate that sync can proceed
@@ -106,16 +111,29 @@ while true; do
      if [ $? -ne 0 ]; then
           log_message "Pre-sync check failed. Sync will be attempted on the next cycle."
      else
-          # Run the sync command. Rclone will handle the logging.
-          run_bisync
-          sync_exit_code=$?
+          # Get log file size before sync to check only new output for errors.
+          local before_size=0
+          if [ -f "$RCLONE_LOG_FILE" ]; then
+               before_size=$(stat -c%s "$RCLONE_LOG_FILE")
+          fi
 
-          # Check for the specific error requiring --resync by inspecting the log file
-          # A small delay might help ensure the log is written before we grep it.
-          sleep 0.5
-          if [ $sync_exit_code -ne 0 ] && grep -q "bisync: Must run --resync to recover" "$RCLONE_LOG_FILE"; then
-               log_message "Bisync aborted. Attempting to recover with --resync..."
-               run_bisync --resync
+          # Run the sync command.
+          run_bisync
+          local sync_exit_code=$?
+
+          # Check for the specific error requiring --resync by inspecting only the new log entries.
+          if [ $sync_exit_code -ne 0 ]; then
+               # A small delay might help ensure the log is fully written before we read it.
+               sleep 0.5
+               if tail -c "+$((before_size + 1))" "$RCLONE_LOG_FILE" 2>/dev/null | grep -q "bisync: Must run --resync to recover"; then
+                    log_message "Bisync aborted. Attempting to recover with --resync..."
+                    run_bisync --resync
+                    if [ $? -ne 0 ]; then
+                         log_message "Error: --resync recovery also failed. Please check logs manually."
+                    fi
+               else
+                    log_message "Sync failed with exit code ${sync_exit_code}, but --resync was not requested. See log for details."
+               fi
           fi
      fi
 
