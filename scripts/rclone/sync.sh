@@ -43,7 +43,7 @@ pre_sync_check() {
 }
 
 run_bisync() {
-     # Run rclone bisync with all specified arguments
+     # Run rclone bisync, logging directly to the specified file
      # The first argument ($1) can be used for additional flags like --resync
      rclone bisync gdrive: "$WATCH_DIR" \
           --transfers=24 \
@@ -67,12 +67,7 @@ mkdir -p "$(dirname "$RCLONE_LOG_FILE")"
 echo "[$(date)] Performing initial sync on startup..."
 pre_sync_check
 if [ $? -eq 0 ]; then
-     # Run, capture output, then log it
-     sync_output=$(run_bisync --resync 2>&1)
-     sync_exit_code=$?
-     if [ -n "$sync_output" ]; then
-          echo -e "[$(date)] Initial Sync Output:\n$sync_output" >>"$RCLONE_LOG_FILE"
-     fi
+     run_bisync --resync
 else
      echo "[$(date)] Pre-sync check failed. Initial sync skipped."
 fi
@@ -102,25 +97,16 @@ while true; do
      if [ $? -ne 0 ]; then
           echo "[$(date)] Pre-sync check failed. Sync will be attempted on the next cycle."
      else
-          # Run the sync command and capture output
-          sync_output=$(run_bisync 2>&1)
+          # Run the sync command. Rclone will handle the logging.
+          run_bisync
           sync_exit_code=$?
 
-          # Log the output before processing it
-          if [ -n "$sync_output" ]; then
-               echo -e "[$(date)] Sync Output:\n$sync_output" >>"$RCLONE_LOG_FILE"
-          fi
-
-          # Check for the specific error requiring --resync
-          if [ $sync_exit_code -ne 0 ] && echo "$sync_output" | grep -q "Must run --resync to recover"; then
+          # Check for the specific error requiring --resync by inspecting the log file
+          if [ $sync_exit_code -ne 0 ] && grep -q "bisync: Must run --resync to recover" "$RCLONE_LOG_FILE"; then
                echo "[$(date)] Bisync aborted. Attempting to recover with --resync..."
-               # Also capture and log the recovery attempt
-               resync_output=$(run_bisync --resync 2>&1)
-               if [ -n "$resync_output" ]; then
-                    echo -e "[$(date)] Resync Recovery Output:\n$resync_output" >>"$RCLONE_LOG_FILE"
-               fi
+               run_bisync --resync
           fi
      fi
 
      echo "[$(date)] Sync finished. Resuming watch."
-done
+done | tee -a "$RCLONE_LOG_FILE"
