@@ -216,6 +216,7 @@ install_vesktop() {
 setup_vesktop_rpc() {
      echo "Setting up Vencord/Vesktop Activity Status (for Flatpak)..."
      mkdir -p ~/.config/user-tmpfiles.d
+
      echo 'L %t/discord-ipc-0 - - - - .flatpak/dev.vencord.Vesktop/xdg-run/discord-ipc-0' >~/.config/user-tmpfiles.d/discord-rpc.conf
      systemctl --user enable --now systemd-tmpfiles-setup.service
      echo "Activity Status setup completed successfully."

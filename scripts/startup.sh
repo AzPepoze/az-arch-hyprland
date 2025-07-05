@@ -10,8 +10,6 @@ bash $HOME/arch-setup/scripts/rclone/sync.sh &
 # Startup Programs
 #-------------------------------------------------------
 # System & Background Services
-hyprpm reload && hyprpm update
-hyprpm enable Hyprspace
 sleep 1 && linux-wallpaperengine-gui --minimized &
 
 # Autostart Applications (via hyprctl)
