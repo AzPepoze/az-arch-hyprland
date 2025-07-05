@@ -12,7 +12,6 @@ fi
 #-------------------------------------------------------
 # Configuration
 #-------------------------------------------------------
-RCLONE_LOG_FILE="$HOME/arch-setup/scripts/rclone/rclone.log"
 WATCH_DIR="$HOME/GoogleDrive"
 REMOTE_CHECK_INTERVAL=60
 LOCK_FILE_PATH="$HOME/.cache/rclone/bisync/gdrive_..home_${USER}_GoogleDrive.lck"
@@ -20,34 +19,27 @@ LOCK_FILE_PATH="$HOME/.cache/rclone/bisync/gdrive_..home_${USER}_GoogleDrive.lck
 #-------------------------------------------------------
 # Functions
 #-------------------------------------------------------
-log_message() {
-     # Log a message to both the console and the log file.
-     local message="[$(date)] [Script] $1"
-     echo "$message"
-     echo "$message" >>"$RCLONE_LOG_FILE"
-}
-
 pre_sync_check() {
      # Check for a stale lock file before running sync
      if [ -f "$LOCK_FILE_PATH" ]; then
-          log_message "Lock file found at ${LOCK_FILE_PATH}."
+          echo "[$(date)] [Script] Lock file found at ${LOCK_FILE_PATH}."
           # Check if an rclone process is actually running and kill it
           if pgrep -x "rclone" >/dev/null; then
-               log_message "An rclone process is currently running. Killing it to proceed with sync..."
+               echo "[$(date)] [Script] An rclone process is currently running. Killing it to proceed with sync..."
                pkill -x "rclone"
                sleep 1 # Give it a moment to terminate
-               log_message "Old rclone process killed."
+               echo "[$(date)] [Script] Old rclone process killed."
           else
-               log_message "No rclone process found, treating lock file as stale."
+               echo "[$(date)] [Script] No rclone process found, treating lock file as stale."
           fi
 
           # Now that any running process is killed, we can remove the stale lock file.
-          log_message "Removing stale lock file..."
+          echo "[$(date)] [Script] Removing stale lock file..."
           rclone deletefile "$LOCK_FILE_PATH"
           if [ $? -eq 0 ]; then
-               log_message "Stale lock file removed successfully."
+               echo "[$(date)] [Script] Stale lock file removed successfully."
           else
-               log_message "Error: Failed to remove stale lock file. Please check permissions."
+               echo "[$(date)] [Script] Error: Failed to remove stale lock file. Please check permissions."
                return 1 # Return 1 to indicate failure
           fi
      fi
@@ -55,16 +47,15 @@ pre_sync_check() {
 }
 
 run_bisync() {
-     # Run rclone bisync, logging to both the file and the console.
+     # Run rclone bisync.
      # The first argument ($1) can be used for additional flags like --resync
      rclone bisync gdrive: "$WATCH_DIR" \
-          --log-file="$RCLONE_LOG_FILE" \
-          -v \
           --transfers=24 \
           --checkers=48 \
           --drive-chunk-size=64M \
           --fast-list \
           --drive-acknowledge-abuse \
+          --progress \
           $1 # Pass the first argument as an extra flag
 }
 
@@ -72,70 +63,55 @@ run_bisync() {
 # Main Logic
 #-------------------------------------------------------
 
-# Ensure log file directory exists
-mkdir -p "$(dirname "$RCLONE_LOG_FILE")"
-
 #-------------------------------------------------------
 # Initial Sync
 #-------------------------------------------------------
-log_message "Performing initial sync on startup..."
+echo "[$(date)] [Script] Performing initial sync on startup..."
 pre_sync_check
 if [ $? -eq 0 ]; then
+     # Run initial sync with --resync
      run_bisync --resync
 else
-     log_message "Pre-sync check failed. Initial sync skipped."
+     echo "[$(date)] [Script] Pre-sync check failed. Initial sync skipped."
 fi
 
 #-------------------------------------------------------
 # Main Loop
 #-------------------------------------------------------
 while true; do
-     log_message "Watching for file changes or timeout of ${REMOTE_CHECK_INTERVAL}s in ${WATCH_DIR}..."
+     echo "[$(date)] [Script] Watching for file changes or timeout of ${REMOTE_CHECK_INTERVAL}s in ${WATCH_DIR}..."
 
      # Wait for file system events or timeout
      inotifywait -r -t "$REMOTE_CHECK_INTERVAL" -e create,delete,modify,move "$WATCH_DIR" 2>/dev/null
      exit_code=$?
 
      if [ $exit_code -eq 0 ]; then
-          log_message "Local file change detected. Starting rclone bisync..."
+          echo "[$(date)] [Script] Local file change detected. Starting rclone bisync..."
      elif [ $exit_code -eq 1 ]; then
-          log_message "Watched file/directory deleted. Starting rclone bisync..."
+          echo "[$(date)] [Script] Watched file/directory deleted. Starting rclone bisync..."
      elif [ $exit_code -eq 2 ]; then
-          log_message "Timeout reached. Starting scheduled sync to check for remote changes..."
+          echo "[$(date)] [Script] Timeout reached. Starting scheduled sync to check for remote changes..."
      else
-          log_message "Warning: inotifywait exited with code ${exit_code}. Triggering sync anyway and retrying."
+          echo "[$(date)] [Script] Warning: inotifywait exited with code ${exit_code}. Triggering sync anyway and retrying."
      fi
 
      # Run the pre-sync check before every sync attempt
      pre_sync_check
      if [ $? -ne 0 ]; then
-          log_message "Pre-sync check failed. Sync will be attempted on the next cycle."
+          echo "[$(date)] [Script] Pre-sync check failed. Sync will be attempted on the next cycle."
      else
-          # Get log file size before sync to check only new output for errors.
-          local before_size=0
-          if [ -f "$RCLONE_LOG_FILE" ]; then
-               before_size=$(stat -c%s "$RCLONE_LOG_FILE")
-          fi
-
-          # Run the sync command.
+          # Run the sync command
           run_bisync
-          local sync_exit_code=$?
 
-          # Check for the specific error requiring --resync by inspecting only the new log entries.
-          if [ $sync_exit_code -ne 0 ]; then
-               # A small delay might help ensure the log is fully written before we read it.
-               sleep 0.5
-               if tail -c "+$((before_size + 1))" "$RCLONE_LOG_FILE" 2>/dev/null | grep -q "bisync: Must run --resync to recover"; then
-                    log_message "Bisync aborted. Attempting to recover with --resync..."
-                    run_bisync --resync
-                    if [ $? -ne 0 ]; then
-                         log_message "Error: --resync recovery also failed. Please check logs manually."
-                    fi
-               else
-                    log_message "Sync failed with exit code ${sync_exit_code}, but --resync was not requested. See log for details."
+          # Check for an error that mentions resync
+          if [ $? -ne 0 ]; then
+               echo "[$(date)] [Script] Bisync aborted. Attempting to recover with --resync..."
+               run_bisync --resync
+               if [ $? -ne 0 ]; then
+                    echo "[$(date)] [Script] Error: --resync recovery also failed. Please check output manually."
                fi
           fi
      fi
 
-     log_message "Sync finished. Resuming watch."
+     echo "[$(date)] [Script] Sync finished. Resuming watch."
 done
