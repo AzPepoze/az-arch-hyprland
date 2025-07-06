@@ -55,6 +55,7 @@ run_bisync() {
           --fast-list \
           --drive-acknowledge-abuse \
           --progress \
+          --exclude "node_modules/**" \
           $1
 }
 
