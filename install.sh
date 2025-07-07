@@ -209,6 +209,55 @@ setup_rclone_gdrive() {
      echo "rclone configuration Google Drive finished."
 }
 
+_check_grub_file_exists() {
+     if [ ! -f "/etc/default/grub" ]; then
+          echo "Error: /etc/default/grub not found. Is GRUB installed?"
+          return 1
+     fi
+     return 0
+}
+
+_regenerate_grub_config() {
+     echo "Regenerating GRUB configuration..."
+     sudo grub-mkconfig -o /boot/grub/grub.cfg
+     echo "GRUB configuration updated successfully."
+}
+
+adjust_grub_menu() {
+     echo "Adjusting GRUB menu resolution to 1920x1080x32..."
+     _check_grub_file_exists || return 1
+     local grub_file="/etc/default/grub"
+
+     if sudo grep -q '^GRUB_GFXMODE=' "$grub_file"; then
+          echo "Updating existing GRUB_GFXMODE setting."
+          sudo sed -i 's/^GRUB_GFXMODE=.*/GRUB_GFXMODE=1920x1080x32/' "$grub_file"
+     else
+          echo "Adding new GRUB_GFXMODE setting."
+          echo 'GRUB_GFXMODE=1920x1080x32' | sudo tee -a "$grub_file" >/dev/null
+     fi
+
+     _regenerate_grub_config
+}
+
+enable_os_prober() {
+     install_pacman_package "os-prober" "os-prober"
+     echo "Enabling os-prober in GRUB configuration..."
+     _check_grub_file_exists || return 1
+     local grub_file="/etc/default/grub"
+
+     if sudo grep -q '#GRUB_DISABLE_OS_PROBER=true' "$grub_file"; then
+          echo "Uncommenting and setting GRUB_DISABLE_OS_PROBER to false."
+          sudo sed -i 's/#GRUB_DISABLE_OS_PROBER=true/GRUB_DISABLE_OS_PROBER=false/' "$grub_file"
+     elif ! sudo grep -q '^GRUB_DISABLE_OS_PROBER=' "$grub_file"; then
+          echo "Adding GRUB_DISABLE_OS_PROBER=false to the configuration."
+          echo 'GRUB_DISABLE_OS_PROBER=false' | sudo tee -a "$grub_file" >/dev/null
+     else
+          echo "GRUB_DISABLE_OS_PROBER is already configured."
+     fi
+
+     _regenerate_grub_config
+}
+
 #-------------------------------------------------------
 # Group: Applications
 #-------------------------------------------------------
@@ -278,8 +327,6 @@ install_bleachbit() {
 install_qdirstat() {
      install_paru_package "qdirstat" "QDirStat"
 }
-
-
 
 #-------------------------------------------------------
 # Group: Theming & Customization
@@ -372,33 +419,35 @@ show_menu() {
      echo " 12) Install Mission Center"
      echo " 13) Install rclone"
      echo " 14) Setup Google Drive with rclone"
+     echo " 15) Adjust GRUB menu resolution (1920x1080)"
+     echo " 16) Install & Enable os-prober for GRUB"
      echo
      echo "--- Applications ---"
-     echo " 14) Install Vesktop (requires Flatpak)"
-     echo " 15) Set up Vencord/Vesktop Activity Status"
-     echo " 16) Clone thai_fonts.css for Vesktop"
-     echo " 17) Install YouTube Music"
-     echo " 18) Install Steam"
-     echo " 19) Install Microsoft Edge (Dev)"
-     echo " 20) Install Zen Browser (requires Flatpak)"
-     echo " 22) Install Pinta"
-     echo " 23) Install Switcheroo"
-     echo " 24) Install BleachBit"
-     echo " 25) Install QDirStat"
+     echo " 17) Install Vesktop (requires Flatpak)"
+     echo " 18) Set up Vencord/Vesktop Activity Status"
+     echo " 19) Clone thai_fonts.css for Vesktop"
+     echo " 20) Install YouTube Music"
+     echo " 21) Install Steam"
+     echo " 22) Install Microsoft Edge (Dev)"
+     echo " 23) Install Zen Browser (requires Flatpak)"
+     echo " 24) Install Pinta"
+     echo " 25) Install Switcheroo"
+     echo " 26) Install BleachBit"
+     echo " 27) Install QDirStat"
      echo
      echo "--- Theming & Customization ---"
-     echo " 26) Install Wallpaper Engine"
-     echo " 27) Install Linux Wallpaper Engine GUI (Manual Build)"
-     echo " 28) Install SDDM Astronaut Theme"
+     echo " 28) Install Wallpaper Engine"
+     echo " 29) Install Linux Wallpaper Engine GUI (Manual Build)"
+     echo " 30) Install SDDM Astronaut Theme"
      echo "------------------------------------------------------------"
-     echo " 29) Exit"
+     echo " 31) Exit"
      echo "------------------------------------------------------------"
 }
 
 main_menu() {
      while true; do
           show_menu
-          read -p "Enter your choice [1-27]: " choice
+          read -p "Enter your choice [1-31]: " choice
 
           echo "------------------------------------------------------------"
 
@@ -422,6 +471,8 @@ main_menu() {
                if ask_yes_no "Install Mission Center?"; then install_mission_center; fi
                if ask_yes_no "Install rclone?"; then install_rclone; fi
                if ask_yes_no "Setup Google Drive with rclone?"; then setup_rclone_gdrive; fi
+               if ask_yes_no "Adjust GRUB menu resolution?"; then adjust_grub_menu; fi
+               if ask_yes_no "Install & Enable os-prober for GRUB?"; then enable_os_prober; fi
 
                if ask_yes_no "Install Vesktop?"; then install_vesktop; fi
                if ask_yes_no "Set up Vencord/Vesktop Activity Status?"; then setup_vesktop_rpc; fi
@@ -454,21 +505,23 @@ main_menu() {
           12) install_mission_center ;;
           13) install_rclone ;;
           14) setup_rclone_gdrive ;;
-          15) install_vesktop ;;
-          16) setup_vesktop_rpc ;;
-          17) clone_thai_fonts_css ;;
-          18) install_youtube_music ;;
-          19) install_steam ;;
-          20) install_ms_edge ;;
-          21) install_zen_browser ;;
-          22) install_pinta ;;
-          23) install_switcheroo ;;
-          24) install_bleachbit ;;
-          25) install_qdirstat ;;
-          26) install_wallpaper_engine ;;
-          27) install_wallpaper_engine_gui_manual ;;
-          28) install_sddm_theme ;;
-          29)
+          15) adjust_grub_menu ;;
+          16) enable_os_prober ;;
+          17) install_vesktop ;;
+          18) setup_vesktop_rpc ;;
+          19) clone_thai_fonts_css ;;
+          20) install_youtube_music ;;
+          21) install_steam ;;
+          22) install_ms_edge ;;
+          23) install_zen_browser ;;
+          24) install_pinta ;;
+          25) install_switcheroo ;;
+          26) install_bleachbit ;;
+          27) install_qdirstat ;;
+          28) install_wallpaper_engine ;;
+          29) install_wallpaper_engine_gui_manual ;;
+          30) install_sddm_theme ;;
+          31)
                echo "Exiting script. Goodbye!"
                break
                ;;
@@ -477,7 +530,7 @@ main_menu() {
                ;;
           esac
 
-          if [[ "$choice" != "27" ]]; then
+          if [[ "$choice" != "29" ]]; then
                echo "------------------------------------------------------------"
                read -p "Press Enter to return to the menu..."
           fi
