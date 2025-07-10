@@ -69,13 +69,14 @@ show_menu() {
     echo " 29) Install Switcheroo"
     echo " 30) Install BleachBit"
     echo " 31) Install QDirStat"
+    echo " 32) Install Flatseal (requires Flatpak)"
     echo
     echo "--- Theming & Customization ---"
-    echo " 32) Install Wallpaper Engine"
-    echo " 33) Install Linux Wallpaper Engine GUI (Manual Build)"
-    echo " 34) Install SDDM Astronaut Theme"
+    echo " 33) Install Wallpaper Engine"
+    echo " 34) Install Linux Wallpaper Engine GUI (Manual Build)"
+    echo " 35) Install SDDM Astronaut Theme"
     echo "------------------------------------------------------------"
-    echo " 35) Exit"
+    echo " 36) Exit"
     echo "------------------------------------------------------------"
 }
 
@@ -121,6 +122,7 @@ main_menu() {
             if ask_yes_no "Install Switcheroo?"; then install_switcheroo; fi
             if ask_yes_no "Install BleachBit?"; then install_bleachbit; fi
             if ask_yes_no "Install QDirStat?"; then install_qdirstat; fi
+            if ask_yes_no "Install Flatseal?"; then install_flatseal; fi
             if ask_yes_no "Install Wallpaper Engine?"; then install_wallpaper_engine; fi
             if ask_yes_no "Install Linux Wallpaper Engine GUI (Manual Build)?"; then install_wallpaper_engine_gui_manual; fi
             if ask_yes_no "Install SDDM Astronaut Theme?"; then install_sddm_theme; fi
@@ -157,10 +159,11 @@ main_menu() {
         29) install_switcheroo ;;
         30) install_bleachbit ;;
         31) install_qdirstat ;;
-        32) install_wallpaper_engine ;;
-        33) install_wallpaper_engine_gui_manual ;;
-        34) install_sddm_theme ;;
-        35)
+        32) install_flatseal ;;
+        33) install_wallpaper_engine ;;
+        34) install_wallpaper_engine_gui_manual ;;
+        35) install_sddm_theme ;;
+        36)
             echo "Exiting script. Goodbye!"
             break
             ;;
