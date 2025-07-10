@@ -47,43 +47,45 @@ show_menu() {
     echo " 13) Copy local Quickshell config files to ~/.config/quickshell/"
     echo
     echo "--- System Utilities ---"
-    echo " 14) Install inotify-tools"
-    echo " 15) Install Power Options (power-options-gtk-git)"
-    echo " 16) Install Mission Center"
-    echo " 17) Install rclone"
-    echo " 18) Setup Google Drive with rclone"
-    echo " 19) Fix VSCode Insiders permissions"
+    echo " 14) Install systemd-oomd.service"
+    echo " 15) Install ananicy-cpp"
+    echo " 16) Install inotify-tools"
+    echo " 17) Install Power Options (power-options-gtk-git)"
+    echo " 18) Install Mission Center"
+    echo " 19) Install rclone"
+    echo " 20) Setup Google Drive with rclone"
+    echo " 21) Fix VSCode Insiders permissions"
     echo
     echo "--- CLI Tools ---"
-    echo " 20) Install Gemini CLI"
+    echo " 22) Install Gemini CLI"
     echo
     echo "--- Applications ---"
-    echo " 21) Install Vesktop (requires Flatpak)"
-    echo " 22) Set up Vencord/Vesktop Activity Status"
-    echo " 23) Clone thai_fonts.css for Vesktop"
-    echo " 24) Install YouTube Music"
-    echo " 25) Install Steam"
-    echo " 26) Install Microsoft Edge (Dev)"
-    echo " 27) Install Zen Browser (requires Flatpak)"
-    echo " 28) Install Pinta"
-    echo " 29) Install Switcheroo"
-    echo " 30) Install BleachBit"
-    echo " 31) Install QDirStat"
-    echo " 32) Install Flatseal (requires Flatpak)"
+    echo " 23) Install Vesktop (requires Flatpak)"
+    echo " 24) Set up Vencord/Vesktop Activity Status"
+    echo " 25) Clone thai_fonts.css for Vesktop"
+    echo " 26) Install YouTube Music"
+    echo " 27) Install Steam"
+    echo " 28) Install Microsoft Edge (Dev)"
+    echo " 29) Install Zen Browser (requires Flatpak)"
+    echo " 30) Install Pinta"
+    echo " 31) Install Switcheroo"
+    echo " 32) Install BleachBit"
+    echo " 33) Install QDirStat"
+    echo " 34) Install Flatseal (requires Flatpak)"
     echo
     echo "--- Theming & Customization ---"
-    echo " 33) Install Wallpaper Engine"
-    echo " 34) Install Linux Wallpaper Engine GUI (Manual Build)"
-    echo " 35) Install SDDM Astronaut Theme"
+    echo " 35) Install Wallpaper Engine"
+    echo " 36) Install Linux Wallpaper Engine GUI (Manual Build)"
+    echo " 37) Install SDDM Astronaut Theme"
     echo "------------------------------------------------------------"
-    echo " 36) Exit"
+    echo " 38) Exit"
     echo "------------------------------------------------------------"
 }
 
 main_menu() {
     while true; do
         show_menu
-        read -p "Enter your choice [1-35]: " choice
+        read -p "Enter your choice [1-38]: " choice
 
         echo "------------------------------------------------------------"
 
@@ -104,6 +106,8 @@ main_menu() {
             if ask_yes_no "Copy local Hyprland config files?"; then copy_hypr_configs; fi
             if ask_yes_no "Install Quickshell?"; then install_quickshell; fi
             if ask_yes_no "Copy local Quickshell config files?"; then copy_quickshell_configs; fi
+            if ask_yes_no "Install systemd-oomd.service?"; then install_systemd_oomd; fi
+            if ask_yes_no "Install ananicy-cpp?"; then install_ananicy_cpp; fi
             if ask_yes_no "Install inotify-tools?"; then install_inotify_tools; fi
             if ask_yes_no "Install Power Options?"; then install_power_options; fi
             if ask_yes_no "Install Mission Center?"; then install_mission_center; fi
@@ -141,29 +145,31 @@ main_menu() {
         11) copy_hypr_configs ;;
         12) install_quickshell ;;
         13) copy_quickshell_configs ;;
-        14) install_inotify_tools ;;
-        15) install_power_options ;;
-        16) install_mission_center ;;
-        17) install_rclone ;;
-        18) setup_rclone_gdrive ;;
-        19) fix_vscode_permissions ;;
-        20) install_gemini_cli ;;
-        21) install_vesktop ;;
-        22) setup_vesktop_rpc ;;
-        23) clone_thai_fonts_css ;;
-        24) install_youtube_music ;;
-        25) install_steam ;;
-        26) install_ms_edge ;;
-        27) install_zen_browser ;;
-        28) install_pinta ;;
-        29) install_switcheroo ;;
-        30) install_bleachbit ;;
-        31) install_qdirstat ;;
-        32) install_flatseal ;;
-        33) install_wallpaper_engine ;;
-        34) install_wallpaper_engine_gui_manual ;;
-        35) install_sddm_theme ;;
-        36)
+        14) install_systemd_oomd ;;
+        15) install_ananicy_cpp ;;
+        16) install_inotify_tools ;;
+        17) install_power_options ;;
+        18) install_mission_center ;;
+        19) install_rclone ;;
+        20) setup_rclone_gdrive ;;
+        21) fix_vscode_permissions ;;
+        22) install_gemini_cli ;;
+        23) install_vesktop ;;
+        24) setup_vesktop_rpc ;;
+        25) clone_thai_fonts_css ;;
+        26) install_youtube_music ;;
+        27) install_steam ;;
+        28) install_ms_edge ;;
+        29) install_zen_browser ;;
+        30) install_pinta ;;
+        31) install_switcheroo ;;
+        32) install_bleachbit ;;
+        33) install_qdirstat ;;
+        34) install_flatseal ;;
+        35) install_wallpaper_engine ;;
+        36) install_wallpaper_engine_gui_manual ;;
+        37) install_sddm_theme ;;
+        38)
             echo "Exiting script. Goodbye!"
             break
             ;;
@@ -172,7 +178,7 @@ main_menu() {
             ;;
         esac
 
-        if [[ "$choice" != "35" ]]; then
+        if [[ "$choice" != "38" ]]; then
             echo "------------------------------------------------------------"
             read -p "Press Enter to return to the menu..."
         fi
