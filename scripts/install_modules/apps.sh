@@ -70,6 +70,10 @@ install_qdirstat() {
      install_paru_package "qdirstat" "QDirStat"
 }
 
+install_ulauncher() {
+     install_paru_package "ulauncher" "Ulauncher"
+}
+
 install_flatseal() {
      install_flatpak_package "com.github.tchx84.Flatseal" "Flatseal"
 }
