@@ -14,17 +14,14 @@ echo
 echo "Updating HyDE..."
 if [ -d "$HOME/HyDE" ]; then
      (
-          # Navigate to the HyDE scripts directory
           cd "$HOME/HyDE/Scripts" || {
                echo "Error: Failed to navigate into ~/HyDE/Scripts"
                exit 1
           }
 
-          # Pull the latest changes from the repository
           echo "Pulling the latest changes for HyDE..."
           git pull
 
-          # Run the installer script to apply updates
           echo "Running the HyDE installer..."
           ./install.sh
      )

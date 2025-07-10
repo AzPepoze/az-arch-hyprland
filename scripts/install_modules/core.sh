@@ -1,0 +1,55 @@
+#!/bin/bash
+
+#-------------------------------------------------------
+# Group: Core System & Package Management
+#-------------------------------------------------------
+
+install_paru() {
+     echo "Installing paru (AUR Helper)..."
+     if command -v paru &>/dev/null; then
+          echo "paru is already installed."
+          return 0
+     fi
+
+     echo "Installing dependencies for paru (git, base-devel)..."
+     sudo pacman -S --needed git base-devel --noconfirm
+
+     local temp_dir
+     temp_dir=$(mktemp -d)
+     if [ -z "$temp_dir" ]; then
+          echo "Error: Could not create temporary directory."
+          return 1
+     fi
+
+     echo "Cloning paru from AUR into a temporary directory..."
+     if ! git clone https://aur.archlinux.org/paru.git "$temp_dir/paru"; then
+          echo "Error: Failed to clone paru repository."
+          rm -rf "$temp_dir"
+          return 1
+     fi
+
+     (
+          cd "$temp_dir/paru" || exit 1
+          echo "Building and installing paru..."
+          makepkg -si --noconfirm
+     )
+
+     echo "Cleaning up..."
+     rm -rf "$temp_dir"
+}
+
+install_flatpak() {
+     install_pacman_package "flatpak" "Flatpak"
+}
+
+install_fuse() {
+     install_paru_package "fuse" "FUSE (Filesystem in Userspace)"
+}
+
+install_npm() {
+     install_pacman_package "npm" "npm"
+}
+
+install_pnpm() {
+     install_paru_package "pnpm" "pnpm"
+}

@@ -6,15 +6,13 @@
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 CONFIG_FILE="$SCRIPT_DIR/../../configs/ytm_volume.conf"
 DEFAULT_VOLUME=1
-PORT="26538" # <-- CHECK AND CHANGE THIS IF YOUR PORT IS DIFFERENT
+PORT="26538"
 API_BASE_URL="http://localhost:${PORT}/api/v1"
-STEP=1 # Amount to increase/decrease volume by
+STEP=1
 
 #-------------------------------------------------------
 # Helper Functions
 #-------------------------------------------------------
-
-# Ensure config file exists, create if not
 ensure_config_file() {
     if [ ! -f "$CONFIG_FILE" ]; then
         echo "Config file not found. Creating with default volume: $DEFAULT_VOLUME"
@@ -23,7 +21,6 @@ ensure_config_file() {
     fi
 }
 
-# Get current volume from config file
 get_current_volume() {
     if [ -f "$CONFIG_FILE" ]; then
         head -n 1 "$CONFIG_FILE"
@@ -32,10 +29,9 @@ get_current_volume() {
     fi
 }
 
-# Set new volume via API and update config file
 set_new_volume() {
     local new_vol=$1
-    response=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+    response=$(curl -s -o /dev/null -w "%{\http_code}" -X POST \
          -H "Content-Type: application/json" \
          -d "{\"volume\": ${new_vol}}" \
          "${API_BASE_URL}/volume")
@@ -65,7 +61,6 @@ sync_from_api() {
 #-------------------------------------------------------
 # Main Logic
 #-------------------------------------------------------
-
 ensure_config_file
 current_volume=$(get_current_volume)
 
