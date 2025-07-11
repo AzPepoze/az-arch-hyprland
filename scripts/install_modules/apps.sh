@@ -51,7 +51,22 @@ install_ms_edge() {
 }
 
 install_easyeffects() {
-     install_flatpak_package "com.github.wwmm.easyeffects" "EasyEffects"
+    install_flatpak_package "com.github.wwmm.easyeffects" "EasyEffects"
+
+    echo "Installing and enabling EasyEffects systemd service..."
+    local service_source="$repo_dir/services/easyeffects.service"
+    local service_dest="$HOME/.config/systemd/user/easyeffects.service"
+
+    if [ ! -f "$service_source" ]; then
+        echo "Error: EasyEffects service file not found at $service_source"
+        return 1
+    fi
+
+    mkdir -p "$(dirname "$service_dest")"
+    cp -v "$service_source" "$service_dest"
+
+    systemctl --user enable --now easyeffects.service
+    echo "EasyEffects service has been installed and started."
 }
 
 install_zen_browser() {
