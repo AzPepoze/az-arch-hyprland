@@ -50,6 +50,10 @@ install_ms_edge() {
      install_paru_package "microsoft-edge-dev-bin" "Microsoft Edge (Dev)"
 }
 
+install_easyeffects() {
+     install_flatpak_package "com.github.wwmm.easyeffects" "EasyEffects"
+}
+
 install_zen_browser() {
      install_flatpak_package "app.zen_browser.zen" "Zen Browser"
 }
@@ -64,6 +68,10 @@ install_switcheroo() {
 
 install_bleachbit() {
      install_paru_package "bleachbit" "BleachBit"
+}
+
+install_gwenview() {
+     install_paru_package "gwenview" "Gwenview"
 }
 
 install_qdirstat() {

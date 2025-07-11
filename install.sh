@@ -66,19 +66,21 @@ show_menu() {
     echo " 26) Install YouTube Music"
     echo " 27) Install Steam"
     echo " 28) Install Microsoft Edge (Dev)"
-    echo " 29) Install Zen Browser (requires Flatpak)"
-    echo " 30) Install Pinta"
-    echo " 31) Install Switcheroo"
-    echo " 32) Install BleachBit"
-    echo " 33) Install QDirStat"
-    echo " 34) Install Flatseal (requires Flatpak)"
+    echo " 29) Install EasyEffects (requires Flatpak)"
+    echo " 30) Install Zen Browser (requires Flatpak)"
+    echo " 31) Install Pinta"
+    echo " 32) Install Switcheroo"
+    echo " 33) Install BleachBit"
+    echo " 34) Install QDirStat"
+    echo " 35) Install Flatseal (requires Flatpak)"
+    echo " 36) Install Gwenview"
     echo
     echo "--- Theming & Customization ---"
-    echo " 35) Install Wallpaper Engine"
-    echo " 36) Install Linux Wallpaper Engine GUI (Manual Build)"
-    echo " 37) Install SDDM Astronaut Theme"
+    echo " 37) Install Wallpaper Engine"
+    echo " 38) Install Linux Wallpaper Engine GUI (Manual Build)"
+    echo " 39) Install SDDM Astronaut Theme"
     echo "------------------------------------------------------------"
-    echo " 38) Exit"
+    echo " 40) Exit"
     echo "------------------------------------------------------------"
 }
 
@@ -121,12 +123,14 @@ main_menu() {
             if ask_yes_no "Install YouTube Music?"; then install_youtube_music; fi
             if ask_yes_no "Install Steam?"; then install_steam; fi
             if ask_yes_no "Install Microsoft Edge (Dev)?"; then install_ms_edge; fi
+            if ask_yes_no "Install EasyEffects?"; then install_easyeffects; fi
             if ask_yes_no "Install Zen Browser?"; then install_zen_browser; fi
             if ask_yes_no "Install Pinta?"; then install_pinta; fi
             if ask_yes_no "Install Switcheroo?"; then install_switcheroo; fi
             if ask_yes_no "Install BleachBit?"; then install_bleachbit; fi
             if ask_yes_no "Install QDirStat?"; then install_qdirstat; fi
             if ask_yes_no "Install Flatseal?"; then install_flatseal; fi
+            if ask_yes_no "Install Gwenview?"; then install_gwenview; fi
             if ask_yes_no "Install Wallpaper Engine?"; then install_wallpaper_engine; fi
             if ask_yes_no "Install Linux Wallpaper Engine GUI (Manual Build)?"; then install_wallpaper_engine_gui_manual; fi
             if ask_yes_no "Install SDDM Astronaut Theme?"; then install_sddm_theme; fi
@@ -160,16 +164,18 @@ main_menu() {
         26) install_youtube_music ;;
         27) install_steam ;;
         28) install_ms_edge ;;
-        29) install_zen_browser ;;
-        30) install_pinta ;;
-        31) install_switcheroo ;;
-        32) install_bleachbit ;;
-        33) install_qdirstat ;;
-        34) install_flatseal ;;
-        35) install_wallpaper_engine ;;
-        36) install_wallpaper_engine_gui_manual ;;
-        37) install_sddm_theme ;;
-        38)
+        29) install_easyeffects ;;
+        30) install_zen_browser ;;
+        31) install_pinta ;;
+        32) install_switcheroo ;;
+        33) install_bleachbit ;;
+        34) install_qdirstat ;;
+        35) install_flatseal ;;
+        36) install_gwenview ;;
+        37) install_wallpaper_engine ;;
+        38) install_wallpaper_engine_gui_manual ;;
+        39) install_sddm_theme ;;
+        40)
             echo "Exiting script. Goodbye!"
             break
             ;;
