@@ -97,6 +97,12 @@ install_ulauncher() {
      install_paru_package "ulauncher" "Ulauncher"
 }
 
+install_ulauncher_catppuccin_theme() {
+     echo "Installing Catppuccin theme for Ulauncher..."
+     curl https://raw.githubusercontent.com/catppuccin/ulauncher/main/install.py -fsSL | python3 - -f mocha -a pink
+     echo "Catppuccin theme for Ulauncher installation attempted."
+}
+
 install_flatseal() {
      install_flatpak_package "com.github.tchx84.Flatseal" "Flatseal"
 }

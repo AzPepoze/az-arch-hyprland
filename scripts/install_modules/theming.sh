@@ -58,9 +58,3 @@ install_sddm_theme() {
      sh -c "$(curl -fsSL https://raw.githubusercontent.com/keyitdev/sddm-astronaut-theme/master/setup.sh)"
      echo "SDDM Astronaut Theme installation attempted."
 }
-
-install_ulauncher_catppuccin_theme() {
-     echo "Installing Catppuccin theme for Ulauncher..."
-     curl https://raw.githubusercontent.com/catppuccin/ulauncher/main/install.py -fsSL | python3 - -f mocha -a pink
-     echo "Catppuccin theme for Ulauncher installation attempted."
-}
