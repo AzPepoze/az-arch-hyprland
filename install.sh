@@ -16,6 +16,15 @@ while IFS= read -r -d '' module_file; do
 done < <(find "$modules_dir" -name '*.sh' -print0)
 
 #-------------------------------------------------------
+# Install Hyprland Dots
+#-------------------------------------------------------
+install_end4_hyprland_dots() {
+    echo "Installing Hyprland Dots..."
+    bash -c "$(curl -s https://end-4.github.io/dots-hyprland-wiki/setup.sh)"
+    echo "Hyprland Dots installation finished."
+}
+
+#-------------------------------------------------------
 # Main Logic
 #-------------------------------------------------------
 show_menu() {
@@ -40,11 +49,13 @@ show_menu() {
     echo " 8) Install & Enable os-prober for GRUB"
     echo
     echo "--- Desktop Environment - Hyprland ---"
-    echo " 9) Install HyDE"
-    echo " 10) Install the Hyprspace plugin for Hyprland"
-    echo " 11) Copy local Hyprland config files to ~/.config/hypr/"
-    echo " 12) Install Quickshell"
-    echo " 13) Copy local Quickshell config files to ~/.config/quickshell/"
+    echo " 9) Install end-4's Hyprland Dots"
+    echo " 10) Install HyDE Dots"
+    echo " 11) Install the Hyprspace plugin for Hyprland"
+    echo " 12) Copy new Hyprland config files to ~/.config/hypr/"
+    echo " 13) Copy old Hyprland config files to ~/.config/hypr/"
+    echo " 14) Install Quickshell"
+    echo " 15) Copy local Quickshell config files to ~/.config/quickshell/"
     echo
     echo "--- System Utilities ---"
     echo " 14) Install systemd-oomd.service"
@@ -105,9 +116,21 @@ main_menu() {
             if ask_yes_no "Install pnpm?"; then install_pnpm; fi
             if ask_yes_no "Adjust GRUB menu resolution?"; then adjust_grub_menu; fi
             if ask_yes_no "Install & Enable os-prober for GRUB?"; then enable_os_prober; fi
-            if ask_yes_no "Install HyDE?"; then install_hyde; fi
+            if ask_yes_no "Install Hyprland Dots?"; then install_end4_hyprland_dots; fi
+            
+            if ask_yes_no "Install HyDE Dots?"; then install_hyde_dots; fi
             if ask_yes_no "Install the Hyprspace plugin for Hyprland?"; then install_hyprspace; fi
-            if ask_yes_no "Copy local Hyprland config files?"; then copy_hypr_configs; fi
+            echo "Which Hyprland config files would you like to copy?"
+            echo "  1) New config files"
+            echo "  2) Old config files"
+            echo "  3) None"
+            read -p "Enter your choice [1-3]: " hypr_config_choice
+            case $hypr_config_choice in
+                1) copy_new_hypr_configs ;;
+                2) copy_old_hypr_configs ;;
+                3) echo "Skipping Hyprland config file copy." ;;
+                *) echo "Invalid choice. Skipping Hyprland config file copy." ;;
+            esac
             if ask_yes_no "Install Quickshell?"; then install_quickshell; fi
             if ask_yes_no "Copy local Quickshell config files?"; then copy_quickshell_configs; fi
             if ask_yes_no "Install systemd-oomd.service?"; then install_systemd_oomd; fi
@@ -148,40 +171,42 @@ main_menu() {
         6) install_pnpm ;;
         7) adjust_grub_menu ;;
         8) enable_os_prober ;;
-        9) install_hyde ;;
-        10) install_hyprspace ;;
-        11) copy_hypr_configs ;;
-        12) install_quickshell ;;
-        13) copy_quickshell_configs ;;
-        14) install_systemd_oomd ;;
-        15) install_ananicy_cpp ;;
-        16) install_inotify_tools ;;
-        17) install_power_options ;;
-        18) install_mission_center ;;
-        19) install_rclone ;;
-        20) setup_rclone_gdrive ;;
-        21) fix_vscode_permissions ;;
-        22) install_gemini_cli ;;
-        23) install_vesktop ;;
-        24) setup_vesktop_rpc ;;
-        25) clone_thai_fonts_css ;;
-        26) install_youtube_music ;;
-        27) install_steam ;;
-        28) install_ms_edge ;;
-        29) install_easyeffects ;;
-        30) install_zen_browser ;;
-        31) install_pinta ;;
-        32) install_switcheroo ;;
-        33) install_bleachbit ;;
-        34) install_qdirstat ;;
-        35) install_flatseal ;;
-        36) install_gwenview ;;
-        37) install_ulauncher ;;
-        38) install_ulauncher_catppuccin_theme ;;
-        39) install_wallpaper_engine ;;
-        40) install_wallpaper_engine_gui_manual ;;
-        41) install_sddm_theme ;;
-        42)
+        9) install_end4_hyprland_dots ;;
+        10) install_hyde_dots ;;
+        11) install_hyprspace ;;
+        12) copy_new_hypr_configs ;;
+        13) copy_old_hypr_configs ;;
+        14) install_quickshell ;;
+        15) copy_quickshell_configs ;;
+        15) install_systemd_oomd ;;
+        16) install_ananicy_cpp ;;
+        17) install_inotify_tools ;;
+        18) install_power_options ;;
+        19) install_mission_center ;;
+        20) install_rclone ;;
+        21) setup_rclone_gdrive ;;
+        22) fix_vscode_permissions ;;
+        23) install_gemini_cli ;;
+        24) install_vesktop ;;
+        25) setup_vesktop_rpc ;;
+        26) clone_thai_fonts_css ;;
+        27) install_youtube_music ;;
+        28) install_steam ;;
+        29) install_ms_edge ;;
+        30) install_easyeffects ;;
+        31) install_zen_browser ;;
+        32) install_pinta ;;
+        33) install_switcheroo ;;
+        34) install_bleachbit ;;
+        35) install_qdirstat ;;
+        36) install_flatseal ;;
+        37) install_gwenview ;;
+        38) install_ulauncher ;;
+        39) install_ulauncher_catppuccin_theme ;;
+        40) install_wallpaper_engine ;;
+        41) install_wallpaper_engine_gui_manual ;;
+        42) install_sddm_theme ;;
+        43)
             echo "Exiting script. Goodbye!"
             break
             ;;
