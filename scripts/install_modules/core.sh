@@ -52,4 +52,11 @@ install_npm() {
 
 install_pnpm() {
      install_paru_package "pnpm" "pnpm"
+     echo "Running pnpm setup..."
+     if command -v pnpm &>/dev/null; then
+          pnpm setup
+          echo "pnpm setup completed."
+     else
+          echo "pnpm command not found, skipping pnpm setup."
+     fi
 }

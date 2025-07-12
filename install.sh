@@ -74,20 +74,22 @@ show_menu() {
     echo " 34) Install QDirStat"
     echo " 35) Install Flatseal (requires Flatpak)"
     echo " 36) Install Gwenview"
+    echo " 37) Install Ulauncher"
+    echo " 38) Install Ulauncher Catppuccin Theme"
     echo
     echo "--- Theming & Customization ---"
-    echo " 37) Install Wallpaper Engine"
-    echo " 38) Install Linux Wallpaper Engine GUI (Manual Build)"
-    echo " 39) Install SDDM Astronaut Theme"
+    echo " 39) Install Wallpaper Engine"
+    echo " 40) Install Linux Wallpaper Engine GUI (Manual Build)"
+    echo " 41) Install SDDM Astronaut Theme"
     echo "------------------------------------------------------------"
-    echo " 40) Exit"
+    echo " 42) Exit"
     echo "------------------------------------------------------------"
 }
 
 main_menu() {
     while true; do
         show_menu
-        read -p "Enter your choice [1-38]: " choice
+        read -p "Enter your choice [1-42]: " choice
 
         echo "------------------------------------------------------------"
 
@@ -131,6 +133,8 @@ main_menu() {
             if ask_yes_no "Install QDirStat?"; then install_qdirstat; fi
             if ask_yes_no "Install Flatseal?"; then install_flatseal; fi
             if ask_yes_no "Install Gwenview?"; then install_gwenview; fi
+            if ask_yes_no "Install Ulauncher?"; then install_ulauncher; fi
+            if ask_yes_no "Install Ulauncher Catppuccin Theme?"; then install_ulauncher_catppuccin_theme; fi
             if ask_yes_no "Install Wallpaper Engine?"; then install_wallpaper_engine; fi
             if ask_yes_no "Install Linux Wallpaper Engine GUI (Manual Build)?"; then install_wallpaper_engine_gui_manual; fi
             if ask_yes_no "Install SDDM Astronaut Theme?"; then install_sddm_theme; fi
@@ -172,10 +176,12 @@ main_menu() {
         34) install_qdirstat ;;
         35) install_flatseal ;;
         36) install_gwenview ;;
-        37) install_wallpaper_engine ;;
-        38) install_wallpaper_engine_gui_manual ;;
-        39) install_sddm_theme ;;
-        40)
+        37) install_ulauncher ;;
+        38) install_ulauncher_catppuccin_theme ;;
+        39) install_wallpaper_engine ;;
+        40) install_wallpaper_engine_gui_manual ;;
+        41) install_sddm_theme ;;
+        42)
             echo "Exiting script. Goodbye!"
             break
             ;;
