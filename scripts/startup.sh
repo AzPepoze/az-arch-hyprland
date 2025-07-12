@@ -7,7 +7,7 @@ if command -v quickshell &>/dev/null; then
     quickshell &
 fi
 
-bash $HOME/arch-setup/scripts/rclone/sync.sh &
+bash $HOME/az-arch/scripts/rclone/sync.sh &
 
 #-------------------------------------------------------
 # Startup Programs
@@ -28,4 +28,3 @@ sleep 2
 hyprctl dispatch exec "[workspace 1 silent] flatpak run dev.vencord.Vesktop"
 
 hyprctl dispatch exec "[workspace 4 silent] sh -c 'sleep 10 && wineboot'"
-

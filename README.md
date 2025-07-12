@@ -2,13 +2,13 @@
 
 ```bash
 cd ~
-git clone https://github.com/AzPepoze/arch-setup
+git clone https://github.com/AzPepoze/az-arch
 ```
 
 # Run the script
 
 ```bash
-cd ~/arch-setup
+cd ~/az-arch
 bash install.sh
 ```
 
@@ -17,6 +17,6 @@ bash install.sh
 To update the repository and HyDE, run the following command:
 
 ```bash
-cd ~/arch-setup
+cd ~/az-arch
 bash update.sh
 ```
