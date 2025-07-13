@@ -18,3 +18,12 @@ install_gemini_cli() {
     pnpm add -g @google/gemini-cli
     echo "Gemini CLI installation completed successfully."
 }
+
+#-------------------------------------------------------
+# Fisher Installation
+#-------------------------------------------------------
+install_fisher() {
+    echo "Installing Fisher (fish shell plugin manager)..."
+    curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
+    echo "Fisher installed."
+}

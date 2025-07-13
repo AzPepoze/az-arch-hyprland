@@ -25,7 +25,7 @@ install_wallpaper_engine_gui_manual() {
 
           echo "Downloading PKGBUILD file..."
           if ! curl -O "$pkgbuild_url"; then
-               echo "Error: Failed to download PKGBUILD from $pkgbuild_url"
+               echo "Error: Failed to download PKGBUild from $pkgbuild_url"
                exit 1
           fi
 
@@ -57,4 +57,14 @@ install_sddm_theme() {
      echo "Installing SDDM Astronaut Theme..."
      sh -c "$(curl -fsSL https://raw.githubusercontent.com/keyitdev/sddm-astronaut-theme/master/setup.sh)"
      echo "SDDM Astronaut Theme installation attempted."
+}
+
+#-------------------------------------------------------
+# Catppuccin Fish Theme Installation
+#-------------------------------------------------------
+install_catppuccin_fish_theme() {
+    echo "Installing Catppuccin theme for fish shell..."
+    fisher install catppuccin/fish
+    fish_config theme save "Catppuccin Mocha"
+    echo "Catppuccin Mocha theme installed and set for fish shell."
 }
