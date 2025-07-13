@@ -1,34 +1,19 @@
-#!/bin/bash
+#!/bin/sh
 
-#-------------------------------------------------------
-# Group: Utilities
-# Subgroup: Keyboard Layout
-#-------------------------------------------------------
+#
+# ------------------------------------------------------
+# Script to switch keyboard layout and send notification
+# ------------------------------------------------------
+#
 
-# Configuration
-KEYBOARD_DEVICE_NAME="at-translated-keyboard"
+# รับชื่อ Keyboard ทั้งหมด
+KEYBOARDS=$(hyprctl devices -j | jq -r '.keyboards[] | .name')
 
-# Get current keyboard layout
-current_layout=$(hyprctl devices -j | jq -r '.keyboards[] | select(.name == "$KEYBOARD_DEVICE_NAME") | .active_keymap')
-
-# Define layouts (adjust as needed)
-layouts=("us" "th") # Example: US and Thai layouts
-
-# Find the index of the current layout
-current_index=-1
-for i in "${!layouts[@]}"; do
-    if [[ "${layouts[$i]}" == "$current_layout" ]]; then
-        current_index=$i
-        break
-    fi
+# สลับ Layout ของแต่ละ Keyboard
+for KBD in $KEYBOARDS; do
+    hyprctl switchxkblayout "$KBD" next
 done
 
-# Calculate the next layout index
-next_index=$(((current_index + 1) % ${#layouts[@]}))
-next_layout=${layouts[$next_index]}
-
-# Set the new keyboard layout
-hyprctl keyword device:$KEYBOARD_DEVICE_NAME:keymap "$next_layout"
-
-# Optional: Send a notification to show the new layout
-notify-send "Keyboard Layout" "Switched to: $(echo "$next_layout" | tr '[:lower:]' '[:upper:]')" -t 1500
+# แสดง Notification
+CURRENT_LAYOUT=$(hyprctl devices -j | jq -r '.keyboards[0] | .active_keymap')
+notify-send -h string:x-canonical-private-synchronous:hypr-layout -u low "Keyboard Layout" "Changed to $CURRENT_LAYOUT"
