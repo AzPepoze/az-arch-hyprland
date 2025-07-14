@@ -17,14 +17,14 @@ setup_vesktop_rpc() {
     echo "Activity Status setup completed successfully."
 }
 
-clone_thai_fonts_css() {
-    local source_file="$repo_dir/configs/thai_fonts.css"
+copy_thai_fonts_css() {
+    local source_file="$repo_dir/etc/thai_fonts.css"
     local dest_file="$HOME/.var/app/dev.vencord.Vesktop/config/vesktop/settings/quickCss.css"
     local dest_dir
 
     dest_dir=$(dirname "$dest_file")
 
-    echo "Cloning Thai fonts CSS for Vesktop..."
+    echo "Copying Thai fonts CSS for Vesktop..."
 
     if [ ! -f "$source_file" ]; then
         echo "Error: Source file not found at $source_file"
@@ -35,7 +35,7 @@ clone_thai_fonts_css() {
     mkdir -p "$dest_dir"
 
     cp -v "$source_file" "$dest_file"
-    echo "Successfully cloned thai_fonts.css to the Vesktop directory."
+    echo "Successfully copied thai_fonts.css to the Vesktop directory."
 }
 
 install_youtube_music() {

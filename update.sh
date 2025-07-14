@@ -1,35 +1,57 @@
 #!/bin/bash
 
-#-------------------------------------------------------
-# Update az-arch repository
-#-------------------------------------------------------
-echo "Updating az-arch repository..."
-git pull
-echo "az-arch repository has been updated successfully."
-echo
+#----------------------------------------------------------------------
+# Universal System Updater
+#
+# This script streamlines the update process for the entire system,
+# including the configuration repository, official packages, AUR
+# packages, and Flatpak applications.
+#----------------------------------------------------------------------
+
+set -e # Exit immediately if a command exits with a non-zero status.
 
 #-------------------------------------------------------
-# Update HyDE
+# Helper Functions
 #-------------------------------------------------------
-echo "Updating HyDE..."
-if [ -d "$HOME/HyDE" ]; then
-    (
-        cd "$HOME/HyDE/Scripts" || {
-            echo "Error: Failed to navigate into ~/HyDE/Scripts"
-            exit 1
-        }
 
-        echo "Pulling the latest changes for HyDE..."
-        git pull
+# Function to print a formatted header
+print_header() {
+    echo ""
+    echo "============================================================"
+    echo " $1"
+    echo "============================================================"
+}
 
-        echo "Running the HyDE installer..."
-        ./install.sh
-    )
-    echo "HyDE update process completed."
+#-------------------------------------------------------
+# Main Update Logic
+#-------------------------------------------------------
+
+# 1. Update this repository
+print_header "Updating az-arch Repository"
+if git pull; then
+    echo "Repository updated successfully."
 else
-    echo "Warning: HyDE directory not found at ~/HyDE. Skipping update."
-    echo "You can install it using the main install.sh script."
+    echo "Warning: Could not update the repository. Continuing with the script..."
 fi
 
-echo
-echo "Update script has finished."
+# 2. Update system packages using paru
+print_header "Updating System & AUR Packages (paru)"
+if command -v paru &> /dev/null; then
+    paru -Syu --noconfirm
+else
+    echo "Warning: paru command not found. Skipping system package update."
+    echo "Please install paru to enable this feature."
+fi
+
+# 3. Update Flatpak packages
+print_header "Updating Flatpak Packages"
+if command -v flatpak &> /dev/null; then
+    flatpak update -y
+else
+    echo "Warning: flatpak command not found. Skipping Flatpak update."
+fi
+
+#-------------------------------------------------------
+# Finalization
+#-------------------------------------------------------
+print_header "System update process has finished."

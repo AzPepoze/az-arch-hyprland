@@ -18,10 +18,6 @@ done < <(find "$modules_dir" -name '*.sh' -print0)
 #-------------------------------------------------------
 # Data-Driven Menu Configuration
 #-------------------------------------------------------
-# Arrays to hold menu data
-# menu_items: The text displayed for the option
-# menu_funcs: The function to call for the option
-# menu_types: The category ('header', 'essential', 'optional', 'special')
 menu_items=()
 menu_funcs=()
 menu_types=()
@@ -57,11 +53,16 @@ populate_menu_data() {
 
     add_menu_item "header" "" "\n--- Desktop Environment - Hyprland ---"
     add_menu_item "essential" "install_end4_hyprland_dots" "Install end-4's Hyprland Dots"
-    add_menu_item "essential" "install_hyde_dots" "Install HyDE Dots"
     add_menu_item "essential" "install_hyprspace" "Install the Hyprspace plugin for Hyprland"
-    add_menu_item "special" "handle_hyprland_config_copy" "Copy Hyprland config files to ~/.config/hypr/"
     add_menu_item "essential" "install_quickshell" "Install Quickshell"
     add_menu_item "essential" "copy_quickshell_configs" "Copy local Quickshell config files to ~/.config/quickshell/"
+
+    add_menu_item "header" "" "\n--- Theming & Customization ---"
+    add_menu_item "special" "load_all_configs" "Load all configurations from repo to system"
+    add_menu_item "optional" "install_wallpaper_engine" "Install Linux Wallpaper Engine"
+    add_menu_item "optional" "install_wallpaper_engine_gui_manual" "Install Linux Wallpaper Engine GUI (Manual Build)"
+    add_menu_item "essential" "install_sddm_theme" "Install SDDM Astronaut Theme"
+    add_menu_item "essential" "install_catppuccin_fish_theme" "Install Catppuccin Fish Theme"
 
     add_menu_item "header" "" "\n--- System Utilities ---"
     add_menu_item "essential" "install_systemd_oomd" "Install systemd-oomd.service"
@@ -85,12 +86,6 @@ populate_menu_data() {
     add_menu_item "essential" "install_ulauncher" "Install Ulauncher"
     add_menu_item "essential" "install_ulauncher_catppuccin_theme" "Install Ulauncher Catppuccin Theme"
 
-    add_menu_item "header" "" "\n--- Theming & Customization ---"
-    add_menu_item "optional" "install_wallpaper_engine" "Install Linux Wallpaper Engine"
-    add_menu_item "optional" "install_wallpaper_engine_gui_manual" "Install Linux Wallpaper Engine GUI (Manual Build)"
-    add_menu_item "essential" "install_sddm_theme" "Install SDDM Astronaut Theme"
-    add_menu_item "essential" "install_catppuccin_fish_theme" "Install Catppuccin Fish Theme"
-
     add_menu_item "header" "" "\n--- System Utilities (Optional) ---"
     add_menu_item "optional" "install_rclone" "Install rclone"
     add_menu_item "optional" "setup_rclone_gdrive" "Setup Google Drive with rclone"
@@ -100,7 +95,7 @@ populate_menu_data() {
     add_menu_item "optional" "install_fisher" "Install Fisher (fish shell plugin manager)"
 
     add_menu_item "header" "" "\n--- Applications (Optional) ---"
-    add_menu_item "optional" "clone_thai_fonts_css" "Clone thai_fonts.css for Vesktop"
+    add_menu_item "optional" "copy_thai_fonts_css" "Copy thai_fonts.css for Vesktop"
     add_menu_item "optional" "install_ms_edge" "Install Microsoft Edge (Dev)"
     add_menu_item "optional" "install_easyeffects" "Install EasyEffects (requires Flatpak)"
     add_menu_item "optional" "install_zen_browser" "Install Zen Browser (requires Flatpak)"
@@ -109,24 +104,14 @@ populate_menu_data() {
 #-------------------------------------------------------
 # Specific Handlers
 #-------------------------------------------------------
-install_end4_hyprland_dots() {
-    echo "Installing Hyprland Dots..."
-    bash -c "$(curl -s https://end-4.github.io/dots-hyprland-wiki/setup.sh)"
-    echo "Hyprland Dots installation finished."
-}
-
-handle_hyprland_config_copy() {
-    echo "Which Hyprland config files would you like to copy?"
-    echo "  1) New config files"
-    echo "  2) Old config files"
-    echo "  3) None"
-    read -p "Enter your choice [1-3]: " hypr_config_choice
-    case $hypr_config_choice in
-    1) copy_new_hypr_configs ;;
-    2) copy_old_hypr_configs ;;
-    3) echo "Skipping Hyprland config file copy." ;;
-    *) echo "Invalid choice. Skipping Hyprland config file copy." ;;
-    esac
+load_all_configs() {
+    echo "Loading all configurations from repository to system..."
+    if [ -f "$repo_dir/sync_configs.sh" ]; then
+        bash "$repo_dir/sync_configs.sh" load
+    else
+        echo "Error: sync_configs.sh not found!"
+    fi
+    echo "Config sync process finished."
 }
 
 #-------------------------------------------------------
@@ -149,19 +134,18 @@ run_installation_suite() {
         local func="${menu_funcs[i]}"
         local item="${menu_items[i]}"
 
-        if [[ "$type" == "essential" || ("$type" == "optional" && "$mode" == "all") ]]; then
+        if [[ "$type" == "essential" || ("$type" == "optional" && "$mode" == "all") || "$type" == "special" ]]; then
+            # Skip confirmation for special suite runners
+            if [[ "$func" == "run_installation_suite_all" || "$func" == "run_installation_suite_essential" ]]; then
+                continue
+            fi
+
             if ask_yes_no "${item}?"; then
-                # Check if the function is a special handler or a regular one
                 if declare -f "$func" >/dev/null; then
                     "$func"
                 else
                     echo "Error: Function '$func' not found."
                 fi
-            fi
-        elif [[ "$type" == "special" && "$func" == "handle_hyprland_config_copy" ]]; then
-            # The Hyprland config copy is a special case within the suite
-            if ask_yes_no "Copy Hyprland config files?"; then
-                handle_hyprland_config_copy
             fi
         fi
     done
@@ -208,7 +192,6 @@ main_menu() {
     while true; do
         show_menu
 
-        # Calculate the number of actual options and the exit number
         local option_count=0
         for type in "${menu_types[@]}"; do
             if [[ "$type" != "header" ]]; then
@@ -223,7 +206,6 @@ main_menu() {
         if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
             echo "Invalid input. Please enter a number."
         elif ((choice > 0 && choice <= option_count)); then
-            # Map choice back to the correct array index
             local current_option=0
             local target_index=-1
             for i in "${!menu_types[@]}"; do
@@ -241,7 +223,7 @@ main_menu() {
                 if declare -f "$func_to_run" >/dev/null; then
                     "$func_to_run"
                 else
-                    echo "Error: Function '$func_to_run' is not defined."
+                    echo "Error: Function '$func_to_run' not found."
                 fi
             fi
         elif ((choice == exit_option)); then

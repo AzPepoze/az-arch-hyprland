@@ -3,9 +3,9 @@
 #-------------------------------------------------------
 # Background Services
 #-------------------------------------------------------
-if command -v quickshell &>/dev/null; then
-    quickshell &
-fi
+# if command -v quickshell &>/dev/null; then
+#     quickshell &
+# fi
 
 bash $HOME/az-arch/scripts/rclone/sync.sh &
 

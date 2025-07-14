@@ -4,24 +4,6 @@
 # Group: Desktop Environment - Hyprland
 #-------------------------------------------------------
 
-install_hyde_dots() {
-    echo "Checking for and installing necessary dependencies (git, base-devel)..."
-    sudo pacman -S --needed git base-devel --noconfirm
-
-    echo "Cloning and running HyDE installer..."
-    if [ ! -d "$HOME/HyDE" ]; then
-        git clone --depth 1 https://github.com/HyDE-Project/HyDE ~/HyDE
-    fi
-    (
-        cd ~/HyDE/Scripts || {
-            echo "Error: Failed to cd into ~/HyDE/Scripts"
-            exit 1
-        }
-        git pull
-        ./install.sh
-    )
-}
-
 install_hyprspace() {
     if ! command -v paru &>/dev/null; then
         echo "Error: paru is not installed. Skipping Hyprspace dependency installation."
