@@ -52,3 +52,70 @@ enable_os_prober() {
 
      _regenerate_grub_config
 }
+
+install_catppuccin_grub_theme() {
+    # Use the first argument as the theme flavor, default to 'mocha'
+    local flavor=${1:-mocha}
+    local capitalized_flavor="$(tr '[:lower:]' '[:upper:]' <<< ${flavor:0:1})${flavor:1}"
+
+    echo "Installing Catppuccin $capitalized_flavor theme for GRUB..."
+    _check_grub_file_exists || return 1
+
+    if ! command -v git &> /dev/null; then
+        echo "Error: git is not installed. Please install it first."
+        return 1
+    fi
+
+    local theme_name="catppuccin-$flavor"
+    local grub_themes_dir="/usr/share/grub/themes"
+    local target_theme_dir="$grub_themes_dir/$theme_name"
+    local grub_file="/etc/default/grub"
+    local tmp_dir="/tmp/grub-catppuccin-theme"
+
+    # 1. Clone the repository
+    echo "Cloning Catppuccin GRUB theme repository..."
+    if [ -d "$tmp_dir" ]; then
+        rm -rf "$tmp_dir"
+    fi
+    git clone --depth 1 https://github.com/catppuccin/grub.git "$tmp_dir"
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to clone the repository."
+        return 1
+    fi
+
+    # 2. Copy the theme files from the correct path
+    local source_theme_dir="$tmp_dir/src/catppuccin-$flavor-grub-theme"
+    echo "Source theme path is: $source_theme_dir"
+
+    if [ ! -d "$source_theme_dir" ]; then
+        echo "Error: Source theme directory for '$flavor' not found after cloning!"
+        rm -rf "$tmp_dir"
+        return 1
+    fi
+
+    echo "Installing theme to $target_theme_dir..."
+    sudo mkdir -p "$target_theme_dir"
+    sudo cp -r "$source_theme_dir/"* "$target_theme_dir/"
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to copy theme files."
+        rm -rf "$tmp_dir"
+        return 1
+    fi
+
+    # 3. Set the GRUB_THEME variable
+    echo "Setting GRUB_THEME in $grub_file..."
+    if sudo grep -q '^GRUB_THEME=' "$grub_file"; then
+        sudo sed -i "s|^GRUB_THEME=.*|GRUB_THEME=\"$theme_path\"|" "$grub_file"
+    else
+        echo "GRUB_THEME=\"$theme_path\"" | sudo tee -a "$grub_file" >/dev/null
+    fi
+
+    # 4. Clean up the temporary directory
+    echo "Cleaning up temporary files..."
+    rm -rf "$tmp_dir"
+
+    # 5. Regenerate GRUB config
+    _regenerate_grub_config
+
+    echo "Catppuccin $capitalized_flavor GRUB theme installed and configured successfully."
+}

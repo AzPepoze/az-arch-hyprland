@@ -50,6 +50,7 @@ populate_menu_data() {
     add_menu_item "header" "" "\n--- System Configuration - GRUB ---"
     add_menu_item "essential" "adjust_grub_menu" "Adjust GRUB menu resolution (1920x1080)"
     add_menu_item "essential" "enable_os_prober" "Install & Enable os-prober for GRUB"
+    add_menu_item "essential" "select_and_install_catppuccin_grub_theme" "Install/Change Catppuccin Theme for GRUB"
 
     add_menu_item "header" "" "\n--- Desktop Environment - Hyprland ---"
     add_menu_item "essential" "install_end4_hyprland_dots" "Install end-4's Hyprland Dots"
@@ -112,6 +113,20 @@ load_all_configs() {
         echo "Error: sync_configs.sh not found!"
     fi
     echo "Config sync process finished."
+}
+
+select_and_install_catppuccin_grub_theme() {
+    local flavors=("mocha" "latte" "frappe" "macchiato")
+    echo "Please select a Catppuccin flavor for GRUB:"
+    select flavor in "${flavors[@]}"; do
+        if [[ " ${flavors[*]} " =~ " ${flavor} " ]]; then
+            echo "You selected: $flavor"
+            install_catppuccin_grub_theme "$flavor"
+            break
+        else
+            echo "Invalid option. Please try again."
+        fi
+    done
 }
 
 #-------------------------------------------------------
