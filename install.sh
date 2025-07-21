@@ -54,6 +54,15 @@ populate_menu_data() {
 
     add_menu_item "header" "" "\n--- Desktop Environment - Hyprland ---"
     add_menu_item "essential" "install_end4_hyprland_dots" "Install end-4's Hyprland Dots"
+
+install_end4_hyprland_dots() {
+    echo "Installing end-4's Hyprland Dots..."
+    cd ~
+    git clone https://github.com/end-4/dots-hyprland
+    cd dots-hyprland
+    ./install.sh
+    echo "end-4's Hyprland Dots installation complete."
+}
     add_menu_item "essential" "install_hyprspace" "Install the Hyprspace plugin for Hyprland"
     add_menu_item "essential" "install_quickshell" "Install Quickshell"
     add_menu_item "essential" "copy_quickshell_configs" "Copy local Quickshell config files to ~/.config/quickshell/"

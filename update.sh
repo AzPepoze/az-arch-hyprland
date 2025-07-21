@@ -51,6 +51,16 @@ else
     echo "Warning: flatpak command not found. Skipping Flatpak update."
 fi
 
+# 4. Update dots-hyprland
+print_header "Updating dots-hyprland"
+if [ -d "$HOME/dots-hyprland" ]; then
+    cd "$HOME/dots-hyprland" && git pull && ./install.sh --skip-hyprland -c -f
+    echo "dots-hyprland updated successfully."
+else
+    echo "Warning: dots-hyprland directory not found. Skipping dots-hyprland update."
+    echo "Please install dots-hyprland first if you wish to update it."
+fi
+
 #-------------------------------------------------------
 # Finalization
 #-------------------------------------------------------
