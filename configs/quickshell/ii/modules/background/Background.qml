@@ -176,8 +176,10 @@ Scope {
                     anchors {
                         left: parent.left
                         top: parent.top
-                        leftMargin: ((root.fixedClockPosition ? root.fixedClockX : bgRoot.clockX * bgRoot.effectiveWallpaperScale) - implicitWidth / 2)
-                        topMargin: ((root.fixedClockPosition ? root.fixedClockY : bgRoot.clockY * bgRoot.effectiveWallpaperScale) - implicitHeight / 2)
+                        
+                        leftMargin: screen.height / 20
+                        topMargin: screen.height / 20
+
                         Behavior on leftMargin {
                             animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
                         }
