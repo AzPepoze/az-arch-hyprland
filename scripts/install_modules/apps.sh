@@ -18,7 +18,7 @@ setup_vesktop_rpc() {
 }
 
 copy_thai_fonts_css() {
-    local source_file="$repo_dir/etc/thai_fonts.css"
+        local source_file="$repo_dir/settings/thai_fonts.css"
     local dest_file="$HOME/.var/app/dev.vencord.Vesktop/config/vesktop/settings/quickCss.css"
     local dest_dir
 

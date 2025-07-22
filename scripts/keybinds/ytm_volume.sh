@@ -4,7 +4,7 @@
 # Configuration
 #-------------------------------------------------------
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-CONFIG_FILE="$SCRIPT_DIR/../../etc/ytm_volume.conf"
+CONFIG_FILE="$SCRIPT_DIR/../../settings/ytm_volume.conf"
 DEFAULT_VOLUME=1
 PORT="26538"
 API_BASE_URL="http://localhost:${PORT}/api/v1"

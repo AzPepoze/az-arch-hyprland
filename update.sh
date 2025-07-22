@@ -61,6 +61,14 @@ else
     echo "Please install dots-hyprland first if you wish to update it."
 fi
 
+# 5. Save updated configs back to the repository
+print_header "Saving Updated Configurations"
+if [ -f "./sync_configs.sh" ]; then
+    ./sync_configs.sh save
+else
+    echo "Warning: sync_configs.sh not found. Skipping configuration save."
+fi
+
 #-------------------------------------------------------
 # Finalization
 #-------------------------------------------------------
