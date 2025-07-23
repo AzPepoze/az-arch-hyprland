@@ -71,6 +71,7 @@ install_catppuccin_grub_theme() {
     local target_theme_dir="$grub_themes_dir/$theme_name"
     local grub_file="/etc/default/grub"
     local tmp_dir="/tmp/grub-catppuccin-theme"
+    local theme_path="$target_theme_dir/theme.txt"
 
     # 1. Clone the repository
     echo "Cloning Catppuccin GRUB theme repository..."

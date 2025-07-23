@@ -109,6 +109,7 @@ install_end4_hyprland_dots() {
     add_menu_item "optional" "install_ms_edge" "Install Microsoft Edge (Dev)"
     add_menu_item "optional" "install_easyeffects" "Install EasyEffects (requires Flatpak)"
     add_menu_item "optional" "install_zen_browser" "Install Zen Browser (requires Flatpak)"
+    add_menu_item "optional" "install_handbrake" "Install HandBrake"
 }
 
 #-------------------------------------------------------

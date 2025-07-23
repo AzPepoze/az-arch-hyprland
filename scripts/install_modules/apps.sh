@@ -106,3 +106,7 @@ install_ulauncher_catppuccin_theme() {
 install_flatseal() {
     install_flatpak_package "com.github.tchx84.Flatseal" "Flatseal"
 }
+
+install_handbrake() {
+    install_paru_package "handbrake" "HandBrake"
+}
