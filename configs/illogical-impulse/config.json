@@ -19,7 +19,7 @@
 		"bluetooth": "kcmshell6 kcm_bluetooth",
 		"network": "plasmawindowed org.kde.plasma.networkmanagement",
 		"networkEthernet": "kcmshell6 kcm_networkmanagement",
-		"taskManager": "plasma-systemmonitor --page-name Processes",
+		"taskManager": "missioncenter",
 		"terminal": "kitty -1"
 	},
 	"audio": {
@@ -45,7 +45,7 @@
 		"bottom": false,
 		"cornerStyle": 0,
 		"resources": {
-			"alwaysShowCpu": false,
+			"alwaysShowCpu": true,
 			"alwaysShowSwap": true
 		},
 		"screenList": [],
@@ -123,7 +123,7 @@
 		"weeb": 1
 	},
 	"resources": {
-		"updateInterval": 3000
+		"updateInterval": 500
 	},
 	"screenshotTool": {
 		"showContentRegions": true
