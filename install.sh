@@ -9,8 +9,11 @@ modules_dir="$repo_dir/scripts/install_modules"
 #-------------------------------------------------------
 # Source All Modules
 #-------------------------------------------------------
+# Source helpers.sh first to ensure logging functions are available
+# This line is removed as per user request to not use _log in install.sh
+
 while IFS= read -r -d '' module_file; do
-    if [ -f "$module_file" ]; then
+    if [ -f "$module_file" ] && [ "$(basename "$module_file")" != "helpers.sh" ]; then
         source "$module_file"
     fi
 done < <(find "$modules_dir" -name '*.sh' -print0)
@@ -46,6 +49,7 @@ populate_menu_data() {
     add_menu_item "essential" "install_fuse" "Install FUSE (Filesystem in Userspace)"
     add_menu_item "essential" "install_npm" "Install npm"
     add_menu_item "essential" "install_pnpm" "Install pnpm"
+    add_menu_item "essential" "install_linux_headers" "Install Linux Headers"
 
     add_menu_item "header" "" "\n--- System Configuration - GRUB ---"
     add_menu_item "essential" "adjust_grub_menu" "Adjust GRUB menu resolution (1920x1080)"
@@ -73,6 +77,7 @@ install_end4_hyprland_dots() {
     add_menu_item "optional" "install_wallpaper_engine_gui_manual" "Install Linux Wallpaper Engine GUI (Manual Build)"
     add_menu_item "essential" "install_sddm_theme" "Install SDDM Astronaut Theme"
     add_menu_item "essential" "install_catppuccin_fish_theme" "Install Catppuccin Fish Theme"
+    add_menu_item "essential" "install_cursors" "Install Mouse Cursors"
 
     add_menu_item "header" "" "\n--- System Utilities ---"
     add_menu_item "essential" "install_systemd_oomd" "Install systemd-oomd.service"
@@ -110,6 +115,7 @@ install_end4_hyprland_dots() {
     add_menu_item "optional" "install_easyeffects" "Install EasyEffects (requires Flatpak)"
     add_menu_item "optional" "install_zen_browser" "Install Zen Browser (requires Flatpak)"
     add_menu_item "optional" "install_handbrake" "Install HandBrake"
+    add_menu_item "optional" "install_droidcam" "Install Droidcam"
 }
 
 #-------------------------------------------------------

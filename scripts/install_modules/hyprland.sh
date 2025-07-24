@@ -6,18 +6,18 @@
 
 install_hyprspace() {
     if ! command -v paru &>/dev/null; then
-        echo "Error: paru is not installed. Skipping Hyprspace dependency installation."
-        echo "Please install paru first."
+        _log ERROR "paru is not installed. Skipping Hyprspace dependency installation."
+        _log INFO "Please install paru first."
         return 1
     fi
-    echo "Installing Hyprspace dependencies (cpio, cmake, etc.)..."
+    _log INFO "Installing Hyprspace dependencies (cpio, cmake, etc.)..."
     paru -S --noconfirm cpio cmake git meson gcc
 
-    echo "Adding and enabling Hyprspace plugin via hyprpm..."
+    _log INFO "Adding and enabling Hyprspace plugin via hyprpm..."
     hyprpm update
     hyprpm add https://github.com/KZDKM/Hyprspace
     hyprpm enable Hyprspace
-    echo "Hyprspace plugin has been enabled."
+    _log SUCCESS "Hyprspace plugin has been enabled."
 }
 
 copy_new_hypr_configs() {
@@ -25,14 +25,14 @@ copy_new_hypr_configs() {
     local config_dest_dir="$HOME/.config/hypr"
 
     if [ -d "$config_src_dir" ]; then
-        echo "Ensuring destination directory exists: $config_dest_dir"
+        _log INFO "Ensuring destination directory exists: $config_dest_dir"
         mkdir -p "$config_dest_dir"
 
-        echo "Copying all files and folders from $config_src_dir to $config_dest_dir..."
+        _log INFO "Copying all files and folders from $config_src_dir to $config_dest_dir..."
         cp -rfv "$config_src_dir"/. "$config_dest_dir/"
-        echo "Configuration files copied successfully."
+        _log SUCCESS "Configuration files copied successfully."
     else
-        echo "Error: Source directory '$config_src_dir' not found. Skipping config file copy."
+        _log ERROR "Source directory '$config_src_dir' not found. Skipping config file copy."
     fi
 }
 
@@ -41,14 +41,14 @@ copy_old_hypr_configs() {
     local config_dest_dir="$HOME/.config/hypr"
 
     if [ -d "$config_src_dir" ]; then
-        echo "Ensuring destination directory exists: $config_dest_dir"
+        _log INFO "Ensuring destination directory exists: $config_dest_dir"
         mkdir -p "$config_dest_dir"
 
-        echo "Copying .conf files from $config_src_dir to $config_dest_dir..."
+        _log INFO "Copying .conf files from $config_src_dir to $config_dest_dir..."
         cp -v "$config_src_dir"/*.conf "$config_dest_dir/"
-        echo "Configuration files copied successfully."
+        _log SUCCESS "Configuration files copied successfully."
     else
-        echo "Error: Source directory '$config_src_dir' not found. Skipping config file copy."
+        _log ERROR "Source directory '$config_src_dir' not found. Skipping config file copy."
     fi
 }
 
@@ -61,13 +61,13 @@ copy_quickshell_configs() {
     local config_dest_dir="$HOME/.config/quickshell/default"
 
     if [ -d "$config_src_dir" ]; then
-        echo "Ensuring destination directory exists: $config_dest_dir"
+        _log INFO "Ensuring destination directory exists: $config_dest_dir"
         mkdir -p "$config_dest_dir"
 
-        echo "Copying files from $config_src_dir to $config_dest_dir..."
+        _log INFO "Copying files from $config_src_dir to $config_dest_dir..."
         cp -v "$config_src_dir"/* "$config_dest_dir/"
-        echo "Configuration files copied successfully."
+        _log SUCCESS "Configuration files copied successfully."
     else
-        echo "Error: Source directory '$config_src_dir' not found. Skipping config file copy."
+        _log ERROR "Source directory '$config_src_dir' not found. Skipping config file copy."
     fi
 }

@@ -1,11 +1,16 @@
 #!/bin/bash
 
-# ------------------------------------------------------
+#-------------------------------------------------------
 # Hyprland Streaming Mode Script (OFF)
-# ------------------------------------------------------
+#-------------------------------------------------------
 
-# This script restores the default graphical settings.
-# You can change the values below to match your personal preference.
+# Source helper functions
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$DIR/../.."
+HELPER_SCRIPT="$PROJECT_ROOT/scripts/install_modules/helpers.sh"
+source "$HELPER_SCRIPT"
+
+_log INFO "Disabling Hyprland Streaming Mode..."
 
 hyprctl --batch "\
     keyword animations:enabled true;\
@@ -19,4 +24,4 @@ hyprctl --batch "\
 
 # Send a notification to confirm that streaming mode is off
 notify-send -u low -i video-display "Hyprland" "Streaming Mode OFF: Input Enabled"
-
+_log SUCCESS "Hyprland Streaming Mode OFF. Input devices enabled."

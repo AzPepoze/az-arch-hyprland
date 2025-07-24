@@ -6,24 +6,24 @@
 
 install_gemini_cli() {
     if ! command -v pnpm &> /dev/null; then
-        echo "Error: pnpm is not installed. Please install it first."
+        _log ERROR "pnpm is not installed. Please install it first."
         if ask_yes_no "Do you want to install pnpm now?"; then
             install_pnpm
         else
-            echo "Skipping Gemini CLI installation."
+            _log INFO "Skipping Gemini CLI installation."
             return 1
         fi
     fi
-    echo "Installing Gemini CLI globally using pnpm..."
+    _log INFO "Installing Gemini CLI globally using pnpm..."
     pnpm add -g @google/gemini-cli
-    echo "Gemini CLI installation completed successfully."
+    _log SUCCESS "Gemini CLI installation completed successfully."
 }
 
 #-------------------------------------------------------
 # Fisher Installation
 #-------------------------------------------------------
 install_fisher() {
-    echo "Installing Fisher (fish shell plugin manager)..."
+    _log INFO "Installing Fisher (fish shell plugin manager)..."
     curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
-    echo "Fisher installed."
+    _log SUCCESS "Fisher installed."
 }

@@ -8,67 +8,70 @@
 # packages, and Flatpak applications.
 #----------------------------------------------------------------------
 
-#-------------------------------------------------------
-# Helper Functions
-#-------------------------------------------------------
-
-# Function to print a formatted header
-print_header() {
-    echo ""
-    echo "============================================================"
-    echo " $1"
-    echo "============================================================"
-}
+# Source helper functions
+REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+HELPER_SCRIPT="$REPO_DIR/scripts/install_modules/helpers.sh"
+source "$HELPER_SCRIPT"
 
 #-------------------------------------------------------
 # Update Functions
 #-------------------------------------------------------
 
 update_repo() {
-    print_header "Updating az-arch Repository"
+    _log INFO "============================================================"
+    _log INFO " Updating az-arch Repository"
+    _log INFO "============================================================"
     if git pull; then
-        echo "Repository updated successfully."
+        _log SUCCESS "Repository updated successfully."
     else
-        echo "Warning: Could not update the repository. Continuing with the script..."
+        _log WARN "Could not update the repository. Continuing with the script..."
     fi
 }
 
 update_system_packages() {
-    print_header "Updating System & AUR Packages (paru)"
+    _log INFO "============================================================"
+    _log INFO " Updating System & AUR Packages (paru)"
+    _log INFO "============================================================"
     if command -v paru &> /dev/null; then
         paru -Syu --noconfirm
     else
-        echo "Warning: paru command not found. Skipping system package update."
-        echo "Please install paru to enable this feature."
+        _log WARN "paru command not found. Skipping system package update."
+        _log INFO "Please install paru to enable this feature."
     fi
 }
 
 update_flatpak() {
-    print_header "Updating Flatpak Packages"
+    _log INFO "============================================================"
+    _log INFO " Updating Flatpak Packages"
+    _log INFO "============================================================"
     if command -v flatpak &> /dev/null; then
         flatpak update -y
     else
-        echo "Warning: flatpak command not found. Skipping Flatpak update."
+        _log WARN "flatpak command not found. Skipping Flatpak update."
     fi
 }
 
 update_dots_hyprland() {
-    print_header "Updating dots-hyprland"
+    _log INFO "============================================================"
+    _log INFO " Updating dots-hyprland"
+    _log INFO "============================================================"
     if [ -d "$HOME/dots-hyprland" ]; then
         cd "$HOME/dots-hyprland" && git pull && ./install.sh -c -f
-        echo "dots-hyprland updated successfully."
+        _log SUCCESS "dots-hyprland updated successfully."
     else
-        echo "Warning: dots-hyprland directory not found. Skipping dots-hyprland update."
-        echo "Please install dots-hyprland first if you wish to update it."
+        _log WARN "dots-hyprland directory not found. Skipping dots-hyprland update."
+        _log INFO "Please install dots-hyprland first if you wish to update it."
     fi
 }
 
 load_configs() {
-    print_header "Load Configurations"
+    _log INFO "============================================================"
+    _log INFO " Load Configurations"
+    _log INFO "============================================================"
     if [ -f "./sync_configs.sh" ]; then
         ./sync_configs.sh load
     else
-        echo "Warning: sync_configs.sh not found. Skipping config load."
+        _log WARN "sync_configs.sh not found. Skipping config load."
     fi
 }
 
@@ -108,12 +111,14 @@ populate_menu_data() {
 # Update Suite Logic
 #-------------------------------------------------------
 run_update_suite_all() {
-    print_header "Starting full system update process (excluding repo update)..."
+    _log INFO "============================================================"
+    _log INFO " Starting full system update process (excluding repo update)..."
+    _log INFO "============================================================"
     update_system_packages
     update_flatpak
     update_dots_hyprland
     load_configs
-    print_header "Full system update process has finished."
+    _log SUCCESS "Full system update process has finished."
 }
 
 #-------------------------------------------------------
@@ -121,24 +126,24 @@ run_update_suite_all() {
 #-------------------------------------------------------
 show_menu() {
     clear
-    echo "------------------------------------------------------------"
-    echo " Az Arch Updater - Main Menu"
-    echo "------------------------------------------------------------"
-    echo "Please select an option:"
+    _log INFO "------------------------------------------------------------"
+    _log INFO " Az Arch Updater - Main Menu"
+    _log INFO "------------------------------------------------------------"
+    _log INFO "Please select an option:"
 
     local option_num=1
     for i in "${!menu_items[@]}"; do
         if [[ "${menu_types[i]}" == "header" ]]; then
-            echo -e "${menu_items[i]}"
+            _log INFO "${menu_items[i]}"
         else
             printf " %2d) %s\n" "$option_num" "${menu_items[i]}"
             ((option_num++))
         fi
     done
 
-    echo "------------------------------------------------------------"
-    echo " $(($option_num))) Exit"
-    echo "------------------------------------------------------------"
+    _log INFO "------------------------------------------------------------"
+    _log INFO " $(($option_num))) Exit"
+    _log INFO "------------------------------------------------------------"
 }
 
 main_menu() {
@@ -151,15 +156,15 @@ main_menu() {
         for type in "${menu_types[@]}"; do
             if [[ "$type" != "header" ]]; then
                 ((option_count++))
-            fi
+            }
         done
         local exit_option=$((option_count + 1))
 
         read -p "Enter your choice [1-$exit_option]: " choice
-        echo "------------------------------------------------------------"
+        _log INFO "------------------------------------------------------------"
 
         if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
-            echo "Invalid input. Please enter a number."
+            _log ERROR "Invalid input. Please enter a number."
         elif ((choice > 0 && choice <= option_count)); then
             local current_option=0
             local target_index=-1
@@ -169,7 +174,7 @@ main_menu() {
                     if ((current_option == choice)); then
                         target_index=$i
                         break
-                    fi
+                    }
                 fi
             done
 
@@ -178,18 +183,18 @@ main_menu() {
                 if declare -f "$func_to_run" > /dev/null; then
                     "$func_to_run"
                 else
-                    echo "Error: Function '$func_to_run' not found."
+                    _log ERROR "Function '$func_to_run' not found."
                 fi
             fi
         elif ((choice == exit_option)); then
-            echo "Exiting script. Goodbye!"
+            _log INFO "Exiting script. Goodbye!"
             break
         else
-            echo "Invalid option '$choice'. Please try again."
+            _log ERROR "Invalid option '$choice'. Please try again."
         fi
 
         if ((choice != exit_option)); then
-            echo "------------------------------------------------------------"
+            _log INFO "------------------------------------------------------------"
             read -p "Press Enter to return to the menu..."
         fi
     done

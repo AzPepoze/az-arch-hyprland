@@ -10,12 +10,18 @@ PORT="26538"
 API_BASE_URL="http://localhost:${PORT}/api/v1"
 STEP=1
 
+# Source helper functions
+DIR_HELPER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT_HELPER="$DIR_HELPER/../.."
+HELPER_SCRIPT="$PROJECT_ROOT_HELPER/scripts/install_modules/helpers.sh"
+source "$HELPER_SCRIPT"
+
 #-------------------------------------------------------
 # Helper Functions
 #-------------------------------------------------------
 ensure_config_file() {
     if [ ! -f "$CONFIG_FILE" ]; then
-        echo "Config file not found. Creating with default volume: $DEFAULT_VOLUME"
+        _log INFO "Config file not found. Creating with default volume: $DEFAULT_VOLUME"
         mkdir -p "$(dirname "$CONFIG_FILE")"
         echo "$DEFAULT_VOLUME" > "$CONFIG_FILE"
     fi
@@ -38,22 +44,22 @@ set_new_volume() {
 
     if [[ "$response" -ge 200 && "$response" -lt 300 ]]; then
         echo "$new_vol" > "$CONFIG_FILE"
-        echo "New volume set to $new_vol"
+        _log INFO "New volume set to $new_vol"
     else
-        echo "Error: Failed to set volume via API. HTTP status: $response"
+        _log ERROR "Failed to set volume via API. HTTP status: $response"
         exit 1
     fi
 }
 
 sync_from_api() {
-    echo "Attempting to sync volume from API..."
+    _log INFO "Attempting to sync volume from API..."
     api_volume=$(curl -s "${API_BASE_URL}/volume" | jq '.state')
     if [[ "$api_volume" =~ ^[0-9]+$ ]]; then
         echo "$api_volume" > "$CONFIG_FILE"
-        echo "Successfully synced volume from API: $api_volume"
+        _log SUCCESS "Successfully synced volume from API: $api_volume"
         return 0
     else
-        echo "Error: Could not get current volume from API for syncing."
+        _log ERROR "Could not get current volume from API for syncing."
         return 1
     fi
 }
@@ -65,7 +71,7 @@ ensure_config_file
 current_volume=$(get_current_volume)
 
 if ! [[ "$current_volume" =~ ^[0-9]+$ ]]; then
-    echo "Error: Invalid volume value in config file: '$current_volume'."
+    _log ERROR "Invalid volume value in config file: '$current_volume'."
     if sync_from_api; then
         current_volume=$(get_current_volume)
     else
@@ -87,7 +93,7 @@ case "$1" in
         exit 0
         ;;
     *)
-        echo "Usage: $0 [up|down|sync]"
+        _log INFO "Usage: $0 [up|down|sync]"
         exit 1
         ;;
 esac

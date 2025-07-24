@@ -9,12 +9,12 @@ install_vesktop() {
 }
 
 setup_vesktop_rpc() {
-    echo "Setting up Vencord/Vesktop Activity Status (for Flatpak)..."
+    _log INFO "Setting up Vencord/Vesktop Activity Status (for Flatpak)..."
     mkdir -p ~/.config/user-tmpfiles.d
 
     echo 'L %t/discord-ipc-0 - - - - .flatpak/dev.vencord.Vesktop/xdg-run/discord-ipc-0' >~/.config/user-tmpfiles.d/discord-rpc.conf
     systemctl --user enable --now systemd-tmpfiles-setup.service
-    echo "Activity Status setup completed successfully."
+    _log SUCCESS "Activity Status setup completed successfully."
 }
 
 copy_thai_fonts_css() {
@@ -24,18 +24,18 @@ copy_thai_fonts_css() {
 
     dest_dir=$(dirname "$dest_file")
 
-    echo "Copying Thai fonts CSS for Vesktop..."
+    _log INFO "Copying Thai fonts CSS for Vesktop..."
 
     if [ ! -f "$source_file" ]; then
-        echo "Error: Source file not found at $source_file"
+        _log ERROR "Source file not found at $source_file"
         return 1
     fi
 
-    echo "Ensuring destination directory exists: $dest_dir"
+    _log INFO "Ensuring destination directory exists: $dest_dir"
     mkdir -p "$dest_dir"
 
     cp -v "$source_file" "$dest_file"
-    echo "Successfully copied thai_fonts.css to the Vesktop directory."
+    _log SUCCESS "Successfully copied thai_fonts.css to the Vesktop directory."
 }
 
 install_youtube_music() {
@@ -53,12 +53,12 @@ install_ms_edge() {
 install_easyeffects() {
     install_flatpak_package "com.github.wwmm.easyeffects" "EasyEffects"
 
-    echo "Installing and enabling EasyEffects systemd service..."
+    _log INFO "Installing and enabling EasyEffects systemd service..."
     local service_source="$repo_dir/services/easyeffects.service"
     local service_dest="$HOME/.config/systemd/user/easyeffects.service"
 
     if [ ! -f "$service_source" ]; then
-        echo "Error: EasyEffects service file not found at $service_source"
+        _log ERROR "EasyEffects service file not found at $service_source"
         return 1
     fi
 
@@ -66,7 +66,7 @@ install_easyeffects() {
     cp -v "$service_source" "$service_dest"
 
     systemctl --user enable --now easyeffects.service
-    echo "EasyEffects service has been installed and started."
+    _log SUCCESS "EasyEffects service has been installed and started."
 }
 
 install_zen_browser() {
@@ -98,9 +98,9 @@ install_ulauncher() {
 }
 
 install_ulauncher_catppuccin_theme() {
-    echo "Installing Catppuccin theme for Ulauncher..."
+    _log INFO "Installing Catppuccin theme for Ulauncher..."
     curl https://raw.githubusercontent.com/catppuccin/ulauncher/main/install.py -fsSL | python3 - -f mocha -a pink
-    echo "Catppuccin theme for Ulauncher installation attempted."
+    _log INFO "Catppuccin theme for Ulauncher installation attempted."
 }
 
 install_flatseal() {
@@ -109,4 +109,8 @@ install_flatseal() {
 
 install_handbrake() {
     install_paru_package "handbrake" "HandBrake"
+}
+
+install_droidcam() {
+    install_paru_package "droidcam" "Droidcam"
 }

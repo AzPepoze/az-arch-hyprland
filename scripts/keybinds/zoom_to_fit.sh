@@ -1,4 +1,16 @@
-#!/bin/sh
+#!/bin/bash
+
+#-------------------------------------------------------
+# Script to zoom active window to fit monitor
+#-------------------------------------------------------
+
+# Source helper functions
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$DIR/../.."
+HELPER_SCRIPT="$PROJECT_ROOT/scripts/install_modules/helpers.sh"
+source "$HELPER_SCRIPT"
+
+_log INFO "Attempting to zoom active window to fit monitor..."
 
 active_window_json=$(hyprctl activewindow -j)
 monitors_json=$(hyprctl monitors -j)
@@ -35,3 +47,5 @@ new_y=$(( monitor_y + (monitor_h - new_h) / 2 ))
 
 hyprctl dispatch resizewindowpixel exact $new_w $new_h,address:$window_address;
 hyprctl dispatch centerwindow
+
+_log SUCCESS "Active window zoomed and centered."

@@ -5,36 +5,36 @@
 #-------------------------------------------------------
 
 install_paru() {
-     echo "Installing paru (AUR Helper)..."
+     _log INFO "Installing paru (AUR Helper)..."
      if command -v paru &>/dev/null; then
-          echo "paru is already installed."
+          _log INFO "paru is already installed."
           return 0
      fi
 
-     echo "Installing dependencies for paru (git, base-devel)..."
+     _log INFO "Installing dependencies for paru (git, base-devel)..."
      sudo pacman -S --needed git base-devel --noconfirm
 
      local temp_dir
      temp_dir=$(mktemp -d)
      if [ -z "$temp_dir" ]; then
-          echo "Error: Could not create temporary directory."
+          _log ERROR "Could not create temporary directory."
           return 1
      fi
 
-     echo "Cloning paru from AUR into a temporary directory..."
+     _log INFO "Cloning paru from AUR into a temporary directory..."
      if ! git clone https://aur.archlinux.org/paru.git "$temp_dir/paru"; then
-          echo "Error: Failed to clone paru repository."
+          _log ERROR "Failed to clone paru repository."
           rm -rf "$temp_dir"
           return 1
      fi
 
      (
           cd "$temp_dir/paru" || exit 1
-          echo "Building and installing paru..."
+          _log INFO "Building and installing paru..."
           makepkg -si --noconfirm
      )
 
-     echo "Cleaning up..."
+     _log INFO "Cleaning up..."
      rm -rf "$temp_dir"
 }
 
@@ -52,11 +52,15 @@ install_npm() {
 
 install_pnpm() {
      install_paru_package "pnpm" "pnpm"
-     echo "Running pnpm setup..."
+     _log INFO "Running pnpm setup..."
      if command -v pnpm &>/dev/null; then
           pnpm setup
-          echo "pnpm setup completed."
+          _log SUCCESS "pnpm setup completed."
      else
-          echo "pnpm command not found, skipping pnpm setup."
+          _log WARN "pnpm command not found, skipping pnpm setup."
      fi
+}
+
+install_linux_headers() {
+    install_pacman_package "linux-headers" "Linux Headers"
 }

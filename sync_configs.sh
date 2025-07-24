@@ -16,10 +16,15 @@
 
 set -e
 
+# Source helper functions
+REPO_DIR_HELPER="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+HELPER_SCRIPT="$REPO_DIR_HELPER/scripts/install_modules/helpers.sh"
+source "$HELPER_SCRIPT"
+
 #-------------------------------------------------------
 # Configuration
 #-------------------------------------------------------
-REPO_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 CONFIGS_DIR_REPO="$REPO_DIR/configs"
 CONFIGS_DIR_SYSTEM="$HOME/.config"
 MODE=$1
@@ -28,9 +33,9 @@ MODE=$1
 # Helper Functions
 #-------------------------------------------------------
 print_usage() {
-    echo "Usage: $0 [save|load]"
-    echo "  save: Save configurations from the system to this repository."
-    echo "  load: Load configurations from this repository to the system."
+    _log ERROR "Usage: $0 [save|load]"
+    _log INFO "  save: Save configurations from the system to this repository."
+    _log INFO "  load: Load configurations from this repository to the system."
 }
 
 sync_files() {
@@ -38,9 +43,9 @@ sync_files() {
     local dest_dir=$2
     local config_name=$3
 
-    echo "--- Processing '$config_name' ---"
+    _log INFO "--- Processing '$config_name' ---"
     if [ ! -d "$source_dir" ]; then
-        echo "Warning: Source directory for '$config_name' not found at '$source_dir'. Skipping."
+        _log WARN "Source directory for '$config_name' not found at '$source_dir'. Skipping."
         return
     fi
 
@@ -52,14 +57,14 @@ sync_files() {
 
         mkdir -p "$(dirname "$dest_file")"
 
-        echo "Syncing: $relative_path"
+        _log INFO "Syncing: $relative_path"
         cp -v "$source_file" "$dest_file"
     done
-    echo "---------------------------"
+    _log INFO "---------------------------"
 }
 
 configure_gpu_device() {
-    echo "Detecting available GPUs..."
+    _log INFO "Detecting available GPUs..."
 
     declare -A lspci_line_to_device_path
     local menu_options=()
@@ -81,16 +86,16 @@ configure_gpu_device() {
     done <<< "$(lspci -d ::03xx)"
 
     if [ ${#menu_options[@]} -eq 0 ]; then
-        echo "No display controllers found with a corresponding device in /dev/dri/by-path. Skipping GPU configuration."
+        _log INFO "No display controllers found with a corresponding device in /dev/dri/by-path. Skipping GPU configuration."
         return
     fi
 
-    echo "Please select the primary GPU for Hyprland:"
+    _log INFO "Please select the primary GPU for Hyprland:"
     select selected_lspci_line in "${menu_options[@]}"; do
         if [[ -n "$selected_lspci_line" ]]; then
             local selected_gpu_path=${lspci_line_to_device_path["$selected_lspci_line"]}
 
-            echo "You selected: $selected_lspci_line"
+            _log INFO "You selected: $selected_lspci_line"
 
             # Create an ordered list of devices, with the selected one first.
             local ordered_devices=("$selected_gpu_path")
@@ -105,7 +110,7 @@ configure_gpu_device() {
             final_device_string=$(printf "%s:" "${ordered_devices[@]}")
             final_device_string=${final_device_string%:} # Remove trailing colon
 
-            echo "Using device path string: $final_device_string"
+            _log INFO "Using device path string: $final_device_string"
 
             local env_var_line="env = AQ_DRM_DEVICES,$final_device_string"
             local env_conf_file="$HOME/.config/hypr/custom/env.conf"
@@ -116,13 +121,13 @@ configure_gpu_device() {
                 sed -i '/^env = AQ_DRM_DEVICES/d' "$env_conf_file"
             fi
             
-            echo "Adding '$env_var_line' to $env_conf_file"
+            _log INFO "Adding '$env_var_line' to $env_conf_file"
             echo "$env_var_line" >> "$env_conf_file"
-            echo "GPU configuration updated."
+            _log SUCCESS "GPU configuration updated."
 
             break
         else
-            echo "Invalid selection. Please try again."
+            _log ERROR "Invalid selection. Please try again."
         fi
     done
 }
@@ -133,21 +138,21 @@ configure_gpu_device() {
 #-------------------------------------------------------
 main() {
     if [ -z "$MODE" ]; then
-        echo "Error: No mode specified."
+        _log ERROR "No mode specified."
         print_usage
         exit 1
     fi
 
     if [ ! -d "$CONFIGS_DIR_REPO" ]; then
-        echo "Error: Repository configs directory not found at '$CONFIGS_DIR_REPO'."
+        _log ERROR "Repository configs directory not found at '$CONFIGS_DIR_REPO'."
         exit 1
     fi
 
-    echo "============================================================"
-    echo "Starting configuration sync in '$MODE' mode."
-    echo "Repo Dir:   $CONFIGS_DIR_REPO"
-    echo "System Dir: $CONFIGS_DIR_SYSTEM"
-    echo "============================================================"
+    _log INFO "============================================================"
+    _log INFO "Starting configuration sync in '$MODE' mode."
+    _log INFO "Repo Dir:   $CONFIGS_DIR_REPO"
+    _log INFO "System Dir: $CONFIGS_DIR_SYSTEM"
+    _log INFO "============================================================"
 
     for config_app_dir in "$CONFIGS_DIR_REPO"/*; do
         if [ -d "$config_app_dir" ]; then
@@ -163,7 +168,7 @@ main() {
                 local system_path="$CONFIGS_DIR_SYSTEM/$config_name"
                 sync_files "$repo_path" "$system_path" "$config_name"
             else
-                echo "Error: Invalid mode '$MODE'."
+                _log ERROR "Invalid mode '$MODE'."
                 print_usage
                 exit 1
             fi
@@ -174,9 +179,9 @@ main() {
         configure_gpu_device
     fi
 
-    echo "============================================================"
-    echo "Configuration sync finished successfully."
-    echo "============================================================"
+    _log INFO "============================================================"
+    _log SUCCESS "Configuration sync finished successfully."
+    _log INFO "============================================================"
 }
 
 #-------------------------------------------------------
