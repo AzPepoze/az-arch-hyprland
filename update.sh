@@ -8,70 +8,65 @@
 # packages, and Flatpak applications.
 #----------------------------------------------------------------------
 
-# Source helper functions
-REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-HELPER_SCRIPT="$REPO_DIR/scripts/install_modules/helpers.sh"
-source "$HELPER_SCRIPT"
-
 #-------------------------------------------------------
 # Update Functions
 #-------------------------------------------------------
 
 update_repo() {
-    _log INFO "============================================================"
-    _log INFO " Updating az-arch Repository"
-    _log INFO "============================================================"
+    echo "============================================================"
+    echo " Updating az-arch Repository"
+    echo "============================================================"
     if git pull; then
-        _log SUCCESS "Repository updated successfully."
+        echo "Repository updated successfully."
     else
-        _log WARN "Could not update the repository. Continuing with the script..."
+        echo "Could not update the repository. Continuing with the script..."
     fi
 }
 
 update_system_packages() {
-    _log INFO "============================================================"
-    _log INFO " Updating System & AUR Packages (paru)"
-    _log INFO "============================================================"
+    echo "============================================================"
+    echo " Updating System & AUR Packages (paru)"
+    echo "============================================================"
     if command -v paru &> /dev/null; then
         paru -Syu --noconfirm
     else
-        _log WARN "paru command not found. Skipping system package update."
-        _log INFO "Please install paru to enable this feature."
+        echo "paru command not found. Skipping system package update."
+        echo "Please install paru to enable this feature."
     fi
 }
 
 update_flatpak() {
-    _log INFO "============================================================"
-    _log INFO " Updating Flatpak Packages"
-    _log INFO "============================================================"
+    echo "============================================================"
+    echo " Updating Flatpak Packages"
+    echo "============================================================"
     if command -v flatpak &> /dev/null; then
         flatpak update -y
     else
-        _log WARN "flatpak command not found. Skipping Flatpak update."
+        echo "flatpak command not found. Skipping Flatpak update."
     fi
 }
 
 update_dots_hyprland() {
-    _log INFO "============================================================"
-    _log INFO " Updating dots-hyprland"
-    _log INFO "============================================================"
+    echo "============================================================"
+    echo " Updating dots-hyprland"
+    echo "============================================================"
     if [ -d "$HOME/dots-hyprland" ]; then
         cd "$HOME/dots-hyprland" && git pull && ./install.sh -c -f
-        _log SUCCESS "dots-hyprland updated successfully."
+        echo "dots-hyprland updated successfully."
     else
-        _log WARN "dots-hyprland directory not found. Skipping dots-hyprland update."
-        _log INFO "Please install dots-hyprland first if you wish to update it."
+        echo "dots-hyprland directory not found. Skipping dots-hyprland update."
+        echo "Please install dots-hyprland first if you wish to update it."
     fi
 }
 
 load_configs() {
-    _log INFO "============================================================"
-    _log INFO " Load Configurations"
-    _log INFO "============================================================"
+    echo "============================================================"
+    echo " Load Configurations"
+    echo "============================================================"
     if [ -f "./sync_configs.sh" ]; then
         ./sync_configs.sh load
     else
-        _log WARN "sync_configs.sh not found. Skipping config load."
+        echo "sync_configs.sh not found. Skipping config load."
     fi
 }
 
@@ -111,14 +106,14 @@ populate_menu_data() {
 # Update Suite Logic
 #-------------------------------------------------------
 run_update_suite_all() {
-    _log INFO "============================================================"
-    _log INFO " Starting full system update process (excluding repo update)..."
-    _log INFO "============================================================"
+    echo "============================================================"
+    echo " Starting full system update process (excluding repo update)..."
+    echo "============================================================"
     update_system_packages
     update_flatpak
     update_dots_hyprland
     load_configs
-    _log SUCCESS "Full system update process has finished."
+    echo "Full system update process has finished."
 }
 
 #-------------------------------------------------------
@@ -126,24 +121,25 @@ run_update_suite_all() {
 #-------------------------------------------------------
 show_menu() {
     clear
-    _log INFO "------------------------------------------------------------"
-    _log INFO " Az Arch Updater - Main Menu"
-    _log INFO "------------------------------------------------------------"
-    _log INFO "Please select an option:"
+    echo "------------------------------------------------------------"
+    echo " Az Arch Updater - Main Menu"
+    echo "------------------------------------------------------------"
+    echo "Please select an option:"
 
     local option_num=1
     for i in "${!menu_items[@]}"; do
         if [[ "${menu_types[i]}" == "header" ]]; then
-            _log INFO "${menu_items[i]}"
+            echo "${menu_items[i]}"
         else
-            printf " %2d) %s\n" "$option_num" "${menu_items[i]}"
+            printf " %2d) %s
+" "$option_num" "${menu_items[i]}"
             ((option_num++))
         fi
     done
 
-    _log INFO "------------------------------------------------------------"
-    _log INFO " $(($option_num))) Exit"
-    _log INFO "------------------------------------------------------------"
+    echo "------------------------------------------------------------"
+    echo " $(($option_num))) Exit"
+    echo "------------------------------------------------------------"
 }
 
 main_menu() {
@@ -156,15 +152,15 @@ main_menu() {
         for type in "${menu_types[@]}"; do
             if [[ "$type" != "header" ]]; then
                 ((option_count++))
-            }
+            fi
         done
         local exit_option=$((option_count + 1))
 
         read -p "Enter your choice [1-$exit_option]: " choice
-        _log INFO "------------------------------------------------------------"
+        echo "------------------------------------------------------------"
 
         if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
-            _log ERROR "Invalid input. Please enter a number."
+            echo "Invalid input. Please enter a number."
         elif ((choice > 0 && choice <= option_count)); then
             local current_option=0
             local target_index=-1
@@ -174,7 +170,7 @@ main_menu() {
                     if ((current_option == choice)); then
                         target_index=$i
                         break
-                    }
+                    fi
                 fi
             done
 
@@ -183,18 +179,18 @@ main_menu() {
                 if declare -f "$func_to_run" > /dev/null; then
                     "$func_to_run"
                 else
-                    _log ERROR "Function '$func_to_run' not found."
+                    echo "Function '$func_to_run' not found."
                 fi
             fi
         elif ((choice == exit_option)); then
-            _log INFO "Exiting script. Goodbye!"
+            echo "Exiting script. Goodbye!"
             break
         else
-            _log ERROR "Invalid option '$choice'. Please try again."
+            echo "Invalid option '$choice'. Please try again."
         fi
 
         if ((choice != exit_option)); then
-            _log INFO "------------------------------------------------------------"
+            echo "------------------------------------------------------------"
             read -p "Press Enter to return to the menu..."
         fi
     done
