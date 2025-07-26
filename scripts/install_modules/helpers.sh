@@ -8,11 +8,11 @@
 _log() {
     local type="$1"; shift
     local msg="$*"
-    local color_red="\033[0;31m"
-    local color_green="\033[0;32m"
-    local color_yellow="\033[0;33m"
-    local color_blue="\033[0;34m"
-    local color_reset="\033[0m"
+    local color_red="[0;31m"
+    local color_green="[0;32m"
+    local color_yellow="[0;33m"
+    local color_blue="[0;34m"
+    local color_reset="[0m"
 
     case "$type" in
         INFO) echo -e "${color_blue}[INFO]${color_reset} $msg" ;;
@@ -69,4 +69,11 @@ install_flatpak_package() {
      echo "Installing $friendly_name from Flathub..."
      flatpak install flathub "$package_id" -y
      echo "$friendly_name installation completed."
+}
+
+install_jq() {
+    if ! command -v jq &>/dev/null; then
+        _log INFO "jq not found. Installing..."
+        install_pacman_package "jq" "jq"
+    fi
 }

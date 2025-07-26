@@ -49,6 +49,7 @@ populate_menu_data() {
     add_menu_item "essential" "install_fuse" "Install FUSE (Filesystem in Userspace)"
     add_menu_item "essential" "install_npm" "Install npm"
     add_menu_item "essential" "install_pnpm" "Install pnpm"
+    add_menu_item "essential" "install_jq" "Install jq"
     add_menu_item "essential" "install_linux_headers" "Install Linux Headers"
 
     add_menu_item "header" "" "\n--- System Configuration - GRUB ---"
@@ -58,26 +59,20 @@ populate_menu_data() {
 
     add_menu_item "header" "" "\n--- Desktop Environment - Hyprland ---"
     add_menu_item "essential" "install_end4_hyprland_dots" "Install end-4's Hyprland Dots"
-
-install_end4_hyprland_dots() {
-    echo "Installing end-4's Hyprland Dots..."
-    cd ~
-    git clone https://github.com/end-4/dots-hyprland
-    cd dots-hyprland
-    ./install.sh
-    echo "end-4's Hyprland Dots installation complete."
-}
     add_menu_item "essential" "install_hyprspace" "Install the Hyprspace plugin for Hyprland"
     add_menu_item "essential" "install_quickshell" "Install Quickshell"
     add_menu_item "essential" "copy_quickshell_configs" "Copy local Quickshell config files to ~/.config/quickshell/"
 
     add_menu_item "header" "" "\n--- Theming & Customization ---"
     add_menu_item "special" "load_all_configs" "Load all configurations from repo to system"
-    add_menu_item "optional" "install_wallpaper_engine" "Install Linux Wallpaper Engine"
-    add_menu_item "optional" "install_wallpaper_engine_gui_manual" "Install Linux Wallpaper Engine GUI (Manual Build)"
     add_menu_item "essential" "install_sddm_theme" "Install SDDM Astronaut Theme"
     add_menu_item "essential" "install_catppuccin_fish_theme" "Install Catppuccin Fish Theme"
     add_menu_item "essential" "install_cursors" "Install Mouse Cursors"
+
+    add_menu_item "header" "" "
+--- Applications - Wallpaper Engine ---"
+    add_menu_item "optional" "install_wallpaper_engine" "Install Linux Wallpaper Engine"
+    add_menu_item "optional" "install_wallpaper_engine_gui_manual" "Install Linux Wallpaper Engine GUI (Manual Build)"
 
     add_menu_item "header" "" "\n--- System Utilities ---"
     add_menu_item "essential" "install_systemd_oomd" "Install systemd-oomd.service"
@@ -121,6 +116,15 @@ install_end4_hyprland_dots() {
 #-------------------------------------------------------
 # Specific Handlers
 #-------------------------------------------------------
+install_end4_hyprland_dots() {
+    echo "Installing end-4's Hyprland Dots..."
+    cd ~
+    git clone https://github.com/end-4/dots-hyprland
+    cd dots-hyprland
+    ./install.sh
+    echo "end-4's Hyprland Dots installation complete."
+}
+
 load_all_configs() {
     echo "Loading all configurations from repository to system..."
     if [ -f "$repo_dir/sync_configs.sh" ]; then

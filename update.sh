@@ -63,11 +63,39 @@ load_configs() {
     echo "============================================================"
     echo " Load Configurations"
     echo "============================================================"
-    if [ -f "./sync_configs.sh" ]; then
-        ./sync_configs.sh load
+
+    local monitor_config_path="$HOME/.config/hypr/monitors.conf"
+    local temp_dir
+    temp_dir=$(mktemp -d)
+    local backup_monitor_config_path="$temp_dir/monitors.conf"
+    local config_script="./load_configs.sh"
+
+    # Backup monitors.conf if it exists
+    if [ -f "$monitor_config_path" ]; then
+        echo "Backing up '$monitor_config_path'..."
+        cp "$monitor_config_path" "$backup_monitor_config_path"
     else
-        echo "sync_configs.sh not found. Skipping config load."
+        echo "Warning: '$monitor_config_path' not found. Nothing to back up."
     fi
+
+    # Load configurations
+    if [ -f "$config_script" ]; then
+        bash ./load_configs.sh
+    else
+        echo "'$config_script' not found. Skipping config load."
+    fi
+
+    # Restore monitors.conf if it was backed up
+    if [ -f "$backup_monitor_config_path" ]; then
+        echo "Restoring '$monitor_config_path'..."
+        # Ensure the target directory exists
+        mkdir -p "$(dirname "$monitor_config_path")"
+        cp "$backup_monitor_config_path" "$monitor_config_path"
+    fi
+
+    # Cleanup
+    rm -rf "$temp_dir"
+    echo "Configuration load process finished."
 }
 
 #-------------------------------------------------------

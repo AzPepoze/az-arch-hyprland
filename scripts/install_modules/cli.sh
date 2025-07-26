@@ -27,3 +27,12 @@ install_fisher() {
     curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
     _log SUCCESS "Fisher installed."
 }
+
+#-------------------------------------------------------
+# jq Installation
+#-------------------------------------------------------
+install_jq() {
+    _log INFO "Installing jq..."
+    install_paru_package "jq" "jq"
+    _log SUCCESS "jq installation completed successfully."
+}
