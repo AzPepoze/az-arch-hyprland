@@ -13,23 +13,23 @@ source "$HELPER_SCRIPT"
 #     quickshell &
 # fi
 
-_log INFO "Starting rclone sync in background..."
+echo "Starting rclone sync in background..."
 bash $HOME/az-arch/scripts/rclone/sync.sh &
 _log SUCCESS "rclone sync started."
 
 #-------------------------------------------------------
 # Startup Programs
 #-------------------------------------------------------
-_log INFO "Starting Linux Wallpaper Engine GUI..."
+echo "Starting Linux Wallpaper Engine GUI..."
 sleep 1 && linux-wallpaperengine-gui --minimized &
 _log SUCCESS "Linux Wallpaper Engine GUI started."
 
-_log INFO "Starting YouTube Music..."
+echo "Starting YouTube Music..."
 hyprctl dispatch exec "[workspace 1 silent] youtube-music"
 sleep 2
 _log SUCCESS "YouTube Music started."
 
-_log INFO "Starting Messenger..."
+echo "Starting Messenger..."
 MESSENGER_DESKTOP_FILE=$(grep -l "^Name=Messenger$" ~/.local/share/applications/*.desktop /usr/share/applications/*.desktop 2>/dev/null | head -n 1)
 
 if [ -n "$MESSENGER_DESKTOP_FILE" ]; then
@@ -41,10 +41,10 @@ else
 fi
 sleep 2
 
-_log INFO "Starting Vesktop..."
+echo "Starting Vesktop..."
 hyprctl dispatch exec "[workspace 1 silent] flatpak run dev.vencord.Vesktop"
 _log SUCCESS "Vesktop started."
 
-_log INFO "Starting Wineboot..."
+echo "Starting Wineboot..."
 hyprctl dispatch exec "[workspace 4 silent] sh -c 'sleep 10 && wineboot'"
 _log SUCCESS "Wineboot command dispatched."

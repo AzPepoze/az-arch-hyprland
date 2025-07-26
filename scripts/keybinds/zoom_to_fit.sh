@@ -10,7 +10,7 @@ PROJECT_ROOT="$DIR/../.."
 HELPER_SCRIPT="$PROJECT_ROOT/scripts/install_modules/helpers.sh"
 source "$HELPER_SCRIPT"
 
-_log INFO "Attempting to zoom active window to fit monitor..."
+echo "Attempting to zoom active window to fit monitor..."
 
 active_window_json=$(hyprctl activewindow -j)
 monitors_json=$(hyprctl monitors -j)

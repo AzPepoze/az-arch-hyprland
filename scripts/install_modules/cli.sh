@@ -10,11 +10,11 @@ install_gemini_cli() {
         if ask_yes_no "Do you want to install pnpm now?"; then
             install_pnpm
         else
-            _log INFO "Skipping Gemini CLI installation."
+            echo "Skipping Gemini CLI installation."
             return 1
         fi
     fi
-    _log INFO "Installing Gemini CLI globally using pnpm..."
+    echo "Installing Gemini CLI globally using pnpm..."
     pnpm add -g @google/gemini-cli
     _log SUCCESS "Gemini CLI installation completed successfully."
 }
@@ -23,7 +23,7 @@ install_gemini_cli() {
 # Fisher Installation
 #-------------------------------------------------------
 install_fisher() {
-    _log INFO "Installing Fisher (fish shell plugin manager)..."
+    echo "Installing Fisher (fish shell plugin manager)..."
     curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
     _log SUCCESS "Fisher installed."
 }
@@ -32,7 +32,7 @@ install_fisher() {
 # jq Installation
 #-------------------------------------------------------
 install_jq() {
-    _log INFO "Installing jq..."
+    echo "Installing jq..."
     install_paru_package "jq" "jq"
     _log SUCCESS "jq installation completed successfully."
 }

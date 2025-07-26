@@ -34,8 +34,8 @@ MODE=$1
 #-------------------------------------------------------
 print_usage() {
     _log ERROR "Usage: $0 [save|load]"
-    _log INFO "  save: Save configurations from the system to this repository."
-    _log INFO "  load: Load configurations from this repository to the system."
+    echo "  save: Save configurations from the system to this repository."
+    echo "  load: Load configurations from this repository to the system."
 }
 
 sync_files() {
@@ -43,7 +43,7 @@ sync_files() {
     local dest_dir=$2
     local config_name=$3
 
-    _log INFO "--- Processing '$config_name' ---"
+    echo "--- Processing '$config_name' ---"
     if [ ! -d "$source_dir" ]; then
         _log WARN "Source directory for '$config_name' not found at '$source_dir'. Skipping."
         return
@@ -57,14 +57,14 @@ sync_files() {
 
         mkdir -p "$(dirname "$dest_file")"
 
-        _log INFO "Syncing: $relative_path"
+        echo "Syncing: $relative_path"
         cp -v "$source_file" "$dest_file"
     done
-    _log INFO "---------------------------"
+    echo "---------------------------"
 }
 
 configure_gpu_device() {
-    _log INFO "Detecting available GPUs..."
+    echo "Detecting available GPUs..."
 
     declare -A lspci_line_to_device_path
     local menu_options=()
@@ -86,16 +86,16 @@ configure_gpu_device() {
     done <<< "$(lspci -d ::03xx)"
 
     if [ ${#menu_options[@]} -eq 0 ]; then
-        _log INFO "No display controllers found with a corresponding device in /dev/dri/by-path. Skipping GPU configuration."
+        echo "No display controllers found with a corresponding device in /dev/dri/by-path. Skipping GPU configuration."
         return
     fi
 
-    _log INFO "Please select the primary GPU for Hyprland:"
+    echo "Please select the primary GPU for Hyprland:"
     select selected_lspci_line in "${menu_options[@]}"; do
         if [[ -n "$selected_lspci_line" ]]; then
             local selected_gpu_path=${lspci_line_to_device_path["$selected_lspci_line"]}
 
-            _log INFO "You selected: $selected_lspci_line"
+            echo "You selected: $selected_lspci_line"
 
             # Create an ordered list of devices, with the selected one first.
             local ordered_devices=("$selected_gpu_path")
@@ -110,7 +110,7 @@ configure_gpu_device() {
             final_device_string=$(printf "%s:" "${ordered_devices[@]}")
             final_device_string=${final_device_string%:} # Remove trailing colon
 
-            _log INFO "Using device path string: $final_device_string"
+            echo "Using device path string: $final_device_string"
 
             local env_var_line="env = AQ_DRM_DEVICES,$final_device_string"
             local env_conf_file="$HOME/.config/hypr/custom/env.conf"
@@ -121,7 +121,7 @@ configure_gpu_device() {
                 sed -i '/^env = AQ_DRM_DEVICES/d' "$env_conf_file"
             fi
             
-            _log INFO "Adding '$env_var_line' to $env_conf_file"
+            echo "Adding '$env_var_line' to $env_conf_file"
             echo "$env_var_line" >> "$env_conf_file"
             _log SUCCESS "GPU configuration updated."
 
@@ -148,11 +148,11 @@ main() {
         exit 1
     fi
 
-    _log INFO "============================================================"
-    _log INFO "Starting configuration sync in '$MODE' mode."
-    _log INFO "Repo Dir:   $CONFIGS_DIR_REPO"
-    _log INFO "System Dir: $CONFIGS_DIR_SYSTEM"
-    _log INFO "============================================================"
+    echo "============================================================"
+    echo "Starting configuration sync in '$MODE' mode."
+    echo "Repo Dir:   $CONFIGS_DIR_REPO"
+    echo "System Dir: $CONFIGS_DIR_SYSTEM"
+    echo "============================================================"
 
     for config_app_dir in "$CONFIGS_DIR_REPO"/*; do
         if [ -d "$config_app_dir" ]; then
@@ -179,9 +179,9 @@ main() {
         configure_gpu_device
     fi
 
-    _log INFO "============================================================"
+    echo "============================================================"
     _log SUCCESS "Configuration sync finished successfully."
-    _log INFO "============================================================"
+    echo "============================================================"
 }
 
 #-------------------------------------------------------

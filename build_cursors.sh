@@ -29,10 +29,10 @@ source "$DIR/scripts/install_modules/helpers.sh"
 #-------------------------------------------------------
 
 check_and_install_deps() {
-    _log INFO "Checking for required dependencies..."
+    echo "Checking for required dependencies..."
     if ! command -v pipx &> /dev/null; then
         _log ERROR "'pipx' command not found. Please install it first."
-        _log INFO "On Arch Linux, you can install it with: sudo pacman -S --noconfirm python-pipx"
+        echo "On Arch Linux, you can install it with: sudo pacman -S --noconfirm python-pipx"
         exit 1
     fi
 
@@ -44,7 +44,7 @@ check_and_install_deps() {
         pipx install win2xcur
         _log SUCCESS "Successfully installed win2xcur via pipx."
     else
-        _log INFO "'win2xcur' is already installed via pipx."
+        echo "'win2xcur' is already installed via pipx."
     fi
 
     _log SUCCESS "All dependencies are present and configured."
@@ -54,11 +54,11 @@ check_and_install_deps() {
 # Main Execution
 #-------------------------------------------------------
 
-_log INFO "Starting Cursor Theme Build Process using 'pipx'..."
+echo "Starting Cursor Theme Build Process using 'pipx'..."
 check_and_install_deps
 
 # Clean and create destination directory
-_log INFO "Preparing destination directory: $DEST_DIR"
+echo "Preparing destination directory: $DEST_DIR"
 rm -rf "$DEST_DIR"
 mkdir -p "$DEST_DIR"
 
@@ -70,9 +70,9 @@ if [ -d "$SRC_DIR" ]; then
             # Sanitize the name for use in paths and configs
             theme_name=$(echo "$original_theme_name" | sed 's/ /_/g' | sed 's/Mouse_cursor//g' | sed 's/_$//')
             
-            _log INFO "--------------------------------------------------"
-            _log INFO "Building theme: '$original_theme_name' -> '$theme_name'"
-            _log INFO "--------------------------------------------------"
+            echo "--------------------------------------------------"
+            echo "Building theme: '$original_theme_name' -> '$theme_name'"
+            echo "--------------------------------------------------"
 
             output_dir_base="$DEST_DIR/$theme_name"
             output_dir_cursors="$output_dir_base/cursors"
@@ -91,7 +91,7 @@ if [ -d "$SRC_DIR" ]; then
             fi
 
             # Create the index.theme file
-            _log INFO "Creating index.theme for $theme_name"
+            echo "Creating index.theme for $theme_name"
             cat > "$output_dir_base/index.theme" <<EOF
 [Icon Theme]
 Name=$theme_name
@@ -108,4 +108,4 @@ else
 fi
 
 _log SUCCESS "All cursor themes have been built successfully!"
-_log INFO "The built themes are located in: $DEST_DIR"
+echo "The built themes are located in: $DEST_DIR"

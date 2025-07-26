@@ -28,7 +28,7 @@ sync_files() {
     local dest_dir=$2
     local config_name=$3
 
-    _log INFO "--- Loading '$config_name' ---"
+    echo "--- Loading '$config_name' ---"
     if [ ! -d "$source_dir" ]; then
         _log WARN "Source directory for '$config_name' not found at '$source_dir'. Skipping."
         return
@@ -37,11 +37,11 @@ sync_files() {
     mkdir -p "$dest_dir"
 
     rsync -av "$source_dir/" "$dest_dir/"
-    _log INFO "---------------------------"
+    echo "---------------------------"
 }
 
 configure_gpu_device() {
-    _log INFO "Detecting available GPUs..." >&2
+    echo "Detecting available GPUs..." >&2
 
     if ! command -v lspci &>/dev/null; then
         _log ERROR "lspci command not found. Please install pciutils." >&2
@@ -65,19 +65,19 @@ configure_gpu_device() {
     done <<< "$(lspci -d ::03xx)"
 
     if [ ${#menu_options[@]} -eq 0 ]; then
-        _log INFO "No display controllers found. Skipping GPU configuration." >&2
+        echo "No display controllers found. Skipping GPU configuration." >&2
         return
     fi
 
     menu_options+=("Exit")
-    _log INFO "Please select the primary GPU for Hyprland:" >&2
+    echo "Please select the primary GPU for Hyprland:" >&2
     select selected_lspci_line in "${menu_options[@]}"; do
         if [[ "$selected_lspci_line" == "Exit" ]]; then
-            _log INFO "Exiting GPU configuration." >&2
+            echo "Exiting GPU configuration." >&2
             break
         elif [[ -n "$selected_lspci_line" ]]; then
             local selected_gpu_path=${lspci_line_to_device_path["$selected_lspci_line"]}
-            _log INFO "You selected: $selected_lspci_line" >&2
+            echo "You selected: $selected_lspci_line" >&2
 
             local ordered_devices=("$selected_gpu_path")
             for device in "${lspci_line_to_device_path[@]}"; do
@@ -115,19 +115,19 @@ update_hyprland_env() {
         sed -i '/^env = WLR_DRM_DEVICES/d' "$env_conf_file"
     fi
     
-    _log INFO "Adding '$env_var_line' to $env_conf_file"
+    echo "Adding '$env_var_line' to $env_conf_file"
     echo "$env_var_line" >> "$env_conf_file"
 }
 
 configure_cursor_theme() {
-    _log INFO "Starting Cursor Theme Installation..."
+    echo "Starting Cursor Theme Installation..."
 
     local built_themes_dir="$REPO_DIR/dist/cursors"
     local user_icon_dir="$HOME/.local/share/icons"
 
     if [ ! -d "$built_themes_dir" ] || [ -z "$(ls -A "$built_themes_dir")" ]; then
         _log ERROR "Built cursor themes not found in '$built_themes_dir'."
-        _log INFO "Please run the './build_cursors.sh' script from the project root first."
+        echo "Please run the './build_cursors.sh' script from the project root first."
         return 1
     fi
 
@@ -139,19 +139,19 @@ configure_cursor_theme() {
 
     themes+=("Exit")
 
-    _log INFO "Select the cursor theme to install:"
+    echo "Select the cursor theme to install:"
     select theme_name in "${themes[@]}"; do
         case "$theme_name" in
             "Exit")
-                _log INFO "Exiting without installation."
+                echo "Exiting without installation."
                 return 0
                 ;;
             *)
                 if [[ " ${themes[*]} " =~ " ${theme_name} " ]]; then
-                    _log INFO "Installing theme: $theme_name"
+                    echo "Installing theme: $theme_name"
 
                     mkdir -p "$user_icon_dir"
-                    _log INFO "Ensured icon directory exists at '$user_icon_dir'"
+                    echo "Ensured icon directory exists at '$user_icon_dir'"
 
                     cp -r "$built_themes_dir/$theme_name" "$user_icon_dir/"
                     _log SUCCESS "Copied '$theme_name' to '$user_icon_dir'"
@@ -180,7 +180,7 @@ main() {
     fi
 
     if [ ! -f "$SETTINGS_FILE" ]; then
-        _log INFO "Settings file not found. Creating one."
+        echo "Settings file not found. Creating one."
         echo '{ "cursor": { "theme": null, "size": 24 } }' > "$SETTINGS_FILE"
     fi
 
@@ -199,11 +199,11 @@ main() {
         exit 1
     fi
 
-    _log INFO "============================================================"
-    _log INFO "Loading configurations from Repo to System."
-    _log INFO "Repo Dir:   $CONFIGS_DIR_REPO"
-    _log INFO "System Dir: $CONFIGS_DIR_SYSTEM"
-    _log INFO "============================================================"
+    echo "============================================================"
+    echo "Loading configurations from Repo to System."
+    echo "Repo Dir:   $CONFIGS_DIR_REPO"
+    echo "System Dir: $CONFIGS_DIR_SYSTEM"
+    echo "============================================================"
 
     for config_app_dir in "$CONFIGS_DIR_REPO"/*; do
         if [ -d "$config_app_dir" ]; then
@@ -218,9 +218,9 @@ main() {
         update_hyprland_env "$selected_gpu_device"
     fi
 
-    _log INFO "============================================================"
+    echo "============================================================"
     _log SUCCESS "Configuration loading finished successfully."
-    _log INFO "============================================================"
+    echo "============================================================"
 }
 
 #-------------------------------------------------------

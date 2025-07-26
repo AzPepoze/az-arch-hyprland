@@ -5,13 +5,13 @@
 #-------------------------------------------------------
 
 install_paru() {
-     _log INFO "Installing paru (AUR Helper)..."
+     echo "Installing paru (AUR Helper)..."
      if command -v paru &>/dev/null; then
-          _log INFO "paru is already installed."
+          echo "paru is already installed."
           return 0
      fi
 
-     _log INFO "Installing dependencies for paru (git, base-devel)..."
+     echo "Installing dependencies for paru (git, base-devel)..."
      sudo pacman -S --needed git base-devel --noconfirm
 
      local temp_dir
@@ -21,7 +21,7 @@ install_paru() {
           return 1
      fi
 
-     _log INFO "Cloning paru from AUR into a temporary directory..."
+     echo "Cloning paru from AUR into a temporary directory..."
      if ! git clone https://aur.archlinux.org/paru.git "$temp_dir/paru"; then
           _log ERROR "Failed to clone paru repository."
           rm -rf "$temp_dir"
@@ -30,11 +30,11 @@ install_paru() {
 
      (
           cd "$temp_dir/paru" || exit 1
-          _log INFO "Building and installing paru..."
+          echo "Building and installing paru..."
           makepkg -si --noconfirm
      )
 
-     _log INFO "Cleaning up..."
+     echo "Cleaning up..."
      rm -rf "$temp_dir"
 }
 
@@ -52,7 +52,7 @@ install_npm() {
 
 install_pnpm() {
      install_paru_package "pnpm" "pnpm"
-     _log INFO "Running pnpm setup..."
+     echo "Running pnpm setup..."
      if command -v pnpm &>/dev/null; then
           pnpm setup
           _log SUCCESS "pnpm setup completed."

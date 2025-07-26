@@ -32,11 +32,11 @@ CONFIG_FILE="$PROJECT_ROOT/settings/config.json"
 
 install_cursors() {
 
-    _log INFO "Starting Cursor Theme Installation..."
+    echo "Starting Cursor Theme Installation..."
 
     if [ ! -d "$BUILT_THEMES_DIR" ] || [ -z "$(ls -A "$BUILT_THEMES_DIR")" ]; then
         _log ERROR "Built cursor themes not found in '$BUILT_THEMES_DIR'."
-        _log INFO "Please run the './build_cursors.sh' script from the project root first."
+        echo "Please run the './build_cursors.sh' script from the project root first."
         return 1 # Use return instead of exit for functions called by main script
     fi
 
@@ -50,21 +50,21 @@ install_cursors() {
     themes+=("Exit")
 
     # Display the menu
-    _log INFO "Select the cursor theme to install:"
+    echo "Select the cursor theme to install:"
     select theme_name in "${themes[@]}"; do
         case "$theme_name" in
             "Exit")
-                _log INFO "Exiting without installation."
+                echo "Exiting without installation."
                 return 0
                 ;;
             *)
                 # Check if the selected option is valid
                 if [[ " ${themes[*]} " =~ " ${theme_name} " ]]; then
-                    _log INFO "Installing theme: $theme_name"
+                    echo "Installing theme: $theme_name"
 
                     # Ensure destination directory exists
                     mkdir -p "$USER_ICON_DIR"
-                    _log INFO "Ensured icon directory exists at '$USER_ICON_DIR'"
+                    echo "Ensured icon directory exists at '$USER_ICON_DIR'"
 
                     # Copy the theme files
                     cp -r "$BUILT_THEMES_DIR/$theme_name" "$USER_ICON_DIR/"

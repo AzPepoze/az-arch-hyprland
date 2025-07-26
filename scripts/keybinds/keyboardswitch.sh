@@ -16,7 +16,7 @@ KEYBOARDS=$(hyprctl devices -j | jq -r '.keyboards[] | .name')
 # สลับ Layout ของแต่ละ Keyboard
 for KBD in $KEYBOARDS; do
     hyprctl switchxkblayout "$KBD" next
-    _log INFO "Switched keyboard layout for $KBD"
+    echo "Switched keyboard layout for $KBD"
 done
 
 # แสดง Notification

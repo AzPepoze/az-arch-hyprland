@@ -10,7 +10,7 @@ PROJECT_ROOT="$DIR/../.."
 HELPER_SCRIPT="$PROJECT_ROOT/scripts/install_modules/helpers.sh"
 source "$HELPER_SCRIPT"
 
-_log INFO "Disabling Hyprland Streaming Mode..."
+echo "Disabling Hyprland Streaming Mode..."
 
 hyprctl --batch "\
     keyword animations:enabled true;\

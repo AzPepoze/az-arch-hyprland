@@ -21,7 +21,7 @@ source "$HELPER_SCRIPT"
 #-------------------------------------------------------
 ensure_config_file() {
     if [ ! -f "$CONFIG_FILE" ]; then
-        _log INFO "Config file not found. Creating with default volume: $DEFAULT_VOLUME"
+        echo "Config file not found. Creating with default volume: $DEFAULT_VOLUME"
         mkdir -p "$(dirname "$CONFIG_FILE")"
         echo "$DEFAULT_VOLUME" > "$CONFIG_FILE"
     fi
@@ -44,7 +44,7 @@ set_new_volume() {
 
     if [[ "$response" -ge 200 && "$response" -lt 300 ]]; then
         echo "$new_vol" > "$CONFIG_FILE"
-        _log INFO "New volume set to $new_vol"
+        echo "New volume set to $new_vol"
     else
         _log ERROR "Failed to set volume via API. HTTP status: $response"
         exit 1
@@ -52,7 +52,7 @@ set_new_volume() {
 }
 
 sync_from_api() {
-    _log INFO "Attempting to sync volume from API..."
+    echo "Attempting to sync volume from API..."
     api_volume=$(curl -s "${API_BASE_URL}/volume" | jq '.state')
     if [[ "$api_volume" =~ ^[0-9]+$ ]]; then
         echo "$api_volume" > "$CONFIG_FILE"
@@ -93,7 +93,7 @@ case "$1" in
         exit 0
         ;;
     *)
-        _log INFO "Usage: $0 [up|down|sync]"
+        echo "Usage: $0 [up|down|sync]"
         exit 1
         ;;
 esac

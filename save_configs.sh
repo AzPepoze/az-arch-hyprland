@@ -27,7 +27,7 @@ sync_files() {
     local dest_dir=$2
     local config_name=$3
 
-    _log INFO "--- Saving '$config_name' ---"
+    echo "--- Saving '$config_name' ---"
     if [ ! -d "$source_dir" ]; then
         _log WARN "Source directory for '$config_name' not found at '$source_dir'. Skipping."
         return
@@ -37,7 +37,7 @@ sync_files() {
 
     # Using rsync is more efficient and provides better output
     rsync -av --delete "$source_dir/" "$dest_dir/"
-    _log INFO "---------------------------"
+    echo "---------------------------"
 }
 
 #-------------------------------------------------------
@@ -49,11 +49,11 @@ main() {
         exit 1
     fi
 
-    _log INFO "============================================================"
-    _log INFO "Saving configurations from System to Repo."
-    _log INFO "Repo Dir:   $CONFIGS_DIR_REPO"
-    _log INFO "System Dir: $CONFIGS_DIR_SYSTEM"
-    _log INFO "============================================================"
+    echo "============================================================"
+    echo "Saving configurations from System to Repo."
+    echo "Repo Dir:   $CONFIGS_DIR_REPO"
+    echo "System Dir: $CONFIGS_DIR_SYSTEM"
+    echo "============================================================"
 
     for config_app_dir in "$CONFIGS_DIR_REPO"/*; do
         if [ -d "$config_app_dir" ]; then
@@ -64,9 +64,9 @@ main() {
         fi
     done
 
-    _log INFO "============================================================"
+    echo "============================================================"
     _log SUCCESS "Configuration saving finished successfully."
-    _log INFO "============================================================"
+    echo "============================================================"
 }
 
 #-------------------------------------------------------

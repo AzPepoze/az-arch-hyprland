@@ -73,7 +73,7 @@ install_flatpak_package() {
 
 install_jq() {
     if ! command -v jq &>/dev/null; then
-        _log INFO "jq not found. Installing..."
+        echo "jq not found. Installing..."
         install_pacman_package "jq" "jq"
     fi
 }

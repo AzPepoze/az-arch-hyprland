@@ -9,7 +9,7 @@ install_vesktop() {
 }
 
 setup_vesktop_rpc() {
-    _log INFO "Setting up Vencord/Vesktop Activity Status (for Flatpak)..."
+    echo "Setting up Vencord/Vesktop Activity Status (for Flatpak)..."
     mkdir -p ~/.config/user-tmpfiles.d
 
     echo 'L %t/discord-ipc-0 - - - - .flatpak/dev.vencord.Vesktop/xdg-run/discord-ipc-0' >~/.config/user-tmpfiles.d/discord-rpc.conf
@@ -24,14 +24,14 @@ copy_thai_fonts_css() {
 
     dest_dir=$(dirname "$dest_file")
 
-    _log INFO "Copying Thai fonts CSS for Vesktop..."
+    echo "Copying Thai fonts CSS for Vesktop..."
 
     if [ ! -f "$source_file" ]; then
         _log ERROR "Source file not found at $source_file"
         return 1
     fi
 
-    _log INFO "Ensuring destination directory exists: $dest_dir"
+    echo "Ensuring destination directory exists: $dest_dir"
     mkdir -p "$dest_dir"
 
     cp -v "$source_file" "$dest_file"
@@ -53,7 +53,7 @@ install_ms_edge() {
 install_easyeffects() {
     install_flatpak_package "com.github.wwmm.easyeffects" "EasyEffects"
 
-    _log INFO "Installing and enabling EasyEffects systemd service..."
+    echo "Installing and enabling EasyEffects systemd service..."
     local service_source="$repo_dir/services/easyeffects.service"
     local service_dest="$HOME/.config/systemd/user/easyeffects.service"
 
@@ -98,9 +98,9 @@ install_ulauncher() {
 }
 
 install_ulauncher_catppuccin_theme() {
-    _log INFO "Installing Catppuccin theme for Ulauncher..."
+    echo "Installing Catppuccin theme for Ulauncher..."
     curl https://raw.githubusercontent.com/catppuccin/ulauncher/main/install.py -fsSL | python3 - -f mocha -a pink
-    _log INFO "Catppuccin theme for Ulauncher installation attempted."
+    echo "Catppuccin theme for Ulauncher installation attempted."
 }
 
 install_flatseal() {
