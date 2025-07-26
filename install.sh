@@ -80,6 +80,7 @@ populate_menu_data() {
     add_menu_item "essential" "install_inotify_tools" "Install inotify-tools"
     add_menu_item "essential" "install_power_options" "Install Power Options (power-options-gtk-git)"
     add_menu_item "essential" "install_mission_center" "Install Mission Center"
+    add_menu_item "essential" "install_v4l2loopback" "Install v4l2loopback"
     add_menu_item "essential" "fix_vscode_permissions" "Fix VSCode Insiders permissions"
 
     add_menu_item "header" "" "\n--- Applications ---"

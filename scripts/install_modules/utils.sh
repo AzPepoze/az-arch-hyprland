@@ -52,3 +52,10 @@ fix_vscode_permissions() {
         return 1
     fi
 }
+
+install_v4l2loopback() {
+    install_paru_package "v4l2loopback-dkms" "v4l2loopback"
+    _log INFO "Adding v4l2loopback to /etc/modules-load.d/v4l2loopback.conf to load on boot..."
+    echo "v4l2loopback" | sudo tee /etc/modules-load.d/v4l2loopback.conf > /dev/null
+    _log SUCCESS "v4l2loopback module configuration completed."
+}
