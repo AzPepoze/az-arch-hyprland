@@ -35,7 +35,6 @@ sync_files() {
 
     mkdir -p "$dest_dir"
 
-    # Using rsync is more efficient and provides better output
     rsync -av --delete "$source_dir/" "$dest_dir/"
     echo "---------------------------"
 }
