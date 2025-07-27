@@ -13,9 +13,9 @@
 #-------------------------------------------------------
 
 update_repo() {
-    echo "============================================================"
+    echo "============================================================="
     echo " Updating az-arch Repository"
-    echo "============================================================"
+    echo "============================================================="
     if git pull; then
         echo "Repository updated successfully."
     else
@@ -24,9 +24,9 @@ update_repo() {
 }
 
 update_system_packages() {
-    echo "============================================================"
+    echo "============================================================="
     echo " Updating System & AUR Packages (paru)"
-    echo "============================================================"
+    echo "============================================================="
     if command -v paru &> /dev/null; then
         paru -Syu --noconfirm
     else
@@ -36,9 +36,9 @@ update_system_packages() {
 }
 
 update_flatpak() {
-    echo "============================================================"
+    echo "============================================================="
     echo " Updating Flatpak Packages"
-    echo "============================================================"
+    echo "============================================================="
     if command -v flatpak &> /dev/null; then
         flatpak update -y
     else
@@ -47,12 +47,33 @@ update_flatpak() {
 }
 
 update_dots_hyprland() {
-    echo "============================================================"
+    echo "============================================================="
     echo " Updating dots-hyprland"
-    echo "============================================================"
+    echo "============================================================="
     if [ -d "$HOME/dots-hyprland" ]; then
-        cd "$HOME/dots-hyprland" && git pull && ./install.sh -c -f
-        echo "dots-hyprland updated successfully."
+        cd "$HOME/dots-hyprland" && git pull
+        echo "dots-hyprland repository updated."
+        echo "Please choose the update type:"
+        echo "  1) Install (fully update)"
+        echo "  2) Update (unstable)"
+        read -p "Enter your choice [1-2]: " update_choice
+
+        case $update_choice in
+            1)
+                echo "Running full install..."
+                ./install.sh -c -f
+                echo "dots-hyprland updated successfully."
+                ;;
+            2)
+                echo "Running unstable update..."
+                bash update.sh
+                echo "dots-hyprland updated successfully."
+                ;;
+            *)
+                echo "Invalid choice. Skipping dots-hyprland script execution."
+                ;;
+        esac
+        cd - # Go back to the previous directory
     else
         echo "dots-hyprland directory not found. Skipping dots-hyprland update."
         echo "Please install dots-hyprland first if you wish to update it."
@@ -60,9 +81,9 @@ update_dots_hyprland() {
 }
 
 load_configs() {
-    echo "============================================================"
+    echo "============================================================="
     echo " Load Configurations"
-    echo "============================================================"
+    echo "============================================================="
 
     local monitor_config_path="$HOME/.config/hypr/monitors.conf"
     local temp_dir
@@ -134,9 +155,9 @@ populate_menu_data() {
 # Update Suite Logic
 #-------------------------------------------------------
 run_update_suite_all() {
-    echo "============================================================"
+    echo "============================================================="
     echo " Starting full system update process (excluding repo update)..."
-    echo "============================================================"
+    echo "============================================================="
     update_system_packages
     update_flatpak
     update_dots_hyprland
@@ -157,7 +178,7 @@ show_menu() {
     local option_num=1
     for i in "${!menu_items[@]}"; do
         if [[ "${menu_types[i]}" == "header" ]]; then
-            echo "${menu_items[i]}"
+            echo -e "${menu_items[i]}"
         else
             printf " %2d) %s
 " "$option_num" "${menu_items[i]}"
@@ -166,7 +187,8 @@ show_menu() {
     done
 
     echo "------------------------------------------------------------"
-    echo " $(($option_num))) Exit"
+    printf " %2d) Exit
+" "$option_num"
     echo "------------------------------------------------------------"
 }
 
