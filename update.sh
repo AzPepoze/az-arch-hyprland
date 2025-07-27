@@ -16,10 +16,22 @@ update_repo() {
     echo "============================================================="
     echo " Updating az-arch Repository"
     echo "============================================================="
-    if git pull; then
-        echo "Repository updated successfully."
+
+    # Fetch the latest changes from the remote
+    git fetch origin
+
+    # Compare local HEAD with origin/main
+    LOCAL_COMMIT=$(git rev-parse HEAD)
+    REMOTE_COMMIT=$(git rev-parse origin/main)
+
+    if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
+        echo "Local repository is behind origin/main. Updating..."
+        git reset --hard origin/main
+        echo "Repository updated. Re-running the update script..."
+        # Re-run the script
+        exec "$0" "$@" # This will replace the current shell process with a new one running the script
     else
-        echo "Could not update the repository. Continuing with the script..."
+        echo "Repository is already up-to-date."
     fi
 }
 
@@ -44,6 +56,14 @@ update_flatpak() {
     else
         echo "flatpak command not found. Skipping Flatpak update."
     fi
+}
+
+load_v4l2loopback_module() {
+    echo "============================================================="
+    echo " Loading v4l2loopback module"
+    echo "============================================================="
+    sudo modprobe v4l2loopback
+    echo "v4l2loopback module loaded."
 }
 
 update_dots_hyprland() {
@@ -149,6 +169,7 @@ populate_menu_data() {
     add_menu_item "task" "update_flatpak" "Update Flatpak Packages"
     add_menu_item "task" "update_dots_hyprland" "Update dots-hyprland"
     add_menu_item "task" "load_configs" "Load/Sync all configurations"
+    add_menu_item "task" "load_v4l2loopback_module" "Load v4l2loopback module"
 }
 
 #-------------------------------------------------------
@@ -156,10 +177,11 @@ populate_menu_data() {
 #-------------------------------------------------------
 run_update_suite_all() {
     echo "============================================================="
-    echo " Starting full system update process (excluding repo update)..."
+    echo " Starting full system update process..."
     echo "============================================================="
     update_system_packages
     update_flatpak
+    load_v4l2loopback_module
     update_dots_hyprland
     load_configs
     echo "Full system update process has finished."

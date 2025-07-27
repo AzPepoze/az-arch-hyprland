@@ -108,6 +108,7 @@ populate_menu_data() {
     add_menu_item "header" "" "\n--- Applications (Optional) ---"
     add_menu_item "optional" "copy_thai_fonts_css" "Copy thai_fonts.css for Vesktop"
     add_menu_item "optional" "install_ms_edge" "Install Microsoft Edge (Dev)"
+    add_menu_item "optional" "install_vscode_insiders" "Install VS Code Insiders"
     add_menu_item "optional" "install_easyeffects" "Install EasyEffects (requires Flatpak)"
     add_menu_item "optional" "install_zen_browser" "Install Zen Browser (requires Flatpak)"
     add_menu_item "optional" "install_handbrake" "Install HandBrake"

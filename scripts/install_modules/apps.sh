@@ -50,6 +50,13 @@ install_ms_edge() {
     install_paru_package "microsoft-edge-dev-bin" "Microsoft Edge (Dev)"
 }
 
+install_vscode_insiders() {
+    install_paru_package "code-insiders-bin" "VS Code Insiders"
+    _log "INFO" "Changing ownership of /usr/share/code-insiders..."
+    sudo chown -R $(whoami) /usr/share/code-insiders
+    _log "SUCCESS" "Ownership changed successfully."
+}
+
 install_easyeffects() {
     install_flatpak_package "com.github.wwmm.easyeffects" "EasyEffects"
 
