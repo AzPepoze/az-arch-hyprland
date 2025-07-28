@@ -9,13 +9,13 @@ set -e
 
 # Source helper functions
 REPO_DIR_HELPER="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-HELPER_SCRIPT="$REPO_DIR_HELPER/install_modules/helpers.sh"
+HELPER_SCRIPT="$REPO_DIR_HELPER/scripts/install_modules/helpers.sh"
 source "$HELPER_SCRIPT"
 
 #-------------------------------------------------------
 # Configuration
 #-------------------------------------------------------
-REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)/.."
+REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 CONFIGS_DIR_REPO="$REPO_DIR/configs"
 CONFIGS_DIR_SYSTEM="$HOME/.config"
 
@@ -35,7 +35,7 @@ sync_files() {
 
     mkdir -p "$dest_dir"
 
-    rsync -av --delete "$source_dir/" "$dest_dir/"
+    rsync -avc --existing "$source_dir/" "$dest_dir/"
     echo "---------------------------"
 }
 

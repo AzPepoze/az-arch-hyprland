@@ -170,6 +170,20 @@ configure_cursor_theme() {
     done
 }
 
+patch_quickshell_background() {
+    echo "--- Patching QuickShell Background ---"
+    local qml_file="$HOME/.config/quickshell/ii/modules/background/Background.qml"
+
+    if [ -f "$qml_file" ]; then
+        _log INFO "Found QuickShell Background.qml at '$qml_file'. Patching..."
+        sed -i 's/visible: !bgRoot.wallpaperIsVideo/visible: false \/\/ !bgRoot.wallpaperIsVideo/g' "$qml_file"
+        _log SUCCESS "Successfully patched QuickShell Background.qml."
+    else
+        _log WARN "QuickShell Background.qml not found at '$qml_file'. Skipping patch."
+    fi
+    echo "------------------------------------"
+}
+
 #-------------------------------------------------------
 # Main Logic
 #-------------------------------------------------------
@@ -217,6 +231,8 @@ main() {
     if [ -n "$selected_gpu_device" ]; then
         update_hyprland_env "$selected_gpu_device"
     fi
+
+    patch_quickshell_background
 
     echo "============================================================"
     _log SUCCESS "Configuration loading finished successfully."
