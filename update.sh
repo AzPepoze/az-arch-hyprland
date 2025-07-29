@@ -70,35 +70,86 @@ update_dots_hyprland() {
     echo "============================================================="
     echo " Updating dots-hyprland"
     echo "============================================================="
-    if [ -d "$HOME/dots-hyprland" ]; then
-        cd "$HOME/dots-hyprland" && git pull
-        echo "dots-hyprland repository updated."
-        echo "Please choose the update type:"
-        echo "  1) Install (fully update)"
-        echo "  2) Update (unstable)"
-        read -p "Enter your choice [1-2]: " update_choice
-
-        case $update_choice in
-            1)
-                echo "Running full install..."
-                ./install.sh -c -f
-                echo "dots-hyprland updated successfully."
-                ;;
-            2)
-                echo "Running unstable update..."
-                bash update.sh
-                echo "dots-hyprland updated successfully."
-                ;;
-            *)
-                echo "Invalid choice. Skipping dots-hyprland script execution."
-                ;;
-        esac
-        cd - # Go back to the previous directory
-    else
+    if [ ! -d "$HOME/dots-hyprland" ]; then
         echo "dots-hyprland directory not found. Skipping dots-hyprland update."
         echo "Please install dots-hyprland first if you wish to update it."
+        return
     fi
+
+    cd "$HOME/dots-hyprland" && git pull
+    echo "dots-hyprland repository updated."
+    echo "Please choose the update type:"
+    echo "  1) Install (fully update)"
+    echo "  2) Update (unstable)"
+    read -p "Enter your choice [1-2]: " update_choice
+
+    case $update_choice in
+        1)
+            echo "Running full install..."
+            ./install.sh -c -f
+            echo "dots-hyprland updated successfully."
+            ;;
+        2)
+            echo "Running unstable update (automated with expect)..."
+
+            # Check if expect is installed
+            if ! command -v expect &> /dev/null; then
+                echo "Error: 'expect' command not found."
+                echo "This automation requires 'expect'. Please install it first."
+                echo "On Arch Linux, you can run: sudo pacman -Syu expect"
+                cd - >/dev/null
+                return 1 # Indicate failure
+            fi
+
+            # Use an expect script to interact with update.sh
+            # The '<<\'END_OF_EXPECT'' syntax prevents shell variable expansion
+            expect <<'END_OF_EXPECT'
+# Set a longer timeout for slow operations
+set timeout 120
+
+# Start (spawn) the target script
+# IMPORTANT: First, fix any syntax errors in update.sh
+spawn bash update.sh
+
+# First, expect the y/N confirmation prompt
+expect {
+    timeout {
+        puts "\nError: Timeout waiting for the initial (y/N) prompt."
+        exit 1
+    }
+    -re "\[(y/N)\]:" {
+        send "y\r"
+    }
 }
+
+# Now, enter a loop to handle file conflict prompts.
+# This loop will continue until the spawned script finishes (eof).
+expect {
+    -re "Enter your choice \\(1-7\\):" {
+        send "1\r"
+        # Tell expect to continue waiting for more matches in this same block
+        exp_continue
+    }
+    eof {
+        # Script finished successfully, do nothing and let expect exit.
+        exit 0
+    }
+    timeout {
+        puts "\nError: Timeout while waiting for a prompt or for the script to finish."
+        exit 1
+    }
+}
+END_OF_EXPECT
+
+            echo "dots-hyprland update process finished."
+            ;;
+        *)
+            echo "Invalid choice. Skipping dots-hyprland script execution."
+            ;;
+    esac
+    cd - >/dev/null # Go back to the previous directory silently
+}
+
 
 load_configs() {
     echo "============================================================="
@@ -111,7 +162,6 @@ load_configs() {
     local backup_monitor_config_path="$temp_dir/monitors.conf"
     local config_script="./load_configs.sh"
 
-    # Backup monitors.conf if it exists
     if [ -f "$monitor_config_path" ]; then
         echo "Backing up '$monitor_config_path'..."
         cp "$monitor_config_path" "$backup_monitor_config_path"
@@ -119,22 +169,18 @@ load_configs() {
         echo "Warning: '$monitor_config_path' not found. Nothing to back up."
     fi
 
-    # Load configurations
     if [ -f "$config_script" ]; then
-        bash ./load_configs.sh
+        bash ./load_configs.sh --skip-gpu --skip-cursor
     else
         echo "'$config_script' not found. Skipping config load."
     fi
 
-    # Restore monitors.conf if it was backed up
     if [ -f "$backup_monitor_config_path" ]; then
         echo "Restoring '$monitor_config_path'..."
-        # Ensure the target directory exists
         mkdir -p "$(dirname "$monitor_config_path")"
         cp "$backup_monitor_config_path" "$monitor_config_path"
     fi
 
-    # Cleanup
     rm -rf "$temp_dir"
     echo "Configuration load process finished."
 }
@@ -202,22 +248,16 @@ show_menu() {
         if [[ "${menu_types[i]}" == "header" ]]; then
             echo -e "${menu_items[i]}"
         else
-            printf " %2d) %s
-" "$option_num" "${menu_items[i]}"
+            printf " %2d) %s\n" "$option_num" "${menu_items[i]}"
             ((option_num++))
         fi
     done
-
-    echo "------------------------------------------------------------"
-    printf " %2d) Exit
-" "$option_num"
     echo "------------------------------------------------------------"
 }
 
 main_menu() {
-    populate_menu_data
+        populate_menu_data
 
-    while true; do
         show_menu
 
         local option_count=0
@@ -226,10 +266,14 @@ main_menu() {
                 ((option_count++))
             fi
         done
-        local exit_option=$((option_count + 1))
 
-        read -p "Enter your choice [1-$exit_option]: " choice
+        read -p "Enter your choice [1-$((option_count + 1))]: " choice
         echo "------------------------------------------------------------"
+
+        if [[ "$choice" == "$((option_count + 1))" ]]; then
+            echo "Exiting."
+            break
+        fi
 
         if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
             echo "Invalid input. Please enter a number."
@@ -254,18 +298,12 @@ main_menu() {
                     echo "Function '$func_to_run' not found."
                 fi
             fi
-        elif ((choice == exit_option)); then
-            echo "Exiting script. Goodbye!"
-            break
         else
             echo "Invalid option '$choice'. Please try again."
         fi
 
-        if ((choice != exit_option)); then
-            echo "------------------------------------------------------------"
-            read -p "Press Enter to return to the menu..."
-        fi
-    done
+        echo "------------------------------------------------------------"
+        read -p "Press Enter to return to the menu..."
 }
 
 #-------------------------------------------------------

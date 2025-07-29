@@ -10,7 +10,19 @@ set -e
 # Source helper functions
 REPO_DIR_HELPER="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 HELPER_SCRIPT="$REPO_DIR_HELPER/scripts/install_modules/helpers.sh"
-source "$HELPER_SCRIPT"
+# Check if helper script exists before sourcing
+if [ -f "$HELPER_SCRIPT" ]; then
+    source "$HELPER_SCRIPT"
+else
+    # Define a fallback _log function if helper is not found
+    _log() {
+        local level=$1
+        shift
+        # Default log to stderr to avoid issues with command substitution
+        echo "[$level] $@" >&2
+    }
+fi
+
 
 #-------------------------------------------------------
 # Configuration
@@ -18,7 +30,6 @@ source "$HELPER_SCRIPT"
 REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 CONFIGS_DIR_REPO="$REPO_DIR/configs"
 CONFIGS_DIR_SYSTEM="$HOME/.config"
-SETTINGS_FILE="$REPO_DIR/settings/config.json"
 
 #-------------------------------------------------------
 # Helper Functions
@@ -36,6 +47,7 @@ sync_files() {
 
     mkdir -p "$dest_dir"
 
+    # Removed --delete flag to prevent deleting files in the destination
     rsync -av "$source_dir/" "$dest_dir/"
     echo "---------------------------"
 }
@@ -44,7 +56,7 @@ configure_gpu_device() {
     echo "Detecting available GPUs..." >&2
 
     if ! command -v lspci &>/dev/null; then
-        _log ERROR "lspci command not found. Please install pciutils." >&2
+        _log ERROR "lspci command not found. Please install pciutils."
         exit 1
     fi
 
@@ -93,41 +105,64 @@ configure_gpu_device() {
             echo "$final_device_string"
             break
         else
-            _log ERROR "Invalid selection. Please try again." >&2
+            _log ERROR "Invalid selection. Please try again."
         fi
     done
 }
 
-update_hyprland_env() {
+update_gpu_conf() {
     local gpu_device=$1
 
     if [ -z "$gpu_device" ]; then
-        _log WARN "No GPU device provided. Skipping Hyprland env configuration."
+        _log WARN "No GPU device provided. Skipping Hyprland GPU configuration."
         return
     fi
 
     local env_var_line="env = WLR_DRM_DEVICES,$gpu_device"
-    local env_conf_file="$CONFIGS_DIR_SYSTEM/hypr/custom/env.conf"
+    local gpu_conf_file="$CONFIGS_DIR_SYSTEM/hypr/gpu.conf"
 
-    mkdir -p "$(dirname "$env_conf_file")"
+    mkdir -p "$(dirname "$gpu_conf_file")"
 
-    if [ -f "$env_conf_file" ]; then
-        sed -i '/^env = WLR_DRM_DEVICES/d' "$env_conf_file"
+    echo "# GPU settings managed by config-loader" > "$gpu_conf_file"
+    _log INFO "Adding '$env_var_line' to $gpu_conf_file"
+    echo "$env_var_line" >> "$gpu_conf_file"
+}
+
+update_cursor_conf() {
+    local theme=$1
+    local size=$2
+
+    if [ -z "$theme" ]; then
+        _log WARN "No cursor theme provided. Skipping cursor.conf generation."
+        return
     fi
     
-    echo "Adding '$env_var_line' to $env_conf_file"
-    echo "$env_var_line" >> "$env_conf_file"
+    _log INFO "Updating cursor configuration..."
+
+    local cursor_conf_file="$CONFIGS_DIR_SYSTEM/hypr/cursor.conf"
+    mkdir -p "$(dirname "$cursor_conf_file")"
+
+    # Write the configuration to the file
+    cat > "$cursor_conf_file" <<- EOL
+# Cursor settings managed by config-loader
+env = XCURSOR_THEME,$theme
+exec-once = hyprctl setcursor $theme $size
+EOL
+
+    _log SUCCESS "Successfully generated '$cursor_conf_file' for theme '$theme' with size $size."
 }
 
 configure_cursor_theme() {
-    echo "Starting Cursor Theme Installation..."
+    # All status messages are redirected to stderr (>&2)
+    # to avoid being captured by command substitution.
+    echo "Starting Cursor Theme Installation..." >&2
 
     local built_themes_dir="$REPO_DIR/dist/cursors"
     local user_icon_dir="$HOME/.local/share/icons"
 
     if [ ! -d "$built_themes_dir" ] || [ -z "$(ls -A "$built_themes_dir")" ]; then
         _log ERROR "Built cursor themes not found in '$built_themes_dir'."
-        echo "Please run the './build_cursors.sh' script from the project root first."
+        echo "Please run the './build_cursors.sh' script from the project root first." >&2
         return 1
     fi
 
@@ -139,28 +174,26 @@ configure_cursor_theme() {
 
     themes+=("Exit")
 
-    echo "Select the cursor theme to install:"
+    echo "Select the cursor theme to install:" >&2
     select theme_name in "${themes[@]}"; do
         case "$theme_name" in
             "Exit")
-                echo "Exiting without installation."
+                echo "Exiting without installation." >&2
                 return 0
                 ;;
             *)
                 if [[ " ${themes[*]} " =~ " ${theme_name} " ]]; then
-                    echo "Installing theme: $theme_name"
+                    echo "Installing theme: $theme_name" >&2
 
                     mkdir -p "$user_icon_dir"
-                    echo "Ensured icon directory exists at '$user_icon_dir'"
+                    echo "Ensured icon directory exists at '$user_icon_dir'" >&2
 
                     cp -r "$built_themes_dir/$theme_name" "$user_icon_dir/"
-                    _log SUCCESS "Copied '$theme_name' to '$user_icon_dir'"
-
-                    local temp_json
-                    temp_json=$(jq --arg theme "$theme_name" '.cursor.theme = $theme' "$SETTINGS_FILE")
-                    echo "$temp_json" > "$SETTINGS_FILE"
-                    _log SUCCESS "Updated cursor theme in config file."
-
+                    # THIS IS THE FIX: Redirect the _log output to stderr
+                    _log SUCCESS "Copied '$theme_name' to '$user_icon_dir'" >&2
+                    
+                    # This is the only echo to stdout, serving as the return value.
+                    echo "$theme_name"
                     break
                 else
                     _log ERROR "Invalid option '$REPLY'. Please try again."
@@ -188,24 +221,38 @@ patch_quickshell_background() {
 # Main Logic
 #-------------------------------------------------------
 main() {
-    if ! command -v jq &> /dev/null; then
-        _log ERROR "jq command not found. Please install jq."
-        exit 1
+    # Default values for flags
+    local skip_gpu=false
+    local skip_cursor=false
+
+    # Parse command-line arguments
+    for arg in "$@"; do
+        case $arg in
+            --skip-gpu)
+            skip_gpu=true
+            shift
+            ;;
+            --skip-cursor)
+            skip_cursor=true
+            shift
+            ;;
+        esac
+    done
+
+    # GPU Configuration
+    local selected_gpu_device=""
+    if [ "$skip_gpu" = false ]; then
+        selected_gpu_device=$(configure_gpu_device)
+    else
+        _log INFO "Skipping GPU configuration due to --skip-gpu flag."
     fi
 
-    if [ ! -f "$SETTINGS_FILE" ]; then
-        echo "Settings file not found. Creating one."
-        echo '{ "cursor": { "theme": null, "size": 24 } }' > "$SETTINGS_FILE"
-    fi
-
-    local selected_gpu_device
-    selected_gpu_device=$(configure_gpu_device)
-
-    local cursor_theme
-    cursor_theme=$(jq -r '.cursor.theme // empty' "$SETTINGS_FILE")
-
-    if [ -z "$cursor_theme" ]; then
-        configure_cursor_theme
+    # Cursor Theme Configuration
+    local selected_cursor_theme=""
+    if [ "$skip_cursor" = false ]; then
+        selected_cursor_theme=$(configure_cursor_theme)
+    else
+         _log INFO "Skipping cursor configuration due to --skip-cursor flag."
     fi
 
     if [ ! -d "$CONFIGS_DIR_REPO" ]; then
@@ -228,11 +275,19 @@ main() {
         fi
     done
 
+    # Update device-specific config files
     if [ -n "$selected_gpu_device" ]; then
-        update_hyprland_env "$selected_gpu_device"
+        update_gpu_conf "$selected_gpu_device"
     fi
 
+    if [ -n "$selected_cursor_theme" ]; then
+        update_cursor_conf "$selected_cursor_theme" "24" # Default cursor size is 24
+    fi
+    
     patch_quickshell_background
+
+    _log INFO "Reloading Hyprland configuration..."
+    hyprctl reload 2>/dev/null || _log WARN "Hyprland is not running. Skipping reload."
 
     echo "============================================================"
     _log SUCCESS "Configuration loading finished successfully."
@@ -242,4 +297,4 @@ main() {
 #-------------------------------------------------------
 # Script Execution
 #-------------------------------------------------------
-main
+main "$@"
