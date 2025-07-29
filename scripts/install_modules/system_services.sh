@@ -19,3 +19,4 @@ install_ananicy_cpp() {
     sudo systemctl enable --now ananicy-cpp.service
     _log SUCCESS "ananicy-cpp installed and enabled."
 }
+

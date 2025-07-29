@@ -97,6 +97,10 @@ populate_menu_data() {
     add_menu_item "essential" "install_ulauncher" "Install Ulauncher"
     add_menu_item "essential" "install_ulauncher_catppuccin_theme" "Install Ulauncher Catppuccin Theme"
 
+    add_menu_item "header" "" "
+--- Applications (Hardware) ---"
+    add_menu_item "essential" "install_coolercontrol" "Install CoolerControl (and Enable Service)"
+
     add_menu_item "header" "" "\n--- System Utilities (Optional) ---"
     add_menu_item "optional" "install_rclone" "Install rclone"
     add_menu_item "optional" "setup_rclone_gdrive" "Setup Google Drive with rclone"

@@ -121,3 +121,10 @@ install_handbrake() {
 install_droidcam() {
     install_paru_package "droidcam" "Droidcam"
 }
+
+install_coolercontrol() {
+    install_paru_package "coolercontrol-bin" "CoolerControl"
+    echo "Enabling coolercontrold.service..."
+    sudo systemctl enable --now coolercontrold.service
+    _log SUCCESS "coolercontrold.service enabled."
+}
