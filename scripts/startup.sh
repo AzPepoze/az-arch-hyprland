@@ -4,7 +4,7 @@
 # Preamble
 #-------------------------------------------------------
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$DIR/../.."
+PROJECT_ROOT="$DIR/.."
 HELPER_SCRIPT="$PROJECT_ROOT/scripts/install_modules/helpers.sh"
 if [ ! -f "$HELPER_SCRIPT" ]; then
     echo "Error: Helper script not found at $HELPER_SCRIPT"
