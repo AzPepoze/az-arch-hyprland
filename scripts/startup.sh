@@ -1,50 +1,62 @@
 #!/bin/bash
 
 #-------------------------------------------------------
-# Background Services
+# Preamble
 #-------------------------------------------------------
-# Source helper functions
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$DIR/../.."
 HELPER_SCRIPT="$PROJECT_ROOT/scripts/install_modules/helpers.sh"
+if [ ! -f "$HELPER_SCRIPT" ]; then
+    echo "Error: Helper script not found at $HELPER_SCRIPT"
+    exit 1
+fi
 source "$HELPER_SCRIPT"
 
-# if command -v quickshell &>/dev/null; then
-#     quickshell &
-# fi
+#-------------------------------------------------------
+# Helper Functions
+#-------------------------------------------------------
+launch_app() {
+    local app_name="$1"
+    local launch_command="$2"
+    local sleep_after=${3:-0}
 
-echo "Starting rclone sync in background..."
-bash $HOME/az-arch/scripts/rclone/sync.sh &
-_log SUCCESS "rclone sync started."
+    echo "Starting $app_name..."
+    eval "$launch_command"
+    _log SUCCESS "$app_name started."
+    
+    if [ "$sleep_after" -gt 0 ]; then
+        sleep "$sleep_after"
+    fi
+}
+
+launch_messenger() {
+    echo "Starting Messenger..."
+    local messenger_desktop_file
+    messenger_desktop_file=$(grep -l "^Name=Messenger$" ~/.local/share/applications/*.desktop /usr/share/applications/*.desktop 2>/dev/null | head -n 1)
+
+    if [ -n "$messenger_desktop_file" ]; then
+        local app_id
+        app_id=$(basename "$messenger_desktop_file" .desktop)
+        local launch_command="hyprctl dispatch exec \"[workspace 1 silent] gtk-launch ${app_id}\""
+        launch_app "Messenger" "$launch_command" 2
+    else
+        _log WARN "Messenger desktop file not found. Skipping Messenger launch."
+    fi
+}
+
+#-------------------------------------------------------
+# Background Services
+#-------------------------------------------------------
+launch_app "rclone sync" "bash $HOME/az-arch/scripts/rclone/sync.sh &"
 
 #-------------------------------------------------------
 # Startup Programs
 #-------------------------------------------------------
-echo "Starting Linux Wallpaper Engine GUI..."
-sleep 1 && linux-wallpaperengine-gui --minimized &
-_log SUCCESS "Linux Wallpaper Engine GUI started."
+launch_app "Linux Wallpaper Engine GUI" "sleep 1 && linux-wallpaperengine-gui --minimized &"
+launch_app "YouTube Music" "hyprctl dispatch exec \"[workspace 1 silent] youtube-music\"" 2
 
-echo "Starting YouTube Music..."
-hyprctl dispatch exec "[workspace 1 silent] youtube-music"
-sleep 2
-_log SUCCESS "YouTube Music started."
+launch_messenger
 
-echo "Starting Messenger..."
-MESSENGER_DESKTOP_FILE=$(grep -l "^Name=Messenger$" ~/.local/share/applications/*.desktop /usr/share/applications/*.desktop 2>/dev/null | head -n 1)
-
-if [ -n "$MESSENGER_DESKTOP_FILE" ]; then
-    APP_ID=$(basename "$MESSENGER_DESKTOP_FILE" .desktop)
-    hyprctl dispatch exec "[workspace 1 silent] gtk-launch ${APP_ID}"
-    _log SUCCESS "Messenger started."
-else
-    _log WARN "Messenger desktop file not found. Skipping Messenger launch."
-fi
-sleep 2
-
-echo "Starting Vesktop..."
-hyprctl dispatch exec "[workspace 1 silent] flatpak run dev.vencord.Vesktop"
-_log SUCCESS "Vesktop started."
-
-echo "Starting Wineboot..."
-hyprctl dispatch exec "[workspace 4 silent] sh -c 'sleep 10 && wineboot'"
-_log SUCCESS "Wineboot command dispatched."
+launch_app "Vesktop" "hyprctl dispatch exec \"[workspace 1 silent] flatpak run dev.vencord.Vesktop\"" 2
+launch_app "Edge App" "hyprctl dispatch exec '[tile;] microsoft-edge-dev --app=chrome-extension://ophjlpahpchlmihnnnihgmmeilfjmjjc/index.html'"
+launch_app "Wineboot (Delayed)" "hyprctl dispatch exec \"[workspace 4 silent] sh -c 'sleep 10 && wineboot'\""
