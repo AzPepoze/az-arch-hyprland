@@ -1,1 +1,0 @@
-printf "1\n2\n" | bash update.sh

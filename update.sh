@@ -1,26 +1,23 @@
 #!/bin/bash
 
-#----------------------------------------------------------------------
-# Universal System Updater
-#
-# This script streamlines the update process for the entire system,
-# including the configuration repository, official packages, AUR
-# packages, and Flatpak applications.
-#----------------------------------------------------------------------
+#-------------------------------------------------------
+# Script Configuration
+#-------------------------------------------------------
+AUTO_MODE=false
+if [[ "$1" == "--auto" ]]; then
+    AUTO_MODE=true
+fi
 
 #-------------------------------------------------------
 # Update Functions
 #-------------------------------------------------------
 
 update_repo() {
-    echo "============================================================="
-    echo " Updating az-arch Repository"
-    echo "============================================================="
+    echo "Updating az-arch Repository..."
+    echo
 
-    # Fetch the latest changes from the remote
     git fetch origin
 
-    # Compare local HEAD with origin/main
     LOCAL_COMMIT=$(git rev-parse HEAD)
     REMOTE_COMMIT=$(git rev-parse origin/main)
 
@@ -28,8 +25,7 @@ update_repo() {
         echo "Local repository is behind origin/main. Updating..."
         git reset --hard origin/main
         echo "Repository updated. Re-running the update script..."
-        # Re-run the script
-        exec "$0" "$@" # This will replace the current shell process with a new one running the script
+        exec "$0" "$@"
     else
         echo "Repository is already up-to-date."
     fi
@@ -78,10 +74,17 @@ update_dots_hyprland() {
 
     cd "$HOME/dots-hyprland" && git pull
     echo "dots-hyprland repository updated."
-    echo "Please choose the update type:"
-    echo "  1) Install (fully update)"
-    echo "  2) Update (unstable)"
-    read -p "Enter your choice [1-2]: " update_choice
+
+    local update_choice
+    if [ "$AUTO_MODE" = true ]; then
+        echo "Auto mode enabled. Selecting 'Update (unstable)'."
+        update_choice=2
+    else
+        echo "Please choose the update type:"
+        echo "  1) Install (fully update)"
+        echo "  2) Update (unstable)"
+        read -p "Enter your choice [1-2]: " update_choice
+    fi
 
     case $update_choice in
         1)
@@ -92,26 +95,19 @@ update_dots_hyprland() {
         2)
             echo "Running unstable update (automated with expect)..."
 
-            # Check if expect is installed
             if ! command -v expect &> /dev/null; then
                 echo "Error: 'expect' command not found."
                 echo "This automation requires 'expect'. Please install it first."
                 echo "On Arch Linux, you can run: sudo pacman -Syu expect"
                 cd - >/dev/null
-                return 1 # Indicate failure
+                return 1
             fi
 
-            # Use an expect script to interact with update.sh
-            # The '<<\'END_OF_EXPECT'' syntax prevents shell variable expansion
             expect <<'END_OF_EXPECT'
-# Set a longer timeout for slow operations
 set timeout 120
 
-# Start (spawn) the target script
-# IMPORTANT: First, fix any syntax errors in update.sh
 spawn bash update.sh
 
-# First, expect the y/N confirmation prompt
 expect {
     timeout {
         puts "\nError: Timeout waiting for the initial (y/N) prompt."
@@ -122,16 +118,12 @@ expect {
     }
 }
 
-# Now, enter a loop to handle file conflict prompts.
-# This loop will continue until the spawned script finishes (eof).
 expect {
     -re "Enter your choice \\(1-7\\):" {
         send "1\r"
-        # Tell expect to continue waiting for more matches in this same block
         exp_continue
     }
     eof {
-        # Script finished successfully, do nothing and let expect exit.
         exit 0
     }
     timeout {
@@ -147,7 +139,7 @@ END_OF_EXPECT
             echo "Invalid choice. Skipping dots-hyprland script execution."
             ;;
     esac
-    cd - >/dev/null # Go back to the previous directory silently
+    cd - >/dev/null
 }
 
 
@@ -170,7 +162,11 @@ load_configs() {
     fi
 
     if [ -f "$config_script" ]; then
-        bash ./load_configs.sh --skip-gpu --skip-cursor
+        if [ "$AUTO_MODE" = true ]; then
+            bash ./load_configs.sh --skip-gpu --skip-cursor
+        else
+            bash ./load_configs.sh
+        fi
     else
         echo "'$config_script' not found. Skipping config load."
     fi
@@ -186,132 +182,20 @@ load_configs() {
 }
 
 #-------------------------------------------------------
-# Data-Driven Menu Configuration
-#-------------------------------------------------------
-menu_items=()
-menu_funcs=()
-menu_types=()
-
-add_menu_item() {
-    local type="$1"
-    local func="$2"
-    local text="$3"
-    menu_items+=("$text")
-    menu_funcs+=("$func")
-    menu_types+=("$type")
-}
-
-populate_menu_data() {
-    menu_items=()
-    menu_funcs=()
-    menu_types=()
-
-    add_menu_item "header" "" "--- Update Suite ---"
-    add_menu_item "special" "run_update_suite_all" "Run ALL remaining update tasks"
-
-    add_menu_item "header" "" "
---- Individual Tasks ---"
-    add_menu_item "task" "update_system_packages" "Update System & AUR Packages (paru)"
-    add_menu_item "task" "update_flatpak" "Update Flatpak Packages"
-    add_menu_item "task" "update_dots_hyprland" "Update dots-hyprland"
-    add_menu_item "task" "load_configs" "Load/Sync all configurations"
-    add_menu_item "task" "load_v4l2loopback_module" "Load v4l2loopback module"
-}
-
-#-------------------------------------------------------
-# Update Suite Logic
-#-------------------------------------------------------
-run_update_suite_all() {
-    echo "============================================================="
-    echo " Starting full system update process..."
-    echo "============================================================="
-    update_system_packages
-    update_flatpak
-    load_v4l2loopback_module
-    update_dots_hyprland
-    load_configs
-    echo "Full system update process has finished."
-}
-
-#-------------------------------------------------------
-# Main Logic
-#-------------------------------------------------------
-show_menu() {
-    clear
-    echo "------------------------------------------------------------"
-    echo " Az Arch Updater - Main Menu"
-    echo "------------------------------------------------------------"
-    echo "Please select an option:"
-
-    local option_num=1
-    for i in "${!menu_items[@]}"; do
-        if [[ "${menu_types[i]}" == "header" ]]; then
-            echo -e "${menu_items[i]}"
-        else
-            printf " %2d) %s\n" "$option_num" "${menu_items[i]}"
-            ((option_num++))
-        fi
-    done
-    echo "------------------------------------------------------------"
-}
-
-main_menu() {
-        populate_menu_data
-
-        show_menu
-
-        local option_count=0
-        for type in "${menu_types[@]}"; do
-            if [[ "$type" != "header" ]]; then
-                ((option_count++))
-            fi
-        done
-
-        read -p "Enter your choice [1-$((option_count + 1))]: " choice
-        echo "------------------------------------------------------------"
-
-        if [[ "$choice" == "$((option_count + 1))" ]]; then
-            echo "Exiting."
-            break
-        fi
-
-        if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
-            echo "Invalid input. Please enter a number."
-        elif ((choice > 0 && choice <= option_count)); then
-            local current_option=0
-            local target_index=-1
-            for i in "${!menu_types[@]}"; do
-                if [[ "${menu_types[i]}" != "header" ]]; then
-                    ((current_option++))
-                    if ((current_option == choice)); then
-                        target_index=$i
-                        break
-                    fi
-                fi
-            done
-
-            if ((target_index != -1)); then
-                local func_to_run="${menu_funcs[target_index]}"
-                if declare -f "$func_to_run" > /dev/null; then
-                    "$func_to_run"
-                else
-                    echo "Function '$func_to_run' not found."
-                fi
-            fi
-        else
-            echo "Invalid option '$choice'. Please try again."
-        fi
-
-        echo "------------------------------------------------------------"
-        read -p "Press Enter to return to the menu..."
-}
-
-#-------------------------------------------------------
 # Script Execution
 #-------------------------------------------------------
 
-# Always update the repository first to ensure the script is the latest version.
+fastfetch
+
 update_repo
 
-# Proceed to the main menu.
-main_menu
+echo
+echo "Starting full system update process..."
+echo
+
+update_system_packages
+update_flatpak
+load_v4l2loopback_module
+update_dots_hyprland
+load_configs
+echo "Full system update process has finished."
