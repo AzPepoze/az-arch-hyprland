@@ -53,7 +53,7 @@ launch_app "rclone sync" "bash $HOME/az-arch/scripts/rclone/sync.sh &"
 # Startup Programs
 #-------------------------------------------------------
 launch_app "Linux Wallpaper Engine GUI" "sleep 1 && linux-wallpaperengine-gui --minimized &"
-launch_app "YouTube Music" "hyprctl dispatch exec \"[workspace 1 silent] youtube-music\"" 2
+launch_app "YouTube Music" "hyprctl dispatch exec \"[workspace special silent; float; size 30% 100%; move 0 0] youtube-music\"" 2
 
 launch_messenger
 
