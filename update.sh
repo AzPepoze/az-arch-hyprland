@@ -201,50 +201,6 @@ load_configs() {
 }
 
 #-------------------------------------------------------
-# Cleanup Functions
-#-------------------------------------------------------
-
-cleanup_system_packages() {
-    echo
-    echo "============================================================="
-    echo " Cleaning Up System Packages"
-    echo "============================================================="
-    if command -v paru &> /dev/null; then
-        echo "Removing orphan packages..."
-        paru -c --noconfirm
-
-        echo
-        echo "Cleaning package cache..."
-        paru -Sc --noconfirm
-        paru -Scc --noconfirm
-    else
-        echo "paru command not found. Skipping system package cleanup."
-    fi
-}
-
-cleanup_flatpak() {
-    echo
-    echo "============================================================="
-    echo " Cleaning Up Flatpak"
-    echo "============================================================="
-    if command -v flatpak &> /dev/null; then
-        echo "Removing unused Flatpak runtimes..."
-        flatpak uninstall --unused -y
-    else
-        echo "flatpak command not found. Skipping Flatpak cleanup."
-    fi
-}
-
-run_cleanup() {
-    echo
-    echo "============================================================="
-    echo " Running System Cleanup"
-    echo "============================================================="
-    cleanup_system_packages
-    cleanup_flatpak
-}
-
-#-------------------------------------------------------
 # Script Execution
 #-------------------------------------------------------
 
@@ -262,7 +218,7 @@ update_gemini_cli
 load_v4l2loopback_module
 update_dots_hyprland
 load_configs
-run_cleanup
+bash ./cleanup.sh
 
 echo
 echo "Full system update and cleanup process has finished."
