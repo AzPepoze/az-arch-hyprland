@@ -13,6 +13,7 @@ fi
 #-------------------------------------------------------
 
 update_repo() {
+    echo
     echo "Updating az-arch Repository..."
     echo
 
@@ -32,6 +33,7 @@ update_repo() {
 }
 
 update_system_packages() {
+    echo
     echo "============================================================="
     echo " Updating System & AUR Packages (paru)"
     echo "============================================================="
@@ -44,6 +46,7 @@ update_system_packages() {
 }
 
 update_flatpak() {
+    echo
     echo "============================================================="
     echo " Updating Flatpak Packages"
     echo "============================================================="
@@ -54,7 +57,21 @@ update_flatpak() {
     fi
 }
 
+update_gemini_cli() {
+    echo
+    echo "============================================================="
+    echo " Update Gemini CLI"
+    echo "============================================================="
+    if command -v pnpm &> /dev/null; then
+        sudo pnpm update -g @google/gemini-cli
+    else
+        echo "pnpm command not found. Skipping Gemini CLI update."
+        echo "Please install pnpm to enable this feature."
+    fi
+}
+
 load_v4l2loopback_module() {
+    echo
     echo "============================================================="
     echo " Loading v4l2loopback module"
     echo "============================================================="
@@ -63,6 +80,7 @@ load_v4l2loopback_module() {
 }
 
 update_dots_hyprland() {
+    echo
     echo "============================================================="
     echo " Updating dots-hyprland"
     echo "============================================================="
@@ -144,6 +162,7 @@ END_OF_EXPECT
 
 
 load_configs() {
+    echo
     echo "============================================================="
     echo " Load Configurations"
     echo "============================================================="
@@ -182,6 +201,50 @@ load_configs() {
 }
 
 #-------------------------------------------------------
+# Cleanup Functions
+#-------------------------------------------------------
+
+cleanup_system_packages() {
+    echo
+    echo "============================================================="
+    echo " Cleaning Up System Packages"
+    echo "============================================================="
+    if command -v paru &> /dev/null; then
+        echo "Removing orphan packages..."
+        paru -c --noconfirm
+
+        echo
+        echo "Cleaning package cache..."
+        paru -Sc --noconfirm
+        paru -Scc --noconfirm
+    else
+        echo "paru command not found. Skipping system package cleanup."
+    fi
+}
+
+cleanup_flatpak() {
+    echo
+    echo "============================================================="
+    echo " Cleaning Up Flatpak"
+    echo "============================================================="
+    if command -v flatpak &> /dev/null; then
+        echo "Removing unused Flatpak runtimes..."
+        flatpak uninstall --unused -y
+    else
+        echo "flatpak command not found. Skipping Flatpak cleanup."
+    fi
+}
+
+run_cleanup() {
+    echo
+    echo "============================================================="
+    echo " Running System Cleanup"
+    echo "============================================================="
+    cleanup_system_packages
+    cleanup_flatpak
+}
+
+#-------------------------------------------------------
 # Script Execution
 #-------------------------------------------------------
 
@@ -195,7 +258,11 @@ echo
 
 update_system_packages
 update_flatpak
+update_gemini_cli
 load_v4l2loopback_module
 update_dots_hyprland
 load_configs
-echo "Full system update process has finished."
+run_cleanup
+
+echo
+echo "Full system update and cleanup process has finished."
