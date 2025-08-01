@@ -38,6 +38,7 @@ sync_files() {
     local source_dir=$1
     local dest_dir=$2
     local config_name=$3
+    local exclude_path=$4 # New optional parameter
 
     echo "--- Loading '$config_name' ---"
     if [ ! -d "$source_dir" ]; then
@@ -47,8 +48,13 @@ sync_files() {
 
     mkdir -p "$dest_dir"
 
+    local rsync_args=("-av")
+    if [ -n "$exclude_path" ]; then
+        rsync_args+=("--exclude=$exclude_path")
+    fi
+
     # Removed --delete flag to prevent deleting files in the destination
-    rsync -av "$source_dir/" "$dest_dir/"
+    rsync "${rsync_args[@]}" "$source_dir/" "$dest_dir/"
     echo "---------------------------"
 }
 
@@ -203,13 +209,53 @@ configure_cursor_theme() {
     done
 }
 
+merge_quickshell_colors() {
+    echo "--- Merging QuickShell colors.json ---"
+
+    if ! command -v jq &> /dev/null; then
+        _log WARN "'jq' command not found. Cannot merge colors.json. Please install it first (e.g., 'sudo pacman -S jq'). Skipping."
+        return
+    fi
+
+    local repo_colors_file="$CONFIGS_DIR_REPO/local/state/quickshell/user/generated/colors.json"
+    local system_colors_file="$CONFIGS_DIR_SYSTEM/.local/state/quickshell/user/generated/colors.json"
+
+    if [ ! -f "$repo_colors_file" ]; then
+        _log WARN "Repo colors.json not found at '$repo_colors_file'. Skipping."
+        return
+    fi
+
+    # Ensure destination directory exists
+    mkdir -p "$(dirname "$system_colors_file")"
+
+    if [ ! -f "$system_colors_file" ]; then
+        _log INFO "No existing colors.json found at '$system_colors_file'. Copying from repo."
+        cp "$repo_colors_file" "$system_colors_file"
+    else
+        _log INFO "Existing colors.json found. Merging with repo version."
+        local temp_file
+        temp_file=$(mktemp)
+        # Merge system file with repo file, where the repo file (.[1]) takes precedence over the system file (.[0])
+        if jq -s '.[0] * .[1]' "$system_colors_file" "$repo_colors_file" > "$temp_file"; then
+            mv "$temp_file" "$system_colors_file"
+            _log SUCCESS "Successfully merged colors.json."
+        else
+            _log ERROR "Failed to merge colors.json with jq."
+            rm -f "$temp_file"
+        fi
+    fi
+    echo "------------------------------------"
+}
+
 patch_quickshell_background() {
     echo "--- Patching QuickShell Background ---"
     local qml_file="$HOME/.config/quickshell/ii/modules/background/Background.qml"
 
     if [ -f "$qml_file" ]; then
         _log INFO "Found QuickShell Background.qml at '$qml_file'. Patching..."
-        sed -i 's/visible: !bgRoot.wallpaperIsVideo/visible: false \/\/ !bgRoot.wallpaperIsVideo/g' "$qml_file"
+        sed -i 's#visible: !bgRoot.wallpaperIsVideo#visible: false // !bgRoot.wallpaperIsVideo#g' "$qml_file"
+        sed -i '/clockX/s/leftMargin:.*/leftMargin: implicitWidth \/ 4/' "$qml_file"
+        sed -i '/clockY/s/topMargin:.*/topMargin: implicitHeight/' "$qml_file"
         _log SUCCESS "Successfully patched QuickShell Background.qml."
     else
         _log WARN "QuickShell Background.qml not found at '$qml_file'. Skipping patch."
@@ -284,7 +330,13 @@ main() {
                 local repo_path="$config_app_dir"
                 local system_path="$CONFIGS_DIR_SYSTEM/.$type_name/$app_name"
 
-                sync_files "$repo_path" "$system_path" "$app_name"
+                local exclude_arg=""
+                # Specifically handle quickshell colors.json to be merged, not overwritten.
+                if [[ "$app_name" == "quickshell" && "$type_name" == "local" ]]; then
+                    exclude_arg="user/generated/colors.json"
+                fi
+
+                sync_files "$repo_path" "$system_path" "$app_name" "$exclude_arg"
             fi
         done
     done
@@ -298,6 +350,8 @@ main() {
         update_cursor_conf "$selected_cursor_theme" "24" # Default cursor size is 24
     fi
     
+    # Handle special cases
+    merge_quickshell_colors
     patch_quickshell_background
 
     _log INFO "Reloading Hyprland configuration..."
