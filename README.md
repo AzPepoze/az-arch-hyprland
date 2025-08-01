@@ -1,4 +1,4 @@
-# az-arch Dotfiles
+# az-arch-hyprland dotfiles
 
 This repository contains my personal dotfiles for Arch Linux, heavily based on [end-4's dotfiles](https://github.com/end-4/dots-hyprland), and configured for a personalized development and desktop experience with the Hyprland window manager (for me specifically).
 
