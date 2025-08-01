@@ -6,7 +6,7 @@ The setup is designed to be automated, allowing for a quick and easy installatio
 
 ## ✨ Features
 
--    **Automated Setup:** Scripts to install essential applications, command-line tools, and system services.
+-    **Automated Setup:** Scripts to install [end-4's dotfiles](https://github.com/end-4/dots-hyprland), essential applications, command-line tools, and system services.
 -    **Additional Utility Scripts:** A collection of helper scripts for managing the system, handling keybinds, and syncing files.
 -    **Cursor** Custom cursor.
 
