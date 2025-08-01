@@ -16,7 +16,7 @@ source "$HELPER_SCRIPT"
 # Configuration
 #-------------------------------------------------------
 REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-CONFIGS_DIR_REPO="$REPO_DIR/configs"
+CONFIGS_DIR_REPO="$REPO_DIR/dots"
 CONFIGS_DIR_SYSTEM="$HOME"
 
 #-------------------------------------------------------
@@ -54,13 +54,27 @@ main() {
     echo "System Dir: $CONFIGS_DIR_SYSTEM"
     echo "============================================================"
 
-    for config_app_dir in "$CONFIGS_DIR_REPO"/*; do
-        if [ -d "$config_app_dir" ]; then
-            config_name=$(basename "$config_app_dir")
-            local system_path="$CONFIGS_DIR_SYSTEM/$config_name"
-            local repo_path="$CONFIGS_DIR_REPO/$config_name"
-            sync_files "$system_path" "$repo_path" "$config_name"
+    # Loop through each type of config (.config, .local, etc.)
+    for config_type_dir in "$CONFIGS_DIR_REPO"/*; do
+        if [ ! -d "$config_type_dir" ]; then
+            continue
         fi
+
+        local type_name
+        type_name=$(basename "$config_type_dir") # e.g., "config" or "local"
+
+        # Loop through each application's config within the type
+        for config_app_dir in "$config_type_dir"/*; do
+            if [ -d "$config_app_dir" ]; then
+                local app_name
+                app_name=$(basename "$config_app_dir") # e.g., "hypr" or "kitty"
+
+                local system_path="$CONFIGS_DIR_SYSTEM/.$type_name/$app_name"
+                local repo_path="$config_type_dir/$app_name"
+
+                sync_files "$system_path" "$repo_path" "$app_name"
+            fi
+        done
     done
 
     echo "============================================================"
