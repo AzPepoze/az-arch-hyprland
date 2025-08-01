@@ -17,7 +17,7 @@ source "$HELPER_SCRIPT"
 #-------------------------------------------------------
 REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 CONFIGS_DIR_REPO="$REPO_DIR/configs"
-CONFIGS_DIR_SYSTEM="$HOME/.config"
+CONFIGS_DIR_SYSTEM="$HOME"
 
 #-------------------------------------------------------
 # Helper Functions
