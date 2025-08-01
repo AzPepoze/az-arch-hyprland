@@ -1,4 +1,4 @@
-# az-arch-hyprland dotfiles
+# az-arch-hyprland Dotfiles
 
 This repository contains my personal dotfiles for Arch Linux, heavily based on [end-4's dotfiles](https://github.com/end-4/dots-hyprland), and configured for a personalized development and desktop experience with the Hyprland window manager (for me specifically).
 
@@ -16,13 +16,13 @@ The setup is designed to be automated, allowing for a quick and easy installatio
 
 ```bash
 cd ~
-git clone https://github.com/AzPepoze/az-arch.git
+git clone https://github.com/AzPepoze/az-arch-hyprland.git
 ```
 
 ### Run the script
 
 ```bash
-cd ~/az-arch
+cd ~/az-arch-hyprland
 bash install.sh
 ```
 
@@ -31,7 +31,7 @@ bash install.sh
 To update your system, run the following command:
 
 ```bash
-cd ~/az-arch
+cd ~/az-arch-hyprland
 bash update.sh
 ```
 
