@@ -156,7 +156,7 @@
         "updateInterval": 1000
     },
     "screenshotTool": {
-        "showContentRegions": true
+        "showContentRegions": false
     },
     "search": {
         "engineBaseUrl": "https://www.google.com/search?q=",
