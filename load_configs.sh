@@ -118,7 +118,7 @@ update_gpu_conf() {
         return
     fi
 
-    local env_var_line="env = WLR_DRM_DEVICES,$gpu_device"
+    local env_var_line="env = AQ_DRM_DEVICES,$gpu_device"
     local gpu_conf_file="$CONFIGS_DIR_SYSTEM/hypr/gpu.conf"
 
     mkdir -p "$(dirname "$gpu_conf_file")"
