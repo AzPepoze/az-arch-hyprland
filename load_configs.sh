@@ -28,7 +28,7 @@ fi
 # Configuration
 #-------------------------------------------------------
 REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-CONFIGS_DIR_REPO="$REPO_DIR/configs"
+CONFIGS_DIR_REPO="$REPO_DIR/dots"
 CONFIGS_DIR_SYSTEM="$HOME"
 
 #-------------------------------------------------------
@@ -119,7 +119,7 @@ update_gpu_conf() {
     fi
 
     local env_var_line="env = AQ_DRM_DEVICES,$gpu_device"
-    local gpu_conf_file="$CONFIGS_DIR_SYSTEM/hypr/gpu.conf"
+    local gpu_conf_file="$CONFIGS_DIR_SYSTEM/.config/hypr/gpu.conf"
 
     mkdir -p "$(dirname "$gpu_conf_file")"
 
@@ -139,7 +139,7 @@ update_cursor_conf() {
     
     _log INFO "Updating cursor configuration..."
 
-    local cursor_conf_file="$CONFIGS_DIR_SYSTEM/hypr/cursor.conf"
+    local cursor_conf_file="$CONFIGS_DIR_SYSTEM/.config/hypr/cursor.conf"
     mkdir -p "$(dirname "$cursor_conf_file")"
 
     # Write the configuration to the file
@@ -266,13 +266,27 @@ main() {
     echo "System Dir: $CONFIGS_DIR_SYSTEM"
     echo "============================================================"
 
-    for config_app_dir in "$CONFIGS_DIR_REPO"/*; do
-        if [ -d "$config_app_dir" ]; then
-            config_name=$(basename "$config_app_dir")
-            local repo_path="$CONFIGS_DIR_REPO/$config_name"
-            local system_path="$CONFIGS_DIR_SYSTEM/$config_name"
-            sync_files "$repo_path" "$system_path" "$config_name"
+    # Loop through each type of config (.config, .local, etc.)
+    for config_type_dir in "$CONFIGS_DIR_REPO"/*; do
+        if [ ! -d "$config_type_dir" ]; then
+            continue
         fi
+
+        local type_name
+        type_name=$(basename "$config_type_dir") # e.g., "config" or "local"
+
+        # Loop through each application's config within the type
+        for config_app_dir in "$config_type_dir"/*; do
+            if [ -d "$config_app_dir" ]; then
+                local app_name
+                app_name=$(basename "$config_app_dir") # e.g., "hypr" or "kitty"
+
+                local repo_path="$config_app_dir"
+                local system_path="$CONFIGS_DIR_SYSTEM/.$type_name/$app_name"
+
+                sync_files "$repo_path" "$system_path" "$app_name"
+            fi
+        done
     done
 
     # Update device-specific config files
