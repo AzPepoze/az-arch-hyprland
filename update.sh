@@ -14,7 +14,7 @@ fi
 
 update_repo() {
     echo
-    echo "Updating az-arch Repository..."
+    echo "Updating az-arch-hyprland Repository..."
     echo
 
     git fetch origin
