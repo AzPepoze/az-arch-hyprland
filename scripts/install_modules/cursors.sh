@@ -83,8 +83,4 @@ install_cursors() {
     done
 }
 
-# Make sure jq is installed before running the main function
-install_jq
 
-# Run the installation function
-install_cursors

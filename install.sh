@@ -12,11 +12,11 @@ modules_dir="$repo_dir/scripts/install_modules"
 # Source helpers.sh first to ensure logging functions are available
 # This line is removed as per user request to not use _log in install.sh
 
-while IFS= read -r -d '' module_file; do
+for module_file in "$modules_dir"/*.sh; do
     if [ -f "$module_file" ] && [ "$(basename "$module_file")" != "helpers.sh" ]; then
         source "$module_file"
     fi
-done < <(find "$modules_dir" -name '*.sh' -print0)
+done
 
 #-------------------------------------------------------
 # Data-Driven Menu Configuration
@@ -101,6 +101,7 @@ populate_menu_data() {
     add_menu_item "header" "" "
 --- Applications (Hardware) ---"
     add_menu_item "essential" "install_coolercontrol" "Install CoolerControl (and Enable Service)"
+    add_menu_item "optional" "install_mx002_driver" "Install MX002 Tablet Driver (requires Rust)"
 
     add_menu_item "header" "" "
 --- System Utilities (Optional) ---"
@@ -121,18 +122,6 @@ populate_menu_data() {
     add_menu_item "optional" "install_zen_browser" "Install Zen Browser (requires Flatpak)"
     add_menu_item "optional" "install_handbrake" "Install HandBrake"
     add_menu_item "optional" "install_droidcam" "Install Droidcam"
-}
-
-#-------------------------------------------------------
-# Specific Handlers
-#-------------------------------------------------------
-install_end4_hyprland_dots() {
-    echo "Installing end-4's Hyprland Dots..."
-    cd ~
-    git clone https://github.com/end-4/dots-hyprland
-    cd dots-hyprland
-    ./install.sh
-    echo "end-4's Hyprland Dots installation complete."
 }
 
 load_all_configs() {
