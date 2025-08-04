@@ -41,7 +41,6 @@ run_safe_sync() {
      # Only copies files from local if they are newer than remote
      _log INFO "[PUSH] Uploading local changes to ${REMOTE_NAME}..."
      rclone sync "$WATCH_DIR" "$REMOTE_NAME" \
-          --update \
           --transfers=24 \
           --checkers=48 \
           --drive-chunk-size=64M \
@@ -59,7 +58,6 @@ run_safe_sync() {
      # Only copies files from remote if they are newer than local
      _log INFO "[PULL] Downloading remote changes from ${REMOTE_NAME}..."
      rclone sync "$REMOTE_NAME" "$WATCH_DIR" \
-          --update \
           --transfers=24 \
           --checkers=48 \
           --drive-chunk-size=64M \
