@@ -1,117 +1,164 @@
 #!/bin/bash
 
 #-------------------------------------------------------
-# Prerequisite Check
+# Basic Logging Function (Fallback if helpers.sh is not found)
 #-------------------------------------------------------
-# Source helper functions
+# This makes the script more self-contained.
+# If your existing helpers.sh provides better logging,
+# ensure it's sourced correctly.
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$DIR/../.."
 HELPER_SCRIPT="$PROJECT_ROOT/scripts/install_modules/helpers.sh"
-source "$HELPER_SCRIPT"
 
+if [ -f "$HELPER_SCRIPT" ]; then
+    source "$HELPER_SCRIPT"
+else
+    echo "Error: Helper script not found at $HELPER_SCRIPT"
+    exit 1
+fi
+
+
+#-------------------------------------------------------
+# Prerequisite Check
+#-------------------------------------------------------
 if ! command -v inotifywait &>/dev/null; then
      _log ERROR "inotify-tools is not installed. Please install it to use this script."
      _log INFO "On Arch Linux, you can install it with: sudo pacman -S inotify-tools"
      exit 1
 fi
 
+if ! command -v rclone &>/dev/null; then
+    _log ERROR "rclone is not installed. Please install it to use this script."
+    exit 1
+fi
+
 #-------------------------------------------------------
 # Configuration
 #-------------------------------------------------------
-WATCH_DIR="$HOME/GoogleDrive"
-REMOTE_NAME="gdrive:"
-REMOTE_CHECK_INTERVAL=60
+WATCH_DIR="$HOME/GoogleDrive" # Ensure this path is correct and exists
+REMOTE_NAME="gdrive:"         # Ensure this matches your rclone remote name
+REMOTE_CHECK_INTERVAL=60      # Seconds to wait for file changes before performing a scheduled sync
+SCRIPT_NAME=$(basename "$0")
+LOCK_FILE="/tmp/${SCRIPT_NAME%.*}.lock" # Unique lock file for this script
 
 #-------------------------------------------------------
 # Functions
 #-------------------------------------------------------
-check_for_running_process() {
-     if pgrep -x "rclone" >/dev/null; then
-          _log WARN "An rclone process is already running. Killing it to prevent conflicts..."
-          pkill -x "rclone"
-          sleep 1 # Give it a moment to die
-          _log INFO "Old rclone process killed."
-     fi
+acquire_lock() {
+    # Attempt to acquire a lock using flock or noclobber
+    if ( set -o noclobber; echo "$$" > "$LOCK_FILE") 2> /dev/null; then
+        _log INFO "Lock acquired: $LOCK_FILE"
+        # Ensure lock is released on exit
+        trap 'rm -f "$LOCK_FILE"; exit $?' INT TERM EXIT
+        return 0 # Success
+    else
+        _log WARN "Another sync process is already running (lock file exists: $LOCK_FILE). Skipping this sync cycle."
+        return 1 # Failed to acquire lock
+    fi
 }
 
-run_safe_sync() {
-     _log INFO "Starting safe sync process..."
+release_lock() {
+    rm -f "$LOCK_FILE"
+    _log INFO "Lock released: $LOCK_FILE"
+    # Remove trap after successful completion to prevent it from running on normal exit
+    trap - INT TERM EXIT
+}
 
-     # Step 1: Push local changes to remote
-     # Only copies files from local if they are newer than remote
-     _log INFO "[PUSH] Uploading local changes to ${REMOTE_NAME}..."
-     rclone sync "$WATCH_DIR" "$REMOTE_NAME" \
-          --transfers=24 \
-          --checkers=48 \
-          --drive-chunk-size=64M \
-          --fast-list \
-          --drive-acknowledge-abuse \
-          --progress \
-          --exclude "node_modules/**"
+run_bisync() {
+    local resync_flag=$1 # Expecting '--resync' or an empty string
 
-     if [ $? -ne 0 ]; then
-          _log ERROR "[PUSH] Failed to sync local changes to remote. Aborting pull step."
-          return 1
-     fi
+    # Check if WATCH_DIR exists before attempting sync
+    if [ ! -d "$WATCH_DIR" ]; then
+        _log ERROR "Watch directory '${WATCH_DIR}' does not exist. Please create it or correct the path. Exiting."
+        exit 1
+    fi
 
-     # Step 2: Pull remote changes to local
-     # Only copies files from remote if they are newer than local
-     _log INFO "[PULL] Downloading remote changes from ${REMOTE_NAME}..."
-     rclone sync "$REMOTE_NAME" "$WATCH_DIR" \
-          --transfers=24 \
-          --checkers=48 \
-          --drive-chunk-size=64M \
-          --fast-list \
-          --drive-acknowledge-abuse \
-          --progress \
-          --exclude "node_modules/**"
+    if [ "$resync_flag" == "--resync" ]; then
+        _log INFO "Starting rclone bisync with --resync flag..."
+        _log WARN "This will establish a new sync baseline. Files may be overwritten based on the newest version."
+    else
+        _log INFO "Starting rclone bisync process..."
+    fi
 
-     if [ $? -ne 0 ]; then
-          _log ERROR "[PULL] Failed to sync remote changes to local."
-          return 1
-     fi
+    rclone bisync "$WATCH_DIR" "$REMOTE_NAME" \
+        --transfers=24 \
+        --checkers=48 \
+        --drive-chunk-size=64M \
+        --fast-list \
+        --progress \
+        --drive-acknowledge-abuse \
+        --exclude "node_modules/**" \
+        $resync_flag # Pass the --resync flag if provided
 
-     _log SUCCESS "Safe sync completed successfully."
-     return 0
+    if [ $? -ne 0 ]; then
+        _log ERROR "rclone bisync failed. Check the output above for details."
+        return 1
+    fi
+
+    _log SUCCESS "Bisync completed successfully."
+    return 0
 }
 
 #-------------------------------------------------------
 # Main Logic
 #-------------------------------------------------------
+RESYNC_ARG=""
+if [ "$1" == "--resync" ]; then
+    RESYNC_ARG="--resync"
+    _log WARN "Running in --resync mode as requested by command line argument."
+fi
 
 #-------------------------------------------------------
 # Initial Sync
 #-------------------------------------------------------
 _log INFO "Performing initial sync on startup..."
-check_for_running_process
-run_safe_sync
+if acquire_lock; then
+    run_bisync "$RESYNC_ARG"
+    release_lock
+fi
+
+# Exit after resync if called with the flag
+if [ "$RESYNC_ARG" == "--resync" ]; then
+    _log INFO "Initial resync complete. Exiting script. Run without --resync to start watching."
+    exit 0
+fi
 
 #-------------------------------------------------------
 # Main Loop
 #-------------------------------------------------------
 while true; do
-     _log INFO "Watching for file changes or timeout of ${REMOTE_CHECK_INTERVAL}s in ${WATCH_DIR}..."
+    _log INFO "Watching for file changes or timeout of ${REMOTE_CHECK_INTERVAL}s in ${WATCH_DIR}..."
 
-     inotifywait -r -t "$REMOTE_CHECK_INTERVAL" -e create,delete,modify,move "$WATCH_DIR" 2>/dev/null
-     exit_code=$?
+    # It's crucial that WATCH_DIR exists before inotifywait runs.
+    if [ ! -d "$WATCH_DIR" ]; then
+        _log ERROR "Watch directory '${WATCH_DIR}' does not exist for inotifywait. Exiting."
+        exit 1
+    fi
 
-     case $exit_code in
-          0)
-               _log INFO "Local file change detected. Starting rclone safe sync..."
-               ;;
-          1)
-               _log INFO "Watched file/directory deleted. Starting rclone safe sync..."
-               ;;
-          2)
-               _log INFO "Timeout reached. Starting scheduled sync to check for remote changes..."
-               ;;
-          *)
-               _log WARN "inotifywait exited with code ${exit_code}. Triggering sync anyway and retrying."
-               ;;
-     esac
+    # Start watching. -q suppresses non-error output from inotifywait
+    inotifywait -r -q -t "$REMOTE_CHECK_INTERVAL" -e create,delete,modify,move "$WATCH_DIR"
+    exit_code=$?
 
-     check_for_running_process
-     run_safe_sync
+    case $exit_code in
+        0)
+            _log INFO "Local file change detected. Starting rclone bisync..."
+            ;;
+        1)
+            _log WARN "Watched directory may have been deleted or is inaccessible. Triggering sync."
+            ;;
+        2)
+            _log INFO "Timeout reached. Starting scheduled bisync to check for remote changes..."
+            ;;
+        *)
+            _log WARN "inotifywait exited with unexpected code ${exit_code}. Triggering sync anyway."
+            ;;
+    esac
 
-     _log INFO "Sync finished. Resuming watch."
+    # Attempt to acquire lock and run sync
+    if acquire_lock; then
+        run_bisync "" # Always run normal bisync in the loop
+        release_lock
+    fi
+
+    _log INFO "Sync finished. Resuming watch."
 done
