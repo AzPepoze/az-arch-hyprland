@@ -62,11 +62,10 @@ update_gemini_cli() {
     echo "============================================================="
     echo " Update Gemini CLI"
     echo "============================================================="
-    if command -v pnpm &> /dev/null; then
-        sudo pnpm update -g @google/gemini-cli
+    if command -v gemini &> /dev/null; then
+        sudo npm install -g @google/gemini-cli
     else
-        echo "pnpm command not found. Skipping Gemini CLI update."
-        echo "Please install pnpm to enable this feature."
+        echo "Gemini CLI not found. Skipping update."
     fi
 }
 

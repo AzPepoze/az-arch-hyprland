@@ -42,17 +42,6 @@ setup_rclone_gdrive() {
      _log SUCCESS "rclone configuration Google Drive finished."
 }
 
-fix_vscode_permissions() {
-    echo "Setting permissions for VSCode Insiders extension directory..."
-    if [ -d "/usr/share/code-insiders" ]; then
-        sudo chown -R "$(whoami)" /usr/share/code-insiders
-        _log SUCCESS "Permissions set successfully."
-    else
-        _log ERROR "/usr/share/code-insiders directory not found. Is VSCode Insiders installed?"
-        return 1
-    fi
-}
-
 install_v4l2loopback() {
     install_paru_package "v4l2loopback-dkms" "v4l2loopback"
     echo "Adding v4l2loopback to /etc/modules-load.d/v4l2loopback.conf to load on boot..."
