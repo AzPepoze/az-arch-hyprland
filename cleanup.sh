@@ -15,8 +15,7 @@ cleanup_system_packages() {
 
         echo
         echo "Cleaning package cache..."
-        paru -Sc --noconfirm
-        paru -Scc --noconfirm
+        paru -Sccd --noconfirm
     else
         echo "paru command not found. Skipping system package cleanup."
     fi

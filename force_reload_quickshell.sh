@@ -1,0 +1,1 @@
+quickshell -c ii kill && hyprctl dispatch exec "quickshell -c ii"
