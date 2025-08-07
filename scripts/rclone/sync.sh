@@ -45,14 +45,32 @@ LOCK_FILE="/tmp/${SCRIPT_NAME%.*}.lock" # Unique lock file for this script
 # Functions
 #-------------------------------------------------------
 acquire_lock() {
-    # Attempt to acquire a lock using flock or noclobber
-    if ( set -o noclobber; echo "$$" > "$LOCK_FILE") 2> /dev/null; then
+    if [ -f "$LOCK_FILE" ]; then
+        # Lock file exists. Check if the process that created it is still running.
+        local old_pid
+        old_pid=$(cat "$LOCK_FILE")
+        if [ -n "$old_pid" ] && ps -p "$old_pid" > /dev/null; then
+            _log WARN "Another sync process is already running (PID: $old_pid). Lock file: $LOCK_FILE. Skipping this sync cycle."
+            return 1 # Failed to acquire lock
+        else
+            _log WARN "Stale lock file found for non-running process (PID: $old_pid). Removing it."
+            rm -f "$LOCK_FILE"
+        fi
+    fi
+
+    # Attempt to acquire a lock using noclobber.
+    # This prevents race conditions if two scripts start at almost the same time.
+    if ( set -o noclobber; echo "$" > "$LOCK_FILE") 2> /dev/null; then
         _log INFO "Lock acquired: $LOCK_FILE"
-        # Ensure lock is released on exit
+        # Ensure lock is released on exit, interrupt, or termination
         trap 'rm -f "$LOCK_FILE"; exit $?' INT TERM EXIT
         return 0 # Success
     else
-        _log WARN "Another sync process is already running (lock file exists: $LOCK_FILE). Skipping this sync cycle."
+        # This case is unlikely if the stale lock removal works, but it's a good safeguard
+        # against race conditions where another process creates the lock just after our check.
+        local current_pid
+        current_pid=$(cat "$LOCK_FILE")
+        _log WARN "Another sync process (PID: $current_pid) appears to have just started. Skipping this sync cycle."
         return 1 # Failed to acquire lock
     fi
 }
@@ -100,6 +118,32 @@ run_bisync() {
 
     if [ $rclone_exit_code -ne 0 ]; then
         _log ERROR "rclone bisync failed. Check the output above for details."
+
+        # Check for stale lock file
+        if grep -q "prior lock file found" "$output_file"; then
+            _log WARN "Stale bisync lock file detected. Attempting to remove it..."
+            # Extract lock file path from the error message
+            lock_file_path=$(grep "prior lock file found" "$output_file" | sed -n 's/.*prior lock file found: \(.*\)/\1/p' | head -n 1)
+            if [ -n "$lock_file_path" ]; then
+                _log INFO "Attempting to delete lock file: $lock_file_path"
+                rclone deletefile "$lock_file_path"
+                local delete_exit_code=$?
+                if [ $delete_exit_code -eq 0 ]; then
+                    _log SUCCESS "Lock file removed. Retrying bisync..."
+                    rm "$output_file"
+                    run_bisync "$resync_flag" # Retry with the same flags
+                    return $?
+                else
+                    _log ERROR "Failed to remove lock file (rclone exit code: $delete_exit_code). Please remove it manually and restart."
+                    rm "$output_file"
+                    return 1
+                fi
+            else
+                _log ERROR "Could not extract lock file path from rclone output. Please check the logs and remove it manually."
+                rm "$output_file"
+                return 1
+            fi
+        fi
 
         # Only attempt auto-resync if we weren't already doing one (to prevent loops)
         if [ "$resync_flag" != "--resync" ] && grep -q "Must run --resync to recover" "$output_file"; then
