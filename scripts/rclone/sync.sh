@@ -80,6 +80,11 @@ run_bisync() {
         _log INFO "Starting rclone bisync process..."
     fi
 
+    # Create a temporary file to capture the output, and show it to the user with tee
+    local output_file
+    output_file=$(mktemp)
+
+    # Run rclone, redirecting output to both the terminal and the temp file
     rclone bisync "$WATCH_DIR" "$REMOTE_NAME" \
         --transfers=24 \
         --checkers=48 \
@@ -88,13 +93,27 @@ run_bisync() {
         --progress \
         --drive-acknowledge-abuse \
         --exclude "node_modules/**" \
-        $resync_flag # Pass the --resync flag if provided
+        $resync_flag 2>&1 | tee "$output_file"
 
-    if [ $? -ne 0 ]; then
+    # Get the exit code from rclone, not tee
+    local rclone_exit_code=${PIPESTATUS[0]}
+
+    if [ $rclone_exit_code -ne 0 ]; then
         _log ERROR "rclone bisync failed. Check the output above for details."
+
+        # Only attempt auto-resync if we weren't already doing one (to prevent loops)
+        if [ "$resync_flag" != "--resync" ] && grep -q "Must run --resync to recover" "$output_file"; then
+            _log WARN "Critical bisync error detected. Attempting automatic --resync..."
+            rm "$output_file" # Clean up before recursive call
+            run_bisync "--resync"
+            return $?
+        fi
+
+        rm "$output_file" # Clean up the temp file
         return 1
     fi
 
+    rm "$output_file" # Clean up the temp file
     _log SUCCESS "Bisync completed successfully."
     return 0
 }
