@@ -46,31 +46,25 @@ LOCK_FILE="/tmp/${SCRIPT_NAME%.*}.lock" # Unique lock file for this script
 #-------------------------------------------------------
 acquire_lock() {
     if [ -f "$LOCK_FILE" ]; then
-        # Lock file exists. Check if the process that created it is still running.
         local old_pid
         old_pid=$(cat "$LOCK_FILE")
         if [ -n "$old_pid" ] && ps -p "$old_pid" > /dev/null; then
-            _log WARN "Another sync process is already running (PID: $old_pid). Lock file: $LOCK_FILE. Skipping this sync cycle."
-            return 1 # Failed to acquire lock
-        else
-            _log WARN "Stale lock file found for non-running process (PID: $old_pid). Removing it."
-            rm -f "$LOCK_FILE"
+            _log WARN "Another sync process is running (PID: $old_pid). Terminating it to start a new sync."
+            kill "$old_pid"
+            sleep 1 # Give it a moment to terminate
         fi
+        _log INFO "Removing previous lock file: $LOCK_FILE"
+        rm -f "$LOCK_FILE"
     fi
 
-    # Attempt to acquire a lock using noclobber.
-    # This prevents race conditions if two scripts start at almost the same time.
-    if ( set -o noclobber; echo "$" > "$LOCK_FILE") 2> /dev/null; then
+    # Attempt to acquire a new lock.
+    if ( set -o noclobber; echo "$$" > "$LOCK_FILE") 2> /dev/null; then
         _log INFO "Lock acquired: $LOCK_FILE"
-        # Ensure lock is released on exit, interrupt, or termination
+        # Ensure lock is released on exit
         trap 'rm -f "$LOCK_FILE"; exit $?' INT TERM EXIT
         return 0 # Success
     else
-        # This case is unlikely if the stale lock removal works, but it's a good safeguard
-        # against race conditions where another process creates the lock just after our check.
-        local current_pid
-        current_pid=$(cat "$LOCK_FILE")
-        _log WARN "Another sync process (PID: $current_pid) appears to have just started. Skipping this sync cycle."
+        _log ERROR "Failed to acquire lock. Another process might be starting simultaneously."
         return 1 # Failed to acquire lock
     fi
 }
