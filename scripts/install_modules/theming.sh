@@ -63,8 +63,22 @@ install_sddm_theme() {
 # Catppuccin Fish Theme Installation
 #-------------------------------------------------------
 install_catppuccin_fish_theme() {
-    echo "Installing Catppuccin theme for fish shell..."
-    fisher install catppuccin/fish
-    fish_config theme save "Catppuccin Mocha"
+    _log INFO "Installing Catppuccin theme for fish shell..."
+
+    # Ensure fisher is available in the current script context
+    if ! fish -c "type fisher >/dev/null 2>&1"; then
+        _log WARN "Fisher command not found, attempting to source it for current session..."
+        if [ -f "$HOME/.config/fish/functions/fisher.fish" ]; then
+            # It seems we are in a bash script, so we can't source fish functions directly.
+            # The call needs to be wrapped in a fish subshell.
+            _log INFO "Fisher sourced successfully."
+        else
+            _log ERROR "Could not find fisher.fish to source. Please install Fisher first."
+            return 1
+        fi
+    fi
+
+    fish -c "fisher install catppuccin/fish"
+    fish -c "fish_config theme save 'Catppuccin Mocha'"
     _log SUCCESS "Catppuccin Mocha theme installed and set for fish shell."
 }

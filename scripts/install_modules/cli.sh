@@ -23,9 +23,19 @@ install_gemini_cli() {
 # Fisher Installation
 #-------------------------------------------------------
 install_fisher() {
-    echo "Installing Fisher (fish shell plugin manager)..."
-    curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher
-    _log SUCCESS "Fisher installed."
+    _log INFO "Installing Fisher (fish shell plugin manager)..."
+    if fish -c "type fisher >/dev/null 2>&1"; then
+        _log INFO "Fisher is already installed."
+        return 0
+    fi
+
+    # Install fisher using a fish subshell
+    fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"
+    
+    # Add fisher to path for future sessions
+    fish -c "set -U fish_user_paths ~/.config/fish/functions $fish_user_paths"
+
+    _log SUCCESS "Fisher installed. It will be available in new terminal sessions."
 }
 
 #-------------------------------------------------------

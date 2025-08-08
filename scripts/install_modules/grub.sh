@@ -120,3 +120,32 @@ install_catppuccin_grub_theme() {
 
     _log SUCCESS "Catppuccin $capitalized_flavor GRUB theme installed and configured successfully."
 }
+
+select_and_install_catppuccin_grub_theme() {
+    local flavors=("mocha" "latte" "frappe" "macchiato" "Exit")
+    echo "Please select a Catppuccin flavor for GRUB (default is mocha):"
+    
+    # PS3 is the prompt for the select menu
+    PS3="Enter your choice [1-5]: "
+    
+    select flavor in "${flavors[@]}"; do
+        # Default to mocha if user just presses Enter
+        if [ -z "$REPLY" ]; then
+            flavor="mocha"
+        fi
+
+        if [[ " ${flavors[*]} " =~ " ${flavor} " ]]; then
+            if [ "$flavor" == "Exit" ]; then
+                _log WARN "Skipping GRUB theme installation."
+                break
+            fi
+            _log INFO "You selected: $flavor"
+            install_catppuccin_grub_theme "$flavor"
+            break
+        else
+            echo "Invalid option '$REPLY'. Please try again."
+        fi
+    done
+    # Reset PS3 to default
+    PS3="#? "
+}

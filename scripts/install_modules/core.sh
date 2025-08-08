@@ -52,8 +52,13 @@ install_npm() {
 
 install_pnpm() {
      install_paru_package "pnpm" "pnpm"
-     echo "Running pnpm setup..."
-     if command -v pnpm &>/dev/null; then
+     echo "Checking pnpm setup..."
+     local fish_config="$HOME/.config/fish/config.fish"
+
+     if [ -f "$fish_config" ] && grep -q "pnpm" "$fish_config"; then
+          _log INFO "pnpm configuration already exists in $fish_config, skipping setup."
+     elif command -v pnpm &>/dev/null; then
+          _log INFO "Running pnpm setup..."
           pnpm setup
           _log SUCCESS "pnpm setup completed."
      else
