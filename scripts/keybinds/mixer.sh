@@ -33,8 +33,8 @@ else
         hyprctl --batch "\
             dispatch setfloating address:$window_address;\
             dispatch pin address:$window_address;\
-            dispatch resizewindowpixel exact 700 600,address:$window_address;\
-            dispatch movewindowpixel exact 1210 470,address:$window_address"
+            dispatch resizewindowpixel exact 36% 55%,address:$window_address;\
+            dispatch movewindowpixel exact 63% 43%,address:$window_address" 
         _log SUCCESS "Pavucontrol window positioned and resized."
     else
         _log WARN "Pavucontrol window not found after launch. Skipping positioning."
