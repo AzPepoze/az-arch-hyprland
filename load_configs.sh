@@ -321,6 +321,19 @@ main() {
         local type_name
         type_name=$(basename "$config_type_dir") # e.g., "config" or "local"
 
+        #-------------------------------------------------------
+        # Handle .gemini folder specifically
+        #-------------------------------------------------------
+        if [ "$type_name" == "gemini" ]; then
+            local repo_path="$config_type_dir" # This is dots/gemini
+            local system_path="$CONFIGS_DIR_SYSTEM/.$type_name" # This is $HOME/.gemini
+            sync_files "$repo_path" "$system_path" "$type_name" ""
+            continue # Skip general processing for gemini
+        fi
+
+        #-------------------------------------------------------
+        # General processing for other config types (.config, .local, etc.)
+        #-------------------------------------------------------
         # Loop through each application's config within the type
         for config_app_dir in "$config_type_dir"/*; do
             if [ -d "$config_app_dir" ]; then
