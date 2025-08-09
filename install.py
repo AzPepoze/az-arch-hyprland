@@ -178,6 +178,7 @@ class InstallerApp(QWidget):
             {'type': 'header', 'text': '--- Package Management ---'},
             {'type': 'essential', 'text': 'Install paru (AUR Helper)', 'func': 'install_paru', 'group': 'Package Managers'},
             {'type': 'essential', 'text': 'Install Flatpak', 'func': 'install_flatpak', 'group': 'Package Managers'},
+            {'type': 'essential', 'text': 'Install Git Credential Manager', 'func': 'install_git_credential_manager', 'group': 'Package Managers'},
             {'type': 'essential', 'text': 'Install FUSE', 'func': 'install_fuse', 'group': 'System Libraries'},
             {'type': 'essential', 'text': 'Install npm', 'func': 'install_npm', 'group': 'Development Runtimes'},
             {'type': 'essential', 'text': 'Install pnpm', 'func': 'install_pnpm', 'group': 'Development Runtimes'},

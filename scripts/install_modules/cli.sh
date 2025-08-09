@@ -55,3 +55,12 @@ configure_git_credential_store() {
     git config --global credential.credentialStore secretservice
     _log SUCCESS "Git Credential Store configured successfully."
 }
+
+#-------------------------------------------------------
+# Git Credential Manager Installation
+#-------------------------------------------------------
+install_git_credential_manager() {
+    echo "Installing Git Credential Manager..."
+    paru -S --noconfirm git-credential-manager
+    _log SUCCESS "Git Credential Manager installation completed successfully."
+}
