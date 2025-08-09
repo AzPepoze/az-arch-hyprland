@@ -131,11 +131,22 @@ class InstallerApp(QWidget):
                 group_name = item_data.get("group", "General")
                 tabs_data[current_tab_name][group_name].append(item_data)
 
+        from PyQt6.QtWidgets import QScrollArea # Import QScrollArea
         for tab_name, groups in tabs_data.items():
             tab_content_widget = QWidget()
-            tab_layout = QGridLayout(tab_content_widget)
+            tab_main_layout = QVBoxLayout(tab_content_widget) # Main layout for the tab content
+
+            scroll_area = QScrollArea()
+            scroll_area.setWidgetResizable(True)
+            scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff) # Disable horizontal scrollbar
+
+            scroll_content_widget = QWidget()
+            tab_layout = QGridLayout(scroll_content_widget)
             tab_layout.setContentsMargins(15, 15, 15, 15)
             tab_layout.setSpacing(15)
+
+            scroll_area.setWidget(scroll_content_widget)
+            tab_main_layout.addWidget(scroll_area) # Add scroll area to the tab's main layout
 
             current_row, current_col = 0, 0
 
@@ -272,15 +283,15 @@ class InstallerApp(QWidget):
     
     def _generate_install_script(self, commands):
         modules_dir = os.path.join(self.repo_dir, "scripts", "install_modules")
-        script_lines = ["#!/bin/bash", "set -e\n", f"export repo_dir=\"{self.repo_dir}\"\n"]
+        script_lines = ["#!/bin/bash", "set -e", f"export repo_dir=\"{self.repo_dir}\"\n"]
+        script_lines.append("trap 'echo; read -p \"--- Script finished. Press Enter to close terminal. --- \"' EXIT\n")
         for filename in sorted(os.listdir(modules_dir)):
             if filename.endswith(".sh"):
                 script_lines.append(f"source {os.path.join(modules_dir, filename)}")
-        script_lines.append("\n# Ensures terminal stays open after script finishes or fails")
-        script_lines.append("trap 'echo; read -p \"--- Script finished. Press Enter to close terminal. --- \"' EXIT\n")
         for command in commands:
-            script_lines.append(f"echo -e '\\n\\e[1;34m--- Running: {command} ---\\e[0m'")
+            script_lines.append(f"echo -e '\n\e[1;34m--- Running: {command} ---\e[0m'")
             script_lines.append(f"{command}")
+            script_lines.append(f"echo -e '\n\e[1;32m--- Finished: {command} ---\\e[0m'")
         return "\n".join(script_lines)
 
     #-------------------------------------------------------

@@ -3,14 +3,14 @@
 install_n8n() {
     echo "Installing n8n..."
     # Check if npm is installed
-    if ! command -v npm &> /dev/null
+    if ! command -v pnpm &> /dev/null
     then
-        echo "npm is not installed. Please install npm first."
+        echo "pnpm is not installed. Please install pnpm first."
         return 1
     fi
 
     # Install n8n globally using npm
-    npm install -g n8n
+    pnpm install -g n8n
     if [ $? -eq 0 ]; then
         echo "n8n installed successfully."
     else

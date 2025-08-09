@@ -27,7 +27,7 @@ install_fisher() {
     if fish -c "type fisher >/dev/null 2>&1"; then
         _log INFO "Fisher is already installed."
         return 0
-    }
+    fi
 
     # Install fisher using a fish subshell
     fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"
