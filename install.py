@@ -184,6 +184,8 @@ class InstallerApp(QWidget):
             {'type': 'essential', 'text': 'Install jq', 'func': 'install_jq', 'group': 'CLI Utilities'},
             {'type': 'optional', 'text': 'Install Fisher', 'func': 'install_fisher', 'group': 'CLI Utilities'},
             {'type': 'optional', 'text': 'Install Gemini CLI', 'func': 'install_gemini_cli', 'group': 'CLI Utilities'},
+            {'type': 'header', 'text': '--- Git Configuration ---'},
+            {'type': 'essential', 'text': 'Configure Git Credential Store (secretservice)', 'func': 'configure_git_credential_store', 'group': 'Git Credentials'},
             {'type': 'header', 'text': '--- Desktop & Theming ---'},
             {'type': 'essential', 'text': "Install end-4's Hyprland Dots", 'func': 'install_end4_hyprland_dots', 'group': 'Hyprland Core'},
             {'type': 'special', 'text': 'Load all configurations (GPU, cursor, etc)', 'func': f'bash {self.repo_dir}/load_configs.sh', 'group': 'Hyprland Configuration'},

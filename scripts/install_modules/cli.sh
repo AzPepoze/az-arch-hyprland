@@ -27,7 +27,7 @@ install_fisher() {
     if fish -c "type fisher >/dev/null 2>&1"; then
         _log INFO "Fisher is already installed."
         return 0
-    fi
+    }
 
     # Install fisher using a fish subshell
     fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"
@@ -45,4 +45,13 @@ install_jq() {
     echo "Installing jq..."
     install_paru_package "jq" "jq"
     _log SUCCESS "jq installation completed successfully."
+}
+
+#-------------------------------------------------------
+# Git Credential Store Configuration
+#-------------------------------------------------------
+configure_git_credential_store() {
+    echo "Configuring Git Credential Store to use secretservice..."
+    git config --global credential.credentialStore secretservice
+    _log SUCCESS "Git Credential Store configured successfully."
 }
