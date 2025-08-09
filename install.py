@@ -219,6 +219,7 @@ class InstallerApp(QWidget):
             {'type': 'essential', 'text': 'Install YouTube Music', 'func': 'install_youtube_music', 'group': 'Graphics & Media', 'description': 'Installs YouTube Music as a standalone application.'},
             {'type': 'optional', 'text': 'Install HandBrake', 'func': 'install_handbrake', 'group': 'Graphics & Media', 'description': 'Installs HandBrake, a free and open-source video transcoder.'},
             {'type': 'optional', 'text': 'Install EasyEffects', 'func': 'install_easyeffects', 'group': 'Audio', 'description': 'Installs EasyEffects, a PulseAudio/PipeWire application for applying audio effects.'},
+            {'type': 'optional', 'text': 'Install n8n', 'func': 'install_n8n', 'group': 'Automation', 'description': 'Installs n8n, a workflow automation tool.'},
             {'type': 'optional', 'text': 'Install Microsoft Edge (Dev)', 'func': 'install_ms_edge', 'group': 'Web Browsers', 'description': 'Installs the Microsoft Edge (Dev) browser.'},
             {'type': 'optional', 'text': 'Install Zen Browser', 'func': 'install_zen_browser', 'group': 'Web Browsers', 'description': 'Installs Zen Browser, a privacy-focused web browser.'},
             {'type': 'essential', 'text': 'Install Switcheroo', 'func': 'install_switcheroo', 'group': 'General Utilities', 'description': 'Installs Switcheroo, a simple application switcher for Wayland.'},
