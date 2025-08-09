@@ -25,7 +25,8 @@ update_repo() {
     if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
         echo "Local repository is behind origin/main. Updating..."
         git reset --hard origin/main
-        echo "Repository updated. Re-running the update script..."
+        echo "Repository updated. Please re-run this script manually if it does not restart automatically."
+        echo "Re-running the update script..."
         exec "$0" "$@"
     else
         echo "Repository is already up-to-date."

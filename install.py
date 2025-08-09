@@ -16,6 +16,7 @@ from PyQt6.QtWidgets import (
     QTabWidget,
     QGroupBox,
     QGridLayout,
+    QLabel,
 )
 from PyQt6.QtCore import Qt
 
@@ -40,6 +41,7 @@ class InstallerApp(QWidget):
         self.setGeometry(100, 100, 850, 700)
 
         self._setup_main_layout()
+        self._create_tip_label()
         self._create_tab_widget()
         self._create_action_buttons()
         self._create_launch_button()
@@ -86,6 +88,12 @@ class InstallerApp(QWidget):
         # Removed objectName and height properties to revert to default button style
         self.launch_install_btn.clicked.connect(self.run_installation)
         self.main_layout.addWidget(self.launch_install_btn)
+
+    def _create_tip_label(self):
+        tip_label = QLabel("Tip: Hover over an option to see its description.")
+        tip_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        tip_label.setStyleSheet("font-style: italic; color: #888;") # Optional styling
+        self.main_layout.addWidget(tip_label)
 
     def _apply_stylesheet(self):
         # Styles are now only applied to Tabs and GroupBoxes
@@ -149,6 +157,9 @@ class InstallerApp(QWidget):
                          item_text += " (Laptop)"
                     list_item.setText(item_text)
                     
+                    if 'description' in item_data:
+                        list_item.setToolTip(item_data['description'])
+                    
                     list_item.setFlags(list_item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
                     list_item.setCheckState(Qt.CheckState.Unchecked)
                     list_widget.addItem(list_item)
@@ -169,64 +180,62 @@ class InstallerApp(QWidget):
         # Data remains unchanged
         self.installation_items = [
             {'type': 'header', 'text': '--- Core System ---'},
-            {'type': 'essential', 'text': 'Install Linux Headers', 'func': 'install_linux_headers', 'group': 'System Kernel'},
-            {'type': 'essential', 'text': 'Install systemd-oomd.service', 'func': 'install_systemd_oomd', 'group': 'System Services'},
-            {'type': 'essential', 'text': 'Install ananicy-cpp', 'func': 'install_ananicy_cpp', 'group': 'System Optimization'},
-            {'type': 'essential', 'text': 'Install inotify-tools', 'func': 'install_inotify_tools', 'group': 'System Monitoring'},
-            {'type': 'essential', 'text': 'Install Mission Center', 'func': 'install_mission_center', 'group': 'System Monitoring'},
-            {'type': 'essential_laptop', 'text': 'Install Power Options (TLP)', 'func': 'install_power_options', 'group': 'Power Management'},
+            {'type': 'essential', 'text': 'Install Linux Headers', 'func': 'install_linux_headers', 'group': 'System Kernel', 'description': 'Installs essential Linux kernel headers for building modules and other system components.'},
+            {'type': 'essential', 'text': 'Install systemd-oomd.service', 'func': 'install_systemd_oomd', 'group': 'System Services', 'description': 'Installs and enables systemd-oomd, a userspace OOM killer that can prevent system freezes under heavy memory pressure.'},
+            {'type': 'essential', 'text': 'Install ananicy-cpp', 'func': 'install_ananicy_cpp', 'group': 'System Optimization', 'description': 'Installs ananicy-cpp, a C++ port of ananicy, which automatically adjusts process nice values and I/O priorities for better system responsiveness.'},
+            {'type': 'essential', 'text': 'Install inotify-tools', 'func': 'install_inotify_tools', 'group': 'System Monitoring', 'description': 'Installs inotify-tools, a set of command-line programs for monitoring filesystem events.'},
+            {'type': 'essential', 'text': 'Install Mission Center', 'func': 'install_mission_center', 'group': 'System Monitoring', 'description': 'Installs Mission Center, a modern and fast system monitor for Linux.'},
+            {'type': 'essential_laptop', 'text': 'Install Power Options (TLP)', 'func': 'install_power_options', 'group': 'Power Management', 'description': 'Installs TLP, an advanced power management tool for Linux, optimized for laptops to save battery power.'},
             {'type': 'header', 'text': '--- Package Management ---'},
-            {'type': 'essential', 'text': 'Install paru (AUR Helper)', 'func': 'install_paru', 'group': 'Package Managers'},
-            {'type': 'essential', 'text': 'Install Flatpak', 'func': 'install_flatpak', 'group': 'Package Managers'},
-            {'type': 'essential', 'text': 'Install Git Credential Manager', 'func': 'install_git_credential_manager', 'group': 'Package Managers'},
-            {'type': 'essential', 'text': 'Install FUSE', 'func': 'install_fuse', 'group': 'System Libraries'},
-            {'type': 'essential', 'text': 'Install npm', 'func': 'install_npm', 'group': 'Development Runtimes'},
-            {'type': 'essential', 'text': 'Install pnpm', 'func': 'install_pnpm', 'group': 'Development Runtimes'},
-            {'type': 'essential', 'text': 'Install jq', 'func': 'install_jq', 'group': 'CLI Utilities'},
-            {'type': 'optional', 'text': 'Install Fisher', 'func': 'install_fisher', 'group': 'CLI Utilities'},
-            {'type': 'optional', 'text': 'Install Gemini CLI', 'func': 'install_gemini_cli', 'group': 'CLI Utilities'},
-            {'type': 'header', 'text': '--- Git Configuration ---'},
-            {'type': 'essential', 'text': 'Configure Git Credential Store (secretservice)', 'func': 'configure_git_credential_store', 'group': 'Git Credentials'},
-            {'type': 'header', 'text': '--- Desktop & Theming ---'},
-            {'type': 'essential', 'text': "Install end-4's Hyprland Dots", 'func': 'install_end4_hyprland_dots', 'group': 'Hyprland Core'},
-            {'type': 'special', 'text': 'Load all configurations (GPU, cursor, etc)', 'func': f'bash {self.repo_dir}/load_configs.sh', 'group': 'Hyprland Configuration'},
-            {'type': 'essential', 'text': 'Install and Run nwg-displays', 'func': 'install_nwg_displays', 'group': 'Hyprland Utilities'},
-            {'type': 'essential', 'text': 'Install SDDM Astronaut Theme', 'func': 'install_sddm_theme', 'group': 'Login Manager (SDDM)'},
-            {'type': 'essential', 'text': 'Install Catppuccin Theme for GRUB', 'func': 'select_and_install_catppuccin_grub_theme', 'group': 'Bootloader (GRUB)'},
-            {'type': 'essential', 'text': 'Adjust GRUB menu resolution', 'func': 'adjust_grub_menu', 'group': 'Bootloader (GRUB)'},
-            {'type': 'essential', 'text': 'Enable os-prober for GRUB', 'func': 'enable_os_prober', 'group': 'Bootloader (GRUB)'},
-            {'type': 'essential', 'text': 'Install Catppuccin Fish Theme', 'func': 'install_catppuccin_fish_theme', 'group': 'Shell (Fish)'},
-            {'type': 'essential', 'text': 'Install Ulauncher', 'func': 'install_ulauncher', 'group': 'Application Launcher'},
-            {'type': 'essential', 'text': 'Install Ulauncher Catppuccin Theme', 'func': 'install_ulauncher_catppuccin_theme', 'group': 'Application Launcher'},
-            {'type': 'optional', 'text': 'Copy thai_fonts.css for Vesktop', 'func': 'copy_thai_fonts_css', 'group': 'Application Tweaks'},
+            {'type': 'essential', 'text': 'Install paru (AUR Helper)', 'func': 'install_paru', 'group': 'Package Managers', 'description': 'Installs paru, an AUR helper that simplifies installing and managing packages from the Arch User Repository.'},
+            {'type': 'essential', 'text': 'Install Flatpak', 'func': 'install_flatpak', 'group': 'Package Managers', 'description': 'Installs Flatpak, a universal packaging system for Linux applications, providing sandboxed environments.'},
+            {'type': 'essential', 'text': 'Install FUSE', 'func': 'install_fuse', 'group': 'System Libraries', 'description': 'Installs FUSE (Filesystem in Userspace), allowing non-privileged users to create their own file systems.'},
+            {'type': 'essential', 'text': 'Install npm', 'func': 'install_npm', 'group': 'Development Runtimes', 'description': 'Installs npm (Node Package Manager), a package manager for JavaScript.'},
+            {'type': 'essential', 'text': 'Install pnpm', 'func': 'install_pnpm', 'group': 'Development Runtimes', 'description': 'Installs pnpm, a fast, disk-space efficient package manager for Node.js.'},
+            {'type': 'essential', 'text': 'Install jq', 'func': 'install_jq', 'group': 'CLI Utilities', 'description': 'Installs jq, a lightweight and flexible command-line JSON processor.'},
+            {'type': 'optional', 'text': 'Install Fisher', 'func': 'install_fisher', 'group': 'CLI Utilities', 'description': 'Installs Fisher, a plugin manager for the Fish shell.'},
+            {'type': 'optional', 'text': 'Install Gemini CLI', 'func': 'install_gemini_cli', 'group': 'CLI Utilities', 'description': 'Installs the Google Gemini CLI for interacting with Gemini models.'},
+            {'type': 'essential', 'text': 'Set up Git Credential Management', 'func': 'setup_git_credential_management', 'group': 'Git Credentials', 'description': 'Sets up Git Credential Manager to securely store and manage Git credentials.'},
+                        {'type': 'header', 'text': '--- Desktop & Theming ---'},
+            {'type': 'essential', 'text': "Install end-4's Hyprland Dots", 'func': 'install_end4_hyprland_dots', 'group': 'Hyprland Core', 'description': 'Installs the core Hyprland configuration files and dependencies from end-4.'},
+            {'type': 'special', 'text': 'Load all configurations (GPU, cursor, etc)', 'func': f'bash {self.repo_dir}/load_configs.sh', 'group': 'Hyprland Configuration', 'description': 'Loads and applies various system configurations, including GPU settings, cursor themes, and other dotfiles.'},
+            {'type': 'essential', 'text': 'Install and Run nwg-displays', 'func': 'install_nwg_displays', 'group': 'Hyprland Utilities', 'description': 'Installs and runs nwg-displays, a small utility for managing displays in Wayland compositors like Hyprland.'},
+            {'type': 'essential', 'text': 'Install SDDM Astronaut Theme', 'func': 'install_sddm_theme', 'group': 'Login Manager (SDDM)', 'description': 'Installs the Astronaut theme for SDDM, the Simple Desktop Display Manager.'},
+            {'type': 'essential', 'text': 'Install Catppuccin Theme for GRUB', 'func': 'select_and_install_catppuccin_grub_theme', 'group': 'Bootloader (GRUB)', 'description': "Installs the Catppuccin theme for GRUB, enhancing the bootloader's appearance."},
+            {'type': 'essential', 'text': 'Adjust GRUB menu resolution', 'func': 'adjust_grub_menu', 'group': 'Bootloader (GRUB)', 'description': 'Adjusts the resolution of the GRUB boot menu for better display compatibility.'},
+            {'type': 'essential', 'text': 'Enable os-prober for GRUB', 'func': 'enable_os_prober', 'group': 'Bootloader (GRUB)', 'description': 'Enables os-prober in GRUB to detect and list other operating systems installed on the machine.'},
+            {'type': 'essential', 'text': 'Install Catppuccin Fish Theme', 'func': 'install_catppuccin_fish_theme', 'group': 'Shell (Fish)', 'description': 'Installs the Catppuccin theme for the Fish shell, providing a visually pleasing command-line experience.'},
+            {'type': 'essential', 'text': 'Install Ulauncher', 'func': 'install_ulauncher', 'group': 'Application Launcher', 'description': 'Installs Ulauncher, a fast application launcher for Linux.'},
+            {'type': 'essential', 'text': 'Install Ulauncher Catppuccin Theme', 'func': 'install_ulauncher_catppuccin_theme', 'group': 'Application Launcher', 'description': 'Installs the Catppuccin theme for Ulauncher.'},
+            {'type': 'optional', 'text': 'Copy thai_fonts.css for Vesktop', 'func': 'copy_thai_fonts_css', 'group': 'Application Tweaks', 'description': 'Copies a custom CSS file to enable proper display of Thai fonts in Vesktop.'},
             {'type': 'header', 'text': '--- Applications ---'},
-            {'type': 'optional', 'text': 'Install VS Code Insiders', 'func': 'install_vscode_insiders', 'group': 'Development Tools'},
-            {'type': 'essential', 'text': 'Fix VSCode Insiders permissions', 'func': 'fix_vscode_permissions', 'group': 'Development Tools'},
-            {'type': 'essential', 'text': 'Install Vesktop', 'func': 'install_vesktop', 'group': 'Communication'},
-            {'type': 'essential', 'text': 'Set up Vesktop Activity Status', 'func': 'setup_vesktop_rpc', 'group': 'Communication'},
-            {'type': 'essential', 'text': 'Install Steam', 'func': 'install_steam', 'group': 'Gaming'},
-            {'type': 'essential', 'text': 'Install Pinta', 'func': 'install_pinta', 'group': 'Graphics & Media'},
-            {'type': 'essential', 'text': 'Install Gwenview', 'func': 'install_gwenview', 'group': 'Graphics & Media'},
-            {'type': 'essential', 'text': 'Install YouTube Music', 'func': 'install_youtube_music', 'group': 'Graphics & Media'},
-            {'type': 'optional', 'text': 'Install HandBrake', 'func': 'install_handbrake', 'group': 'Graphics & Media'},
-            {'type': 'optional', 'text': 'Install EasyEffects', 'func': 'install_easyeffects', 'group': 'Audio'},
-            {'type': 'optional', 'text': 'Install Microsoft Edge (Dev)', 'func': 'install_ms_edge', 'group': 'Web Browsers'},
-            {'type': 'optional', 'text': 'Install Zen Browser', 'func': 'install_zen_browser', 'group': 'Web Browsers'},
-            {'type': 'essential', 'text': 'Install Switcheroo', 'func': 'install_switcheroo', 'group': 'General Utilities'},
-            {'type': 'essential', 'text': 'Install BleachBit', 'func': 'install_bleachbit', 'group': 'System Cleanup'},
-            {'type': 'essential', 'text': 'Install QDirStat', 'func': 'install_qdirstat', 'group': 'Disk Usage'},
-            {'type': 'essential', 'text': 'Install Flatseal', 'func': 'install_flatseal', 'group': 'Flatpak Management'},
-            {'type': 'optional', 'text': 'Install rclone', 'func': 'install_rclone', 'group': 'Cloud Storage'},
-            {'type': 'optional', 'text': 'Setup Google Drive with rclone', 'func': 'setup_rclone_gdrive', 'group': 'Cloud Storage'},
-            {'type': 'optional', 'text': 'Install Waydroid', 'func': 'install_waydroid', 'group': 'Android Emulation'},
-            {'type': 'optional', 'text': 'Install Waydroid Helper', 'func': 'install_waydroid_helper', 'group': 'Android Emulation'},
+            {'type': 'optional', 'text': 'Install VS Code Insiders', 'func': 'install_vscode_insiders', 'group': 'Development Tools', 'description': 'Installs VS Code Insiders, the daily updated version of Visual Studio Code with the latest features.'},
+            {'type': 'essential', 'text': 'Fix VSCode Insiders permissions', 'func': 'fix_vscode_permissions', 'group': 'Development Tools', 'description': 'Fixes permissions for VS Code Insiders to ensure proper functionality.'},
+            {'type': 'essential', 'text': 'Install Vesktop', 'func': 'install_vesktop', 'group': 'Communication', 'description': 'Installs Vesktop, a custom Discord client with additional features and optimizations.'},
+            {'type': 'essential', 'text': 'Set up Vesktop Activity Status', 'func': 'setup_vesktop_rpc', 'group': 'Communication', 'description': 'Sets up Rich Presence for Vesktop to display your current activity on Discord.'},
+            {'type': 'essential', 'text': 'Install Steam', 'func': 'install_steam', 'group': 'Gaming', 'description': 'Installs Steam, the popular digital distribution platform for video games.'},
+            {'type': 'essential', 'text': 'Install Pinta', 'func': 'install_pinta', 'group': 'Graphics & Media', 'description': 'Installs Pinta, a free, open-source drawing/editing program.'},
+            {'type': 'essential', 'text': 'Install Gwenview', 'func': 'install_gwenview', 'group': 'Graphics & Media', 'description': 'Installs Gwenview, a fast and easy-to-use image viewer by KDE.'},
+            {'type': 'essential', 'text': 'Install YouTube Music', 'func': 'install_youtube_music', 'group': 'Graphics & Media', 'description': 'Installs YouTube Music as a standalone application.'},
+            {'type': 'optional', 'text': 'Install HandBrake', 'func': 'install_handbrake', 'group': 'Graphics & Media', 'description': 'Installs HandBrake, a free and open-source video transcoder.'},
+            {'type': 'optional', 'text': 'Install EasyEffects', 'func': 'install_easyeffects', 'group': 'Audio', 'description': 'Installs EasyEffects, a PulseAudio/PipeWire application for applying audio effects.'},
+            {'type': 'optional', 'text': 'Install Microsoft Edge (Dev)', 'func': 'install_ms_edge', 'group': 'Web Browsers', 'description': 'Installs the Microsoft Edge (Dev) browser.'},
+            {'type': 'optional', 'text': 'Install Zen Browser', 'func': 'install_zen_browser', 'group': 'Web Browsers', 'description': 'Installs Zen Browser, a privacy-focused web browser.'},
+            {'type': 'essential', 'text': 'Install Switcheroo', 'func': 'install_switcheroo', 'group': 'General Utilities', 'description': 'Installs Switcheroo, a simple application switcher for Wayland.'},
+            {'type': 'essential', 'text': 'Install BleachBit', 'func': 'install_bleachbit', 'group': 'System Cleanup', 'description': 'Installs BleachBit, a system cleaner to free up disk space and maintain privacy.'},
+            {'type': 'essential', 'text': 'Install QDirStat', 'func': 'install_qdirstat', 'group': 'Disk Usage', 'description': 'Installs QDirStat, a graphical disk usage display.'},
+            {'type': 'essential', 'text': 'Install Flatseal', 'func': 'install_flatseal', 'group': 'Flatpak Management', 'description': 'Installs Flatseal, a graphical utility to review and modify permissions for your Flatpak applications.'},
+            {'type': 'optional', 'text': 'Install rclone', 'func': 'install_rclone', 'group': 'Cloud Storage', 'description': 'Installs rclone, a command-line program to manage files on cloud storage.'},
+            {'type': 'optional', 'text': 'Setup Google Drive with rclone', 'func': 'setup_rclone_gdrive', 'group': 'Cloud Storage', 'description': 'Sets up Google Drive integration with rclone for cloud storage synchronization.'},
+            {'type': 'optional', 'text': 'Install Waydroid', 'func': 'install_waydroid', 'group': 'Android Emulation', 'description': 'Installs Waydroid, a container-based approach to boot a full Android system on a Linux device.'},
+            {'type': 'optional', 'text': 'Install Waydroid Helper', 'func': 'install_waydroid_helper', 'group': 'Android Emulation', 'description': 'Installs Waydroid Helper, a utility to simplify Waydroid management.'},
             {'type': 'header', 'text': '--- Hardware & Peripherals ---'},
-            {'type': 'essential', 'text': 'Install v4l2loopback (for Droidcam/OBS)', 'func': 'install_v4l2loopback', 'group': 'Drivers & Modules'},
-            {'type': 'optional', 'text': 'Install Droidcam', 'func': 'install_droidcam', 'group': 'Webcam'},
-            {'type': 'optional', 'text': 'Install MX002 Tablet Driver', 'func': 'install_mx002_driver', 'group': 'Drivers & Modules'},
-            {'type': 'essential', 'text': 'Install CoolerControl', 'func': 'install_coolercontrol', 'group': 'Hardware Control'},
-            {'type': 'optional', 'text': 'Install Linux Wallpaper Engine', 'func': 'install_wallpaper_engine', 'group': 'Wallpaper Engine'},
-            {'type': 'optional', 'text': 'Install LWE GUI (Manual)', 'func': 'install_wallpaper_engine_gui_manual', 'group': 'Wallpaper Engine'},
+            {'type': 'essential', 'text': 'Install v4l2loopback (for Droidcam/OBS)', 'func': 'install_v4l2loopback', 'group': 'Drivers & Modules', 'description': 'Installs v4l2loopback, a kernel module that creates virtual video devices, useful for Droidcam or OBS.'},
+            {'type': 'optional', 'text': 'Install Droidcam', 'func': 'install_droidcam', 'group': 'Webcam', 'description': 'Installs Droidcam, allowing you to use your Android phone as a webcam.'},
+            {'type': 'optional', 'text': 'Install MX002 Tablet Driver', 'func': 'install_mx002_driver', 'group': 'Drivers & Modules', 'description': 'Installs the necessary drivers for MX002 series drawing tablets.'},
+            {'type': 'essential', 'text': 'Install CoolerControl', 'func': 'install_coolercontrol', 'group': 'Hardware Control', 'description': 'Installs CoolerControl, a GUI application for controlling fan speeds and RGB lighting on various liquid coolers.'},
+            {'type': 'optional', 'text': 'Install Linux Wallpaper Engine', 'func': 'install_wallpaper_engine', 'group': 'Wallpaper Engine', 'description': 'Installs Linux Wallpaper Engine, a port of the popular Wallpaper Engine for Linux.'},
+            {'type': 'optional', 'text': 'Install LWE GUI (Manual)', 'func': 'install_wallpaper_engine_gui_manual', 'group': 'Wallpaper Engine', 'description': 'Provides instructions for manually installing the GUI for Linux Wallpaper Engine.'},
         ]
 
     #-------------------------------------------------------

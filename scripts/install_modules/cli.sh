@@ -48,19 +48,22 @@ install_jq() {
 }
 
 #-------------------------------------------------------
-# Git Credential Store Configuration
+# Git Credential Management Setup
 #-------------------------------------------------------
-configure_git_credential_store() {
-    echo "Configuring Git Credential Store to use secretservice..."
-    git config --global credential.credentialStore secretservice
-    _log SUCCESS "Git Credential Store configured successfully."
+setup_git_credential_management() {
+    _log INFO "Setting up Git Credential Management..."
+    echo "Installing git-credential-manager..."
+    paru -S --noconfirm git-credential-manager || { _log ERROR "Failed to install git-credential-manager."; return 1; }
+    
+    echo "Configuring Git credential helper..."
+    git config --global credential.helper manager || { _log ERROR "Failed to configure credential.helper."; return 1; }
+    
+    echo "Configuring Git credential store..."
+    git config --global credential.credentialStore secretservice || { _log ERROR "Failed to configure credential.credentialStore."; return 1; }
+    
+    _log SUCCESS "Git Credential Management setup completed successfully."
 }
 
-#-------------------------------------------------------
-# Git Credential Manager Installation
-#-------------------------------------------------------
-install_git_credential_manager() {
-    echo "Installing Git Credential Manager..."
-    paru -S --noconfirm git-credential-manager
-    _log SUCCESS "Git Credential Manager installation completed successfully."
-}
+
+
+
