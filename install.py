@@ -215,6 +215,8 @@ class InstallerApp(QWidget):
             {'type': 'essential', 'text': 'Install Flatseal', 'func': 'install_flatseal', 'group': 'Flatpak Management'},
             {'type': 'optional', 'text': 'Install rclone', 'func': 'install_rclone', 'group': 'Cloud Storage'},
             {'type': 'optional', 'text': 'Setup Google Drive with rclone', 'func': 'setup_rclone_gdrive', 'group': 'Cloud Storage'},
+            {'type': 'optional', 'text': 'Install Waydroid', 'func': 'install_waydroid', 'group': 'Android Emulation'},
+            {'type': 'optional', 'text': 'Install Waydroid Helper', 'func': 'install_waydroid_helper', 'group': 'Android Emulation'},
             {'type': 'header', 'text': '--- Hardware & Peripherals ---'},
             {'type': 'essential', 'text': 'Install v4l2loopback (for Droidcam/OBS)', 'func': 'install_v4l2loopback', 'group': 'Drivers & Modules'},
             {'type': 'optional', 'text': 'Install Droidcam', 'func': 'install_droidcam', 'group': 'Webcam'},
