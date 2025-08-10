@@ -20,3 +20,16 @@ install_ananicy_cpp() {
     _log SUCCESS "ananicy-cpp installed and enabled."
 }
 
+install_reflector_and_enable_timer() {
+    echo "Installing reflector..."
+    paru -S --noconfirm reflector
+
+    echo "Enabling reflector.timer..."
+    sudo systemctl enable reflector.timer
+
+    echo "Starting reflector.timer..."
+    sudo systemctl start reflector.timer
+
+    echo "Reflector installation and timer setup complete."
+}
+

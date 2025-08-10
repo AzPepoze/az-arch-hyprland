@@ -327,7 +327,26 @@ main() {
         if [ "$type_name" == "gemini" ]; then
             local repo_path="$config_type_dir" # This is dots/gemini
             local system_path="$CONFIGS_DIR_SYSTEM/.$type_name" # This is $HOME/.gemini
-            sync_files "$repo_path" "$system_path" "$type_name" ""
+
+            echo "--- Loading '$type_name' ---"
+            if [ ! -d "$repo_path" ]; then
+                _log WARN "Source directory for '$type_name' not found at '$repo_path'. Skipping."
+                continue
+            fi
+
+            mkdir -p "$system_path"
+
+            # Use rsync to copy all files except instruction.md
+            rsync -av --exclude="instruction.md" "$repo_path/" "$system_path/"
+
+            # Copy instruction.md and rename it to GEMINI.md at destination
+            if [ -f "$repo_path/instruction.md" ]; then
+                cp "$repo_path/instruction.md" "$system_path/GEMINI.md"
+                _log SUCCESS "Copied instruction.md to $system_path/GEMINI.md"
+            else
+                _log WARN "instruction.md not found in $repo_path. Skipping specific copy."
+            fi
+            echo "---------------------------"
             continue # Skip general processing for gemini
         fi
 

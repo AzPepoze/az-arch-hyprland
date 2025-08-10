@@ -63,18 +63,38 @@ main() {
         local type_name
         type_name=$(basename "$config_type_dir") # e.g., "config" or "local"
 
-        # Loop through each application's config within the type
-        for config_app_dir in "$config_type_dir"/*; do
-            if [ -d "$config_app_dir" ]; then
-                local app_name
-                app_name=$(basename "$config_app_dir") # e.g., "hypr" or "kitty"
+        #-------------------------------------------------------
+        # Handle .gemini folder specifically
+        #-------------------------------------------------------
+        if [ "$type_name" == "gemini" ]; then
+            local repo_path="$config_type_dir" # This is dots/gemini
+            local system_path="$CONFIGS_DIR_SYSTEM/.$type_name" # This is $HOME/.gemini
 
-                local system_path="$CONFIGS_DIR_SYSTEM/.$type_name/$app_name"
-                local repo_path="$config_type_dir/$app_name"
-
-                sync_files "$system_path" "$repo_path" "$app_name"
+            echo "--- Saving '$type_name' ---"
+            if [ ! -d "$system_path" ]; then
+                _log WARN "Source directory for '$type_name' not found at '$system_path'. Skipping."
+                continue
             fi
-        done
+
+            mkdir -p "$repo_path"
+
+            # Use rsync to copy all files except GEMINI.md
+            rsync -avc --existing --exclude="GEMINI.md" "$system_path/" "$repo_path/"
+
+            # Copy GEMINI.md and rename it to instruction.md at repo
+            if [ -f "$system_path/GEMINI.md" ]; then
+                cp "$system_path/GEMINI.md" "$repo_path/instruction.md"
+                _log SUCCESS "Copied GEMINI.md to $repo_path/instruction.md"
+            else
+                _log WARN "GEMINI.md not found in $system_path. Skipping specific copy."
+            fi
+            echo "---------------------------"
+            continue # Skip general processing for gemini
+        fi
+
+        #-------------------------------------------------------
+        # General processing for other config types (.config, .local, etc.)
+        #-------------------------------------------------------
     done
 
     echo "============================================================"
