@@ -242,6 +242,7 @@ class InstallerApp(QWidget):
             {'type': 'optional', 'text': 'Setup Google Drive with rclone', 'func': 'setup_rclone_gdrive', 'group': 'Cloud Storage', 'description': 'Sets up Google Drive integration with rclone for cloud storage synchronization.'},
             {'type': 'optional', 'text': 'Install Waydroid', 'func': 'install_waydroid', 'group': 'Android Emulation', 'description': 'Installs Waydroid, a container-based approach to boot a full Android system on a Linux device.'},
             {'type': 'optional', 'text': 'Install Waydroid Helper', 'func': 'install_waydroid_helper', 'group': 'Android Emulation', 'description': 'Installs Waydroid Helper, a utility to simplify Waydroid management.'},
+            {'type': 'essential', 'text': 'Install Virtualization (libvirt, virt-manager, QEMU)', 'func': 'install_virt_packages', 'group': 'Virtualization', 'description': 'Installs essential virtualization tools including libvirt, virt-manager, QEMU, dnsmasq, and dmidecode, and enables the libvirtd service.'},
             {'type': 'header', 'text': '--- Hardware & Peripherals ---'},
             {'type': 'essential', 'text': 'Install v4l2loopback (for Droidcam/OBS)', 'func': 'install_v4l2loopback', 'group': 'Drivers & Modules', 'description': 'Installs v4l2loopback, a kernel module that creates virtual video devices, useful for Droidcam or OBS.'},
             {'type': 'optional', 'text': 'Install Droidcam', 'func': 'install_droidcam', 'group': 'Webcam', 'description': 'Installs Droidcam, allowing you to use your Android phone as a webcam.'},
