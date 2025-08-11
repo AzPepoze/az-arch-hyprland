@@ -48,6 +48,7 @@ launch_messenger() {
 # Background Services
 #-------------------------------------------------------
 launch_app "rclone sync" "bash $HOME/az-arch-hyprland/scripts/rclone/sync.sh &"
+bash $HOME/az-arch-hyprland/scripts/utils/notification_logger.sh &
 
 #-------------------------------------------------------
 # Startup Programs
