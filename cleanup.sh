@@ -34,6 +34,25 @@ cleanup_flatpak() {
     fi
 }
 
+cleanup_journal_logs() {
+    echo
+    echo "============================================================="
+    echo " Cleaning Up Journal Logs"
+    echo "============================================================="
+    echo "Vacuuming journal logs to keep the last 3 days..."
+    sudo journalctl --vacuum-time=3d
+}
+
+cleanup_coredumps() {
+    echo
+    echo "============================================================="
+    echo " Cleaning Up Systemd Coredumps"
+    echo "============================================================="
+    echo "Removing all coredump files..."
+    sudo find /var/lib/systemd/coredump/ -maxdepth 1 -type f -delete
+}
+
+
 #-------------------------------------------------------
 # Main Execution
 #-------------------------------------------------------
@@ -44,6 +63,8 @@ run_cleanup() {
     echo "============================================================="
     cleanup_system_packages
     cleanup_flatpak
+    cleanup_journal_logs
+    cleanup_coredumps
 }
 
 run_cleanup
