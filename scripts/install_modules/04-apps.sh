@@ -17,27 +17,6 @@ setup_vesktop_rpc() {
     _log SUCCESS "Activity Status setup completed successfully."
 }
 
-copy_thai_fonts_css() {
-        local source_file="$repo_dir/settings/thai_fonts.css"
-    local dest_file="$HOME/.var/app/dev.vencord.Vesktop/config/vesktop/settings/quickCss.css"
-    local dest_dir
-
-    dest_dir=$(dirname "$dest_file")
-
-    echo "Copying Thai fonts CSS for Vesktop..."
-
-    if [ ! -f "$source_file" ]; then
-        _log ERROR "Source file not found at $source_file"
-        return 1
-    fi
-
-    echo "Ensuring destination directory exists: $dest_dir"
-    mkdir -p "$dest_dir"
-
-    cp -v "$source_file" "$dest_file"
-    _log SUCCESS "Successfully copied thai_fonts.css to the Vesktop directory."
-}
-
 install_youtube_music() {
     install_paru_package "youtube-music-bin" "YouTube Music"
 }
@@ -124,4 +103,12 @@ install_coolercontrol() {
     echo "Enabling coolercontrold.service..."
     sudo systemctl enable --now coolercontrold.service
     _log SUCCESS "coolercontrold.service enabled."
+}
+
+install_power_options() {
+     install_paru_package "power-options-gtk-git" "Power Options"
+}
+
+install_mission_center() {
+     install_paru_package "mission-center" "Mission Center"
 }

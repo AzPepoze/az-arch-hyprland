@@ -53,7 +53,7 @@ install_jq() {
 setup_git_credential_management() {
     _log INFO "Setting up Git Credential Management..."
     echo "Installing git-credential-manager..."
-    paru -S --noconfirm git-credential-manager || { _log ERROR "Failed to install git-credential-manager."; return 1; }
+    paru -S --needed --noconfirm git-credential-manager || { _log ERROR "Failed to install git-credential-manager."; return 1; }
     
     echo "Configuring Git credential helper..."
     git config --global credential.helper manager || { _log ERROR "Failed to configure credential.helper."; return 1; }
@@ -64,6 +64,36 @@ setup_git_credential_management() {
     _log SUCCESS "Git Credential Management setup completed successfully."
 }
 
+#-------------------------------------------------------
+# System Utilities (CLI)
+#-------------------------------------------------------
 
+install_inotify_tools() {
+     install_pacman_package "inotify-tools" "inotify-tools"
+}
 
+install_rclone() {
+     install_paru_package "rclone" "rclone"
+}
 
+setup_rclone_gdrive() {
+     echo "Starting rclone configuration for Google Drive..."
+     echo "You will be guided through the setup process by rclone."
+     echo "When asked, choose 'n' for a new remote."
+     echo "Name it 'gdrive' (or a name of your choice)."
+     echo "Select the number corresponding to 'drive' (Google Drive)."
+     echo "Leave client_id and client_secret blank."
+     echo "Choose '1' for full access to all files."
+     echo "Leave root_folder_id and service_account_file blank."
+     echo "Choose 'n' for Edit advanced config."
+     echo "Choose 'y' for Use auto config."
+     echo "Follow the browser instructions to authorize rclone."
+     echo "Choose 'y' to confirm the new remote."
+     echo "Finally, choose 'q' to quit the configuration."
+
+     mkdir -p ~/GoogleDrive
+
+     rclone config
+
+     _log SUCCESS "rclone configuration Google Drive finished."
+}

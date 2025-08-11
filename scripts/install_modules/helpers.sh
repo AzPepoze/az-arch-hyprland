@@ -54,7 +54,7 @@ install_paru_package() {
           return 1
      fi
      echo "Installing $friendly_name ($package) using paru..."
-     paru -S --noconfirm "$package"
+     paru -S --needed --noconfirm "$package"
      echo "$friendly_name installation completed successfully."
 }
 
