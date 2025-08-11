@@ -171,7 +171,7 @@ load_configs() {
     local temp_dir
     temp_dir=$(mktemp -d)
     local backup_monitor_config_path="$temp_dir/monitors.conf"
-    local config_script="./load_configs.sh"
+    local config_script="./cli/load_configs.sh"
 
     if [ -f "$monitor_config_path" ]; then
         echo "Backing up '$monitor_config_path'..."
@@ -182,9 +182,9 @@ load_configs() {
 
     if [ -f "$config_script" ]; then
         if [ "$AUTO_MODE" = true ]; then
-            bash ./load_configs.sh --skip-gpu --skip-cursor
+            bash "$config_script" --skip-gpu --skip-cursor
         else
-            bash ./load_configs.sh
+            bash "$config_script"
         fi
     else
         echo "'$config_script' not found. Skipping config load."
@@ -218,7 +218,7 @@ update_gemini_cli
 load_v4l2loopback_module
 update_dots_hyprland
 load_configs
-bash ./cleanup.sh
+bash ./cli/cleanup.sh
 
 echo
 echo "Full system update and cleanup process has finished."

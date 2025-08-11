@@ -29,4 +29,4 @@ install_dependencies() {
 install_dependencies
 
 echo "Running install.py..."
-python install.py
+python scripts/install.py

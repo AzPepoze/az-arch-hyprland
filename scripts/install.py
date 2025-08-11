@@ -27,7 +27,7 @@ from PyQt6.QtCore import Qt
 class InstallerApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.repo_dir = os.path.dirname(os.path.abspath(__file__))
+        self.repo_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.installation_items = []
         self.all_list_widgets = []
         self.grid_columns = 2
@@ -211,7 +211,7 @@ class InstallerApp(QWidget):
                         {'type': 'header', 'text': '--- Desktop & Theming ---'},
             {'type': 'essential', 'text': "Install end-4's Hyprland Dots", 'func': 'install_end4_hyprland_dots', 'group': 'Hyprland Core', 'description': 'Installs the core Hyprland configuration files and dependencies from end-4.'},
             {'type': 'essential', 'text': 'Install xorg-xhost and set root access', 'func': 'install_xorg_xhost_and_xhost_rule', 'group': 'Hyprland Core', 'description': 'Installs xorg-xhost for X server access control and sets a rule to allow root to connect to the X server.'},
-            {'type': 'special', 'text': 'Load all configurations (GPU, cursor, etc)', 'func': f'bash {self.repo_dir}/load_configs.sh', 'group': 'Hyprland Configuration', 'description': 'Loads and applies various system configurations, including GPU settings, cursor themes, and other dotfiles.'},
+            {'type': 'special', 'text': 'Load all configurations (GPU, cursor, etc)', 'func': f'bash {self.repo_dir}/cli/load_configs.sh', 'group': 'Hyprland Configuration', 'description': 'Loads and applies various system configurations, including GPU settings, cursor themes, and other dotfiles.'},
             {'type': 'essential', 'text': 'Install and Run nwg-displays', 'func': 'install_nwg_displays', 'group': 'Hyprland Utilities', 'description': 'Installs and runs nwg-displays, a small utility for managing displays in Wayland compositors like Hyprland.'},
             {'type': 'essential', 'text': 'Install SDDM Astronaut Theme', 'func': 'install_sddm_theme', 'group': 'Login Manager (SDDM)', 'description': 'Installs the Astronaut theme for SDDM, the Simple Desktop Display Manager.'},
             {'type': 'essential', 'text': 'Install Catppuccin Theme for GRUB', 'func': 'select_and_install_catppuccin_grub_theme', 'group': 'Bootloader (GRUB)', 'description': "Installs the Catppuccin theme for GRUB, enhancing the bootloader's appearance."},

@@ -9,13 +9,16 @@ set -e
 
 # Source helper functions
 REPO_DIR_HELPER="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-HELPER_SCRIPT="$REPO_DIR_HELPER/scripts/install_modules/helpers.sh"
+HELPER_SCRIPT="$(dirname "$REPO_DIR_HELPER")/scripts/install_modules/helpers.sh"
 source "$HELPER_SCRIPT"
 
 #-------------------------------------------------------
 # Configuration
 #-------------------------------------------------------
-REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+# Get the directory of the current script (e.g., /home/azpepoze/az-arch-hyprland/cli)
+CURRENT_SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+# Get the parent directory of the current script (e.g., /home/azpepoze/az-arch-hyprland)
+REPO_DIR="$(dirname "$CURRENT_SCRIPT_DIR")"
 CONFIGS_DIR_REPO="$REPO_DIR/dots"
 CONFIGS_DIR_SYSTEM="$HOME"
 
