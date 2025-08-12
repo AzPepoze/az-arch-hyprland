@@ -92,12 +92,28 @@ main() {
                 _log WARN "GEMINI.md not found in $system_path. Skipping specific copy."
             fi
             echo "---------------------------"
-            continue # Skip general processing for gemini
-        fi
+        else
+            #-------------------------------------------------------
+            # General processing for other config types (.config, .local, etc.)
+            #-------------------------------------------------------
+            # Determine the system path for this config type (e.g., ~/.config or ~/.local)
+            local system_config_type_dir="$CONFIGS_DIR_SYSTEM/.$type_name" # e.g., /home/azpepoze/.config or /home/azpepoze/.local
 
-        #-------------------------------------------------------
-        # General processing for other config types (.config, .local, etc.)
-        #-------------------------------------------------------
+            # Loop through each specific config directory within the repo's config type directory
+            for specific_config_repo_dir in "$config_type_dir"/*; do
+                if [ ! -d "$specific_config_repo_dir" ]; then
+                    continue
+                fi
+
+                local specific_config_name
+                specific_config_name=$(basename "$specific_config_repo_dir") # e.g., "bleachbit" or "state"
+
+                local source_path="$system_config_type_dir/$specific_config_name" # e.g., /home/azpepoze/.config/bleachbit
+                local dest_path="$specific_config_repo_dir" # e.g., /home/azpepoze/az-arch-hyprland/dots/config/bleachbit
+
+                sync_files "$source_path" "$dest_path" "$type_name/$specific_config_name"
+            done
+        fi
     done
 
     echo "============================================================"
