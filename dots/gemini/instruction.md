@@ -116,3 +116,4 @@
 - เมื่อแก้ไขไฟล์ที่มีอยู่แล้ว ควรใช้ `replace` เพื่อเพิ่มหรือแก้ไขเนื้อหาเฉพาะส่วน แทนที่จะใช้ `write_file` ซึ่งจะเขียนทับไฟล์เดิมทั้งหมด
 - If replace fails more than 3 times, use write_file instead.
 - When asked to commit and push, do it without asking for confirmation.
+- Command substitution using $(), <(), or >() is not allowed for security reasons when using run_shell_command.
