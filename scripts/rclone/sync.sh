@@ -117,10 +117,10 @@ run_bisync() {
         if grep -q "prior lock file found" "$output_file"; then
             _log WARN "Stale bisync lock file detected. Attempting to remove it..."
             # Extract lock file path from the error message
-            lock_file_path=$(grep "prior lock file found" "$output_file" | sed -n 's/.*prior lock file found: \(.*\)/\1/p' | head -n 1)
+            lock_file_path=$(grep "prior lock file found" "$output_file" | sed -n 's/.*prior lock file found: \(.*\)/\1/p' | head -n 1 | sed 's/\x1b\[[0-9;]*m//g')
             if [ -n "$lock_file_path" ]; then
                 _log INFO "Attempting to delete lock file: $lock_file_path"
-                rclone deletefile "$lock_file_path"
+                rclone delete $lock_file_path
                 local delete_exit_code=$?
                 if [ $delete_exit_code -eq 0 ]; then
                     _log SUCCESS "Lock file removed. Retrying bisync..."

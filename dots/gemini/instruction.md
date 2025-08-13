@@ -118,3 +118,4 @@
 - When asked to commit and push, do it without asking for confirmation.
 - Command substitution using $(), <(), or >() is not allowed for security reasons when using run_shell_command.
 - When working with libraries, ensure knowledge of the current version. If not, search the internet or visit the wiki/web page for usage. Do not change the library if not needed.
+- When the user asks to commit and push, do not make any further code changes because they have already verified the code works.
