@@ -33,6 +33,17 @@ install_vscode_insiders() {
     install_paru_package "code-insiders-bin" "VS Code Insiders"
 }
 
+fix_vscode_permissions() {
+    echo "Attempting to fix permissions for VS Code Insiders..."
+    local vscode_path="/usr/share/code-insiders"
+    if [ -d "$vscode_path" ]; then
+        sudo chown -R $(whoami):$(whoami) "$vscode_path"
+        _log SUCCESS "Fixed permissions for VS Code Insiders at $vscode_path"
+    else
+        _log INFO "VS Code Insiders installation path $vscode_path not found. Skipping permission fix."
+    fi
+}
+
 install_easyeffects() {
     install_flatpak_package "com.github.wwmm.easyeffects" "EasyEffects"
 

@@ -12,6 +12,8 @@ fi
 # Update Functions
 #-------------------------------------------------------
 
+source "$repo_dir/scripts/install_modules/helpers.sh"
+
 update_repo() {
     echo
     echo "Updating az-arch-hyprland Repository..."
@@ -46,6 +48,41 @@ update_system_packages() {
     fi
 }
 
+update_vscode_insiders() {
+    echo
+    echo "============================================================="
+    echo " Updating VS Code Insiders (code-insiders-bin)"
+    echo "============================================================="
+    if ! command -v paru &> /dev/null; then
+        echo "paru command not found. Skipping VS Code Insiders update."
+        echo "Please install paru to enable this feature."
+        return
+    fi
+
+    if ! paru -Qq code-insiders-bin &> /dev/null; then
+        echo "VS Code Insiders (code-insiders-bin) is not installed. Skipping update."
+        return
+    fi
+
+    local current_version
+    current_version=$(paru -Qq code-insiders-bin) # Get installed version
+
+    local latest_version
+    latest_version=$(paru -Si code-insiders-bin 2>/dev/null | grep "Version" | awk '{print $3}') # Get latest version from AUR
+
+    if [ -z "$current_version" ]; then
+        echo "Could not determine current VS Code Insiders version. Attempting update."
+        paru -S --noconfirm code-insiders-bin
+        _log SUCCESS "VS Code Insiders updated."
+    elif [ "$current_version" != "$latest_version" ]; then
+        echo "VS Code Insiders (current: $current_version) is not latest (latest: $latest_version). Updating..."
+        paru -S --noconfirm code-insiders-bin
+        _log SUCCESS "VS Code Insiders updated to $latest_version."
+    else
+        echo "VS Code Insiders is already up-to-date (version: $current_version)."
+    fi
+}
+
 update_flatpak() {
     echo
     echo "============================================================="
@@ -63,10 +100,36 @@ update_gemini_cli() {
     echo "============================================================="
     echo " Update Gemini CLI"
     echo "============================================================="
-    if command -v gemini &> /dev/null; then
-        sudo npm install -g @google/gemini-cli
-    else
+
+    if ! command -v pnpm &> /dev/null; then
+        echo "pnpm command not found. Skipping Gemini CLI update."
+        echo "Please install pnpm to enable this feature."
+        return
+    fi
+
+    if ! command -v gemini &> /dev/null; then
         echo "Gemini CLI not found. Skipping update."
+        return
+    fi
+
+    local current_version
+    current_version=$(gemini --version 2>/dev/null | grep -oP '(?<=@google/gemini-cli/)[0-9]+\.[0-9]+\.[0-9]+')
+
+    local latest_version
+    latest_version=$(npm view @google/gemini-cli version 2>/dev/null)
+
+    if [ -z "$current_version" ]; then
+        echo "Could not determine current Gemini CLI version. Attempting reinstallation."
+        pnpm uninstall -g @google/gemini-cli || true # Uninstall even if not found
+        pnpm install -g @google/gemini-cli
+        _log SUCCESS "Gemini CLI reinstalled."
+    elif [ "$current_version" != "$latest_version" ]; then
+        echo "Gemini CLI (current: $current_version) is not latest (latest: $latest_version). Updating..."
+        pnpm uninstall -g @google/gemini-cli
+        pnpm install -g @google/gemini-cli
+        _log SUCCESS "Gemini CLI updated to $latest_version."
+    else
+        echo "Gemini CLI is already up-to-date (version: $current_version)."
     fi
 }
 
@@ -213,6 +276,7 @@ echo "Starting full system update process..."
 echo
 
 update_system_packages
+update_vscode_insiders
 update_flatpak
 update_gemini_cli
 load_v4l2loopback_module

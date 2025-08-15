@@ -52,6 +52,19 @@ cleanup_coredumps() {
     sudo find /var/lib/systemd/coredump/ -maxdepth 1 -type f -delete
 }
 
+cleanup_pnpm_store() {
+    echo
+    echo "============================================================="
+    echo " Cleaning Up pnpm Store"
+    echo "============================================================="
+    if command -v pnpm &> /dev/null; then
+        echo "Pruning pnpm store..."
+        pnpm store prune
+    else
+        echo "pnpm command not found. Skipping pnpm store cleanup."
+    fi
+}
+
 
 #-------------------------------------------------------
 # Main Execution
@@ -65,6 +78,7 @@ run_cleanup() {
     cleanup_flatpak
     cleanup_journal_logs
     cleanup_coredumps
+    cleanup_pnpm_store
 }
 
 run_cleanup
