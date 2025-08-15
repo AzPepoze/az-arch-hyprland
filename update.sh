@@ -12,11 +12,12 @@ fi
 # Update Functions
 #-------------------------------------------------------
 
+repo_dir=$(dirname "$(realpath "$0")")
 source "$repo_dir/scripts/install_modules/helpers.sh"
 
 update_repo() {
     echo
-    echo "Updating az-arch-hyprland Repository..."
+    _log INFO "Updating az-arch-hyprland Repository..."
     echo
 
     git fetch origin
@@ -25,13 +26,13 @@ update_repo() {
     REMOTE_COMMIT=$(git rev-parse origin/main)
 
     if [ "$LOCAL_COMMIT" != "$REMOTE_COMMIT" ]; then
-        echo "Local repository is behind origin/main. Updating..."
+        _log INFO "Local repository is behind origin/main. Updating..."
         git reset --hard origin/main
-        echo "Repository updated. Please re-run this script manually if it does not restart automatically."
-        echo "Re-running the update script..."
+        _log SUCCESS "Repository updated. Please re-run this script manually if it does not restart automatically."
+        _log INFO "Re-running the update script..."
         exec "$0" "$@"
     else
-        echo "Repository is already up-to-date."
+        _log INFO "Repository is already up-to-date."
     fi
 }
 
@@ -43,8 +44,8 @@ update_system_packages() {
     if command -v paru &> /dev/null; then
         paru -Syu --noconfirm
     else
-        echo "paru command not found. Skipping system package update."
-        echo "Please install paru to enable this feature."
+        _log WARN "paru command not found. Skipping system package update."
+        _log INFO "Please install paru to enable this feature."
     fi
 }
 
@@ -54,13 +55,13 @@ update_vscode_insiders() {
     echo " Updating VS Code Insiders (code-insiders-bin)"
     echo "============================================================="
     if ! command -v paru &> /dev/null; then
-        echo "paru command not found. Skipping VS Code Insiders update."
-        echo "Please install paru to enable this feature."
+        _log WARN "paru command not found. Skipping VS Code Insiders update."
+        _log INFO "Please install paru to enable this feature."
         return
     fi
 
     if ! paru -Qq code-insiders-bin &> /dev/null; then
-        echo "VS Code Insiders (code-insiders-bin) is not installed. Skipping update."
+        _log INFO "VS Code Insiders (code-insiders-bin) is not installed. Skipping update."
         return
     fi
 
@@ -71,15 +72,15 @@ update_vscode_insiders() {
     latest_version=$(paru -Si code-insiders-bin 2>/dev/null | grep "Version" | awk '{print $3}') # Get latest version from AUR
 
     if [ -z "$current_version" ]; then
-        echo "Could not determine current VS Code Insiders version. Attempting update."
+        _log INFO "Could not determine current VS Code Insiders version. Attempting update."
         paru -S --noconfirm code-insiders-bin
         _log SUCCESS "VS Code Insiders updated."
     elif [ "$current_version" != "$latest_version" ]; then
-        echo "VS Code Insiders (current: $current_version) is not latest (latest: $latest_version). Updating..."
+        _log INFO "VS Code Insiders (current: $current_version) is not latest (latest: $latest_version). Updating..."
         paru -S --noconfirm code-insiders-bin
         _log SUCCESS "VS Code Insiders updated to $latest_version."
     else
-        echo "VS Code Insiders is already up-to-date (version: $current_version)."
+        _log INFO "VS Code Insiders is already up-to-date (version: $current_version)."
     fi
 }
 
@@ -91,7 +92,7 @@ update_flatpak() {
     if command -v flatpak &> /dev/null; then
         flatpak update -y
     else
-        echo "flatpak command not found. Skipping Flatpak update."
+        _log WARN "flatpak command not found. Skipping Flatpak update."
     fi
 }
 
@@ -102,34 +103,34 @@ update_gemini_cli() {
     echo "============================================================="
 
     if ! command -v pnpm &> /dev/null; then
-        echo "pnpm command not found. Skipping Gemini CLI update."
-        echo "Please install pnpm to enable this feature."
+        _log WARN "pnpm command not found. Skipping Gemini CLI update."
+        _log INFO "Please install pnpm to enable this feature."
         return
     fi
 
     if ! command -v gemini &> /dev/null; then
-        echo "Gemini CLI not found. Skipping update."
+        _log INFO "Gemini CLI not found. Skipping update."
         return
     fi
 
     local current_version
-    current_version=$(gemini --version 2>/dev/null | grep -oP '(?<=@google/gemini-cli/)[0-9]+\.[0-9]+\.[0-9]+')
+    current_version=$(gemini -v 2>/dev/null)
 
     local latest_version
     latest_version=$(npm view @google/gemini-cli version 2>/dev/null)
 
     if [ -z "$current_version" ]; then
-        echo "Could not determine current Gemini CLI version. Attempting reinstallation."
+        _log INFO "Could not determine current Gemini CLI version. Attempting reinstallation."
         pnpm uninstall -g @google/gemini-cli || true # Uninstall even if not found
         pnpm install -g @google/gemini-cli
         _log SUCCESS "Gemini CLI reinstalled."
     elif [ "$current_version" != "$latest_version" ]; then
-        echo "Gemini CLI (current: $current_version) is not latest (latest: $latest_version). Updating..."
+        _log INFO "Gemini CLI (current: $current_version) is not latest (latest: $latest_version). Updating..."
         pnpm uninstall -g @google/gemini-cli
         pnpm install -g @google/gemini-cli
         _log SUCCESS "Gemini CLI updated to $latest_version."
     else
-        echo "Gemini CLI is already up-to-date (version: $current_version)."
+        _log INFO "Gemini CLI is already up-to-date (version: $current_version)."
     fi
 }
 
@@ -139,7 +140,7 @@ load_v4l2loopback_module() {
     echo " Loading v4l2loopback module"
     echo "============================================================="
     sudo modprobe v4l2loopback
-    echo "v4l2loopback module loaded."
+    _log SUCCESS "v4l2loopback module loaded."
 }
 
 update_dots_hyprland() {
@@ -148,38 +149,38 @@ update_dots_hyprland() {
     echo " Updating dots-hyprland"
     echo "============================================================="
     if [ ! -d "$HOME/dots-hyprland" ]; then
-        echo "dots-hyprland directory not found. Skipping dots-hyprland update."
-        echo "Please install dots-hyprland first if you wish to update it."
+        _log WARN "dots-hyprland directory not found. Skipping dots-hyprland update."
+        _log INFO "Please install dots-hyprland first if you wish to update it."
         return
     fi
 
     cd "$HOME/dots-hyprland" && git pull
-    echo "dots-hyprland repository updated."
+    _log SUCCESS "dots-hyprland repository updated."
 
     local update_choice
     if [ "$AUTO_MODE" = true ]; then
-        echo "Auto mode enabled. Selecting 'Update (unstable)'."
+        _log INFO "Auto mode enabled. Selecting 'Update (unstable)'."
         update_choice=2
     else
-        echo "Please choose the update type:"
-        echo "  1) Install (fully update)"
-        echo "  2) Update (unstable)"
+        _log INFO "Please choose the update type:"
+        _log INFO "  1) Install (fully update)"
+        _log INFO "  2) Update (unstable)"
         read -p "Enter your choice [1-2]: " update_choice
     fi
 
     case $update_choice in
-        1)
-            echo "Running full install..."
+        1) 
+            _log INFO "Running full install..."
             ./install.sh -c -f
-            echo "dots-hyprland updated successfully."
-            ;;
+            _log SUCCESS "dots-hyprland updated successfully."
+            ;; 
         2)
-            echo "Running unstable update (automated with expect)..."
+            _log INFO "Running unstable update (automated with expect)..."
 
             if ! command -v expect &> /dev/null; then
-                echo "Error: 'expect' command not found."
-                echo "This automation requires 'expect'. Please install it first."
-                echo "On Arch Linux, you can run: sudo pacman -Syu expect"
+                _log ERROR "Error: 'expect' command not found."
+                _log INFO "This automation requires 'expect'. Please install it first."
+                _log INFO "On Arch Linux, you can run: sudo pacman -Syu expect"
                 cd - >/dev/null
                 return 1
             fi
@@ -214,11 +215,11 @@ expect {
 }
 END_OF_EXPECT
 
-            echo "dots-hyprland update process finished."
-            ;;
+            _log SUCCESS "dots-hyprland update process finished."
+            ;; 
         *)
-            echo "Invalid choice. Skipping dots-hyprland script execution."
-            ;;
+            _log WARN "Invalid choice. Skipping dots-hyprland script execution."
+            ;; 
     esac
     cd - >/dev/null
 }
@@ -237,10 +238,10 @@ load_configs() {
     local config_script="./cli/load_configs.sh"
 
     if [ -f "$monitor_config_path" ]; then
-        echo "Backing up '$monitor_config_path'..."
+        _log INFO "Backing up '$monitor_config_path'..."
         cp "$monitor_config_path" "$backup_monitor_config_path"
     else
-        echo "Warning: '$monitor_config_path' not found. Nothing to back up."
+        _log WARN "Warning: '$monitor_config_path' not found. Nothing to back up."
     fi
 
     if [ -f "$config_script" ]; then
@@ -250,17 +251,17 @@ load_configs() {
             bash "$config_script"
         fi
     else
-        echo "'$config_script' not found. Skipping config load."
+        _log WARN "'$config_script' not found. Skipping config load."
     fi
 
     if [ -f "$backup_monitor_config_path" ]; then
-        echo "Restoring '$monitor_config_path'..."
+        _log INFO "Restoring '$monitor_config_path'..."
         mkdir -p "$(dirname "$monitor_config_path")"
         cp "$backup_monitor_config_path" "$monitor_config_path"
     fi
 
     rm -rf "$temp_dir"
-    echo "Configuration load process finished."
+    _log SUCCESS "Configuration load process finished."
 }
 
 #-------------------------------------------------------
@@ -272,7 +273,7 @@ fastfetch
 update_repo
 
 echo
-echo "Starting full system update process..."
+_log INFO "Starting full system update process..."
 echo
 
 update_system_packages
@@ -284,5 +285,4 @@ update_dots_hyprland
 load_configs
 bash ./cli/cleanup.sh
 
-echo
-echo "Full system update and cleanup process has finished."
+_log SUCCESS "Full system update and cleanup process has finished."
