@@ -23,7 +23,12 @@
         "palette": {
             "type": "scheme-rainbow"
         },
-        "transparency": true,
+        "transparency": {
+            "automatic": true,
+            "backgroundTransparency": 0.11,
+            "contentTransparency": 0.57,
+            "enable": true
+        },
         "wallpaperTheming": {
             "enableAppsAndShell": true,
             "enableQtApps": true,
@@ -48,6 +53,7 @@
         "clockX": -500,
         "clockY": -500,
         "fixedClockPosition": false,
+        "mantra": "",
         "parallax": {
             "enableSidebar": false,
             "enableWorkspace": false,
@@ -57,6 +63,14 @@
         "wallpaperPath": "/home/azpepoze/GoogleDrive/Needed Programs/1353704.jpeg"
     },
     "bar": {
+        "autoHide": {
+            "enable": false,
+            "pushWindows": false,
+            "showWhenPressingSuper": {
+                "delay": 140,
+                "enable": true
+            }
+        },
         "borderless": false,
         "bottom": false,
         "cornerStyle": 0,
@@ -72,14 +86,15 @@
             "monochromeIcons": true
         },
         "utilButtons": {
-            "showColorPicker": true,
+            "showColorPicker": false,
             "showDarkModeToggle": false,
-            "showKeyboardToggle": true,
-            "showMicToggle": true,
+            "showKeyboardToggle": false,
+            "showMicToggle": false,
             "showPerformanceProfileToggle": false,
-            "showScreenSnip": true
+            "showScreenSnip": false
         },
         "verbose": true,
+        "vertical": false,
         "weather": {
             "city": "",
             "enable": false,
@@ -101,6 +116,10 @@
         "low": 20,
         "suspend": 3
     },
+    "conflictKiller": {
+        "autoKillNotificationDaemons": false,
+        "autoKillTrays": false
+    },
     "dock": {
         "enable": true,
         "height": 60,
@@ -118,6 +137,14 @@
     "hacks": {
         "arbitraryRaceConditionDelay": 20
     },
+    "interactions": {
+        "scrolling": {
+            "fasterTouchpadScroll": false,
+            "mouseScrollDeltaThreshold": 120,
+            "mouseScrollFactor": 120,
+            "touchpadScrollFactor": 450
+        }
+    },
     "language": {
         "translator": {
             "engine": "auto",
@@ -132,6 +159,9 @@
             "from": "19:00",
             "to": "06:30"
         }
+    },
+    "media": {
+        "filterDuplicatePlayers": true
     },
     "networking": {
         "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
@@ -181,14 +211,22 @@
                 "username": "[unset]"
             }
         },
-        "keepRightSidebarLoaded": true,
+        "keepRightSidebarLoaded": false,
         "translator": {
             "delay": 300
         }
     },
     "time": {
         "dateFormat": "dddd, dd/MM",
-        "format": "hh:mm"
+        "format": "hh:mm",
+        "pomodoro": {
+            "alertSound": "",
+            "breakTime": 300,
+            "cyclesBeforeLongBreak": 4,
+            "focus": 1500,
+            "longBreak": 900
+        },
+        "shortDateFormat": "dd/MM"
     },
     "windows": {
         "centerTitle": true,
