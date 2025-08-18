@@ -4,9 +4,24 @@
 # Script Configuration
 #-------------------------------------------------------
 AUTO_MODE=false
-if [[ "$1" == "--auto" ]]; then
-    AUTO_MODE=true
-fi
+SKIP_CODE_INSIDERS=false
+
+for arg in "$@"; do
+    case $arg in
+        --auto)
+            AUTO_MODE=true
+            shift
+            ;;
+        --skip-code-insiders)
+            SKIP_CODE_INSIDERS=true
+            shift
+            ;;
+        *)
+            # Unknown option
+            shift
+            ;;
+    esac
+done
 
 #-------------------------------------------------------
 # Update Functions
@@ -14,6 +29,7 @@ fi
 
 repo_dir=$(dirname "$(realpath "$0")")
 source "$repo_dir/scripts/install_modules/helpers.sh"
+source "$repo_dir/scripts/install_modules/04-apps.sh"
 
 update_repo() {
     echo
@@ -50,6 +66,11 @@ update_system_packages() {
 }
 
 update_vscode_insiders() {
+    if [ "$SKIP_CODE_INSIDERS" = true ]; then
+        _log INFO "Skipping VS Code Insiders update as requested."
+        return
+    fi
+
     echo
     echo "============================================================="
     echo " Updating VS Code Insiders (code-insiders-bin)"
@@ -278,6 +299,7 @@ echo
 
 update_system_packages
 update_vscode_insiders
+fix_vscode_permissions
 update_flatpak
 update_gemini_cli
 load_v4l2loopback_module
