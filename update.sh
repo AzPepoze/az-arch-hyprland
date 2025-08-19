@@ -30,6 +30,7 @@ done
 repo_dir=$(dirname "$(realpath "$0")")
 source "$repo_dir/scripts/install_modules/helpers.sh"
 source "$repo_dir/scripts/install_modules/04-apps.sh"
+source "$repo_dir/scripts/utils/list_gpu.sh" # Source list_gpu.sh for GPU validation
 
 update_repo() {
     echo
@@ -255,6 +256,8 @@ load_configs() {
     temp_dir=$(mktemp -d)
     local backup_monitor_config_path="$temp_dir/monitors.conf"
     local config_script="./cli/load_configs.sh"
+    local gpu_conf_file="$HOME/.config/hypr/gpu.conf"
+    local skip_gpu_flag=""
 
     if [ -f "$monitor_config_path" ]; then
         _log INFO "Backing up '$monitor_config_path'..."
@@ -263,9 +266,19 @@ load_configs() {
         _log WARN "Warning: '$monitor_config_path' not found. Nothing to back up."
     fi
 
+    # Validate existing GPU configuration before loading
+    local check_gpu_script="$repo_dir/scripts/utils/check_valid_gpu.sh"
+    _log INFO "Validating existing GPU configuration..."
+    if bash "$check_gpu_script"; then
+        _log SUCCESS "Existing GPU configuration is valid. Skipping GPU selection."
+        skip_gpu_flag="--skip-gpu"
+    else
+        _log WARN "Existing GPU configuration is invalid. GPU selection will be required during config load."
+    fi
+
     if [ -f "$config_script" ]; then
         if [ "$AUTO_MODE" = true ]; then
-            bash "$config_script" --skip-gpu --skip-cursor
+            bash "$config_script" "$skip_gpu_flag" --skip-cursor
         else
             bash "$config_script"
         fi

@@ -13,6 +13,15 @@ fi
 source "$HELPER_SCRIPT"
 
 #-------------------------------------------------------
+# GPU Configuration Check
+#-------------------------------------------------------
+if ! bash "$PROJECT_ROOT/scripts/utils/check_valid_gpu.sh"; then
+    if command -v notify-send &> /dev/null; then
+        notify-send "GPU Configuration Error" "A configured GPU device is not detected. Please check your configuration." -i dialog-error
+    fi
+fi
+
+#-------------------------------------------------------
 # Helper Functions
 #-------------------------------------------------------
 launch_app() {
