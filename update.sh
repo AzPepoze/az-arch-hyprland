@@ -8,18 +8,18 @@ SKIP_CODE_INSIDERS=false
 
 for arg in "$@"; do
     case $arg in
-        --auto)
+        --auto) 
             AUTO_MODE=true
             shift
-            ;;
-        --skip-code-insiders)
+            ;; 
+        --skip-code-insiders) 
             SKIP_CODE_INSIDERS=true
             shift
-            ;;
-        *)
+            ;; 
+        *) 
             # Unknown option
             shift
-            ;;
+            ;; 
     esac
 done
 
@@ -81,27 +81,18 @@ update_vscode_insiders() {
         return
     fi
 
-    if ! paru -Qq code-insiders-bin &> /dev/null; then
-        _log INFO "VS Code Insiders (code-insiders-bin) is not installed. Skipping update."
+    if ! command -v code-insiders &> /dev/null; then
+        _log INFO "VS Code Insiders (code-insiders) command not found. Skipping update."
         return
     fi
 
-    local current_version
-    current_version=$(paru -Qq code-insiders-bin) # Get installed version
-
-    local latest_version
-    latest_version=$(paru -Si code-insiders-bin 2>/dev/null | grep "Version" | awk '{print $3}') # Get latest version from AUR
-
-    if [ -z "$current_version" ]; then
-        _log INFO "Could not determine current VS Code Insiders version. Attempting update."
+    # Check if code-insiders-bin is outdated using paru
+    if paru -Qqu code-insiders-bin &> /dev/null; then
+        _log INFO "VS Code Insiders (code-insiders-bin) is outdated. Updating..."
         paru -S --noconfirm code-insiders-bin
         _log SUCCESS "VS Code Insiders updated."
-    elif [ "$current_version" != "$latest_version" ]; then
-        _log INFO "VS Code Insiders (current: $current_version) is not latest (latest: $latest_version). Updating..."
-        paru -S --noconfirm code-insiders-bin
-        _log SUCCESS "VS Code Insiders updated to $latest_version."
     else
-        _log INFO "VS Code Insiders is already up-to-date (version: $current_version)."
+        _log INFO "VS Code Insiders is already up-to-date."
     fi
 }
 
@@ -138,16 +129,23 @@ update_gemini_cli() {
     current_version=$(gemini -v 2>/dev/null)
 
     local latest_version
-    latest_version=$(npm view @google/gemini-cli version 2>/dev/null)
+    latest_version=$(npm show @google/gemini-cli version 2>/dev/null)
 
     if [ -z "$current_version" ]; then
-        _log INFO "Could not determine current Gemini CLI version. Attempting reinstallation."
-        pnpm uninstall -g @google/gemini-cli || true # Uninstall even if not found
+        _log INFO "Gemini CLI not found. Attempting installation."
         pnpm install -g @google/gemini-cli
-        _log SUCCESS "Gemini CLI reinstalled."
-    elif [ "$current_version" != "$latest_version" ]; then
+        _log SUCCESS "Gemini CLI installed."
+        return
+    fi
+
+    if [ -z "$latest_version" ]; then
+        _log WARN "Could not determine latest Gemini CLI version. Skipping update."
+        return
+    fi
+
+    # Compare versions numerically
+    if [[ "$current_version" < "$latest_version" ]]; then
         _log INFO "Gemini CLI (current: $current_version) is not latest (latest: $latest_version). Updating..."
-        pnpm uninstall -g @google/gemini-cli
         pnpm install -g @google/gemini-cli
         _log SUCCESS "Gemini CLI updated to $latest_version."
     else
@@ -212,17 +210,17 @@ set timeout 120
 spawn bash update.sh
 
 expect {
-    timeout {
+    timeout { 
         puts "\nError: Timeout waiting for the initial (y/N) prompt."
         exit 1
     }
-    -re "\[(y/N)\]:" {
+    -re "[(y/N)]:" {
         send "y\r"
     }
 }
 
 expect {
-    -re "Enter your choice \\(1-7\\):" {
+    -re "Enter your choice \(1-7\):" {
         send "1\r"
         exp_continue
     }
@@ -238,7 +236,7 @@ END_OF_EXPECT
 
             _log SUCCESS "dots-hyprland update process finished."
             ;; 
-        *)
+        *) 
             _log WARN "Invalid choice. Skipping dots-hyprland script execution."
             ;; 
     esac
@@ -295,6 +293,7 @@ update_repo
 
 echo
 _log INFO "Starting full system update process..."
+
 echo
 
 update_system_packages
