@@ -211,17 +211,17 @@ set timeout 120
 spawn bash update.sh
 
 expect {
-    timeout { 
+    timeout {
         puts "\nError: Timeout waiting for the initial (y/N) prompt."
         exit 1
     }
-    -re "[(y/N)]:" {
+    -re "\[(y/N)\]:" {
         send "y\r"
     }
 }
 
 expect {
-    -re "Enter your choice \(1-7\):" {
+    -re "Enter your choice \\(1-7\\):" {
         send "1\r"
         exp_continue
     }
