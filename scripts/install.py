@@ -21,9 +21,9 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 
 
-#-------------------------------------------------------
+# -------------------------------------------------------
 # Main Application Window
-#-------------------------------------------------------
+# -------------------------------------------------------
 class InstallerApp(QWidget):
     def __init__(self):
         super().__init__()
@@ -48,9 +48,9 @@ class InstallerApp(QWidget):
 
         self.populate_tabs_and_groups()
 
-    #-------------------------------------------------------
+    # -------------------------------------------------------
     # UI Creation Methods
-    #-------------------------------------------------------
+    # -------------------------------------------------------
     def _setup_main_layout(self):
         self.main_layout = QVBoxLayout(self)
         self.main_layout.setContentsMargins(10, 10, 10, 10)
@@ -96,31 +96,121 @@ class InstallerApp(QWidget):
         self.main_layout.addWidget(tip_label)
 
     def _apply_stylesheet(self):
-        # Styles are now only applied to Tabs and GroupBoxes
+        # Catppuccin Macchiato Theme
         stylesheet = """
-            /* --- GroupBox Container --- */
+            QWidget {
+                background-color: #1E1E2E; /* Base */
+                color: #CDD6F4; /* Text */
+            }
+
+            /* --- QTabWidget --- */
+            QTabWidget::pane {
+                border: 1px solid #313244; /* Surface0 */
+                background-color: #181825; /* Mantle */
+                border-radius: 8px;
+            }
+
+            QTabBar::tab {
+                background: #313244; /* Surface0 */
+                color: #CDD6F4; /* Text */
+                padding: 8px 15px;
+                border-top-left-radius: 5px;
+                border-top-right-radius: 5px;
+                margin-right: 2px;
+            }
+
+            QTabBar::tab:selected {
+                background: #181825; /* Mantle */
+                border-top: 2px solid #89B4FA; /* Blue */
+                font-weight: bold;
+            }
+
+            QTabBar::tab:hover {
+                background: #45475A; /* Surface1 */
+            }
+
+            /* --- QGroupBox Container --- */
             QGroupBox {
-                border: 1px solid #45475a; /* Surface1 */
+                border: 1px solid #45475A; /* Surface1 */
                 border-radius: 8px;
                 margin-top: 10px;
                 padding: 10px;
+                background-color: #181825; /* Mantle */
             }
             QGroupBox::title {
                 subcontrol-origin: margin;
                 subcontrol-position: top center;
                 padding: 0 10px;
                 font-weight: bold;
+                color: #89B4FA; /* Blue */
             }
 
+            /* --- QListWidget --- */
             QListWidget {
-                background-color: transparent; /* Make list background same as groupbox */
+                background-color: transparent; /* Inherit from GroupBox */
+                border: none;
+            }
+
+            QListWidget::item {
+                padding: 5px;
+            }
+
+            QListWidget::item:hover {
+                background-color: #313244; /* Surface0 */
+                border-radius: 4px;
+            }
+
+            QListWidget::item:selected {
+                background-color: #585B70; /* Surface2 */
+                color: #CDD6F4; /* Text */
+                border-radius: 4px;
+            }
+
+            QListWidget::indicator {
+                width: 16px;
+                height: 16px;
+                border-radius: 4px;
+            }
+
+            QListWidget::indicator:unchecked {
+                background-color: #45475A; /* Surface1 */
+                border: 1px solid #6C7086; /* Overlay0 */
+            }
+
+            QListWidget::indicator:checked {
+                background-color: #A6E3A1; /* Green */
+                border: 1px solid #A6E3A1; /* Green */
+            }
+
+            /* --- QPushButton --- */
+            QPushButton {
+                background-color: #89B4FA; /* Blue */
+                color: #1E1E2E; /* Base */
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                font-weight: bold;
+            }
+
+            QPushButton:hover {
+                background-color: #74C7EC; /* Sapphire */
+            }
+
+            QPushButton:pressed {
+                background-color: #6C7086; /* Overlay0 */
+            }
+
+            /* --- QLabel (for tip) --- */
+            QLabel {
+                color: #A6ADC8; /* Subtext0 */
+                font-style: italic;
             }
         """
         self.setStyleSheet(stylesheet)
 
-    #-------------------------------------------------------
+    # -------------------------------------------------------
     # Data & UI Population
-    #-------------------------------------------------------
+    # -------------------------------------------------------
     def populate_tabs_and_groups(self):
         tabs_data = defaultdict(lambda: defaultdict(list))
         current_tab_name = "Unknown"
@@ -162,34 +252,39 @@ class InstallerApp(QWidget):
                 for item_data in items_in_group:
                     list_item = QListWidgetItem()
                     list_item.setData(Qt.ItemDataRole.UserRole, item_data)
-                    
+
                     item_text = item_data['text']
                     if item_data["type"] == "essential_laptop":
-                         item_text += " (Laptop)"
+                        item_text += " (Laptop)"
                     list_item.setText(item_text)
-                    
+
                     if 'description' in item_data:
                         list_item.setToolTip(item_data['description'])
-                    
+
                     list_item.setFlags(list_item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
                     list_item.setCheckState(Qt.CheckState.Unchecked)
                     list_widget.addItem(list_item)
-                
+
                 group_box_layout.addWidget(list_widget)
-                
+
                 tab_layout.addWidget(group_box, current_row, current_col)
 
                 current_col += 1
                 if current_col >= self.grid_columns:
                     current_col = 0
                     current_row += 1
-            
+
             tab_layout.setRowStretch(current_row + 1, 1)
             self.tab_widget.addTab(tab_content_widget, tab_name)
 
     def populate_install_items(self):
         # Data remains unchanged
         self.installation_items = [
+            {'type': 'header', 'text': '--- Package Management ---'},
+            {'type': 'essential', 'text': 'Install paru (AUR Helper)', 'func': 'install_paru', 'group': 'Package Managers', 'description': 'Installs paru, an AUR helper that simplifies installing and managing packages from the Arch User Repository.'},
+            {'type': 'essential', 'text': 'Install Flatpak', 'func': 'install_flatpak', 'group': 'Package Managers', 'description': 'Installs Flatpak, a universal packaging system for Linux applications, providing sandboxed environments.'},
+            {'type': 'essential', 'text': 'Install npm', 'func': 'install_npm', 'group': 'Development Runtimes', 'description': 'Installs npm (Node Package Manager), a package manager for JavaScript.'},
+            {'type': 'essential', 'text': 'Install pnpm', 'func': 'install_pnpm', 'group': 'Development Runtimes', 'description': 'Installs pnpm, a fast, disk-space efficient package manager for Node.js.'},
             {'type': 'header', 'text': '--- Core System ---'},
             {'type': 'essential', 'text': 'Install Linux Headers', 'func': 'install_linux_headers', 'group': 'System Kernel', 'description': 'Installs essential Linux kernel headers for building modules and other system components.'},
             {'type': 'essential', 'text': 'Install systemd-oomd.service', 'func': 'install_systemd_oomd', 'group': 'System Services', 'description': 'Installs and enables systemd-oomd, a userspace OOM killer that can prevent system freezes under heavy memory pressure.'},
@@ -197,26 +292,18 @@ class InstallerApp(QWidget):
             {'type': 'essential', 'text': 'Install inotify-tools', 'func': 'install_inotify_tools', 'group': 'System Monitoring', 'description': 'Installs inotify-tools, a set of command-line programs for monitoring filesystem events.'},
             {'type': 'essential', 'text': 'Install Mission Center', 'func': 'install_mission_center', 'group': 'System Monitoring', 'description': 'Installs Mission Center, a modern and fast system monitor for Linux.'},
             {'type': 'essential_laptop', 'text': 'Install Power Options (TLP)', 'func': 'install_power_options', 'group': 'Power Management', 'description': 'Installs TLP, an advanced power management tool for Linux, optimized for laptops to save battery power.'},
-            {'type': 'header', 'text': '--- Package Management ---'},
-            {'type': 'essential', 'text': 'Install paru (AUR Helper)', 'func': 'install_paru', 'group': 'Package Managers', 'description': 'Installs paru, an AUR helper that simplifies installing and managing packages from the Arch User Repository.'},
             {'type': 'essential', 'text': 'Install Reflector and Enable Timer', 'func': 'install_reflector_and_enable_timer', 'group': 'System Optimization', 'description': 'Installs Reflector, a script to find the fastest Arch Linux mirror servers, and enables its systemd timer for automatic updates.'},
-            {'type': 'essential', 'text': 'Install Flatpak', 'func': 'install_flatpak', 'group': 'Package Managers', 'description': 'Installs Flatpak, a universal packaging system for Linux applications, providing sandboxed environments.'},
             {'type': 'essential', 'text': 'Install FUSE', 'func': 'install_fuse', 'group': 'System Libraries', 'description': 'Installs FUSE (Filesystem in Userspace), allowing non-privileged users to create their own file systems.'},
-            {'type': 'essential', 'text': 'Install npm', 'func': 'install_npm', 'group': 'Development Runtimes', 'description': 'Installs npm (Node Package Manager), a package manager for JavaScript.'},
-            {'type': 'essential', 'text': 'Install pnpm', 'func': 'install_pnpm', 'group': 'Development Runtimes', 'description': 'Installs pnpm, a fast, disk-space efficient package manager for Node.js.'},
-            {'type': 'essential', 'text': 'Install jq', 'func': 'install_jq', 'group': 'CLI Utilities', 'description': 'Installs jq, a lightweight and flexible command-line JSON processor.'},
-            {'type': 'optional', 'text': 'Install Fisher', 'func': 'install_fisher', 'group': 'CLI Utilities', 'description': 'Installs Fisher, a plugin manager for the Fish shell.'},
-            {'type': 'optional', 'text': 'Install Gemini CLI', 'func': 'install_gemini_cli', 'group': 'CLI Utilities', 'description': 'Installs the Google Gemini CLI for interacting with Gemini models.'},
-            {'type': 'essential', 'text': 'Set up Git Credential Management', 'func': 'setup_git_credential_management', 'group': 'Git Credentials', 'description': 'Sets up Git Credential Manager to securely store and manage Git credentials.'},
-                        {'type': 'header', 'text': '--- Desktop & Theming ---'},
+            {'type': 'header', 'text': '--- Desktop & Theming ---'},
             {'type': 'essential', 'text': "Install end-4's Hyprland Dots", 'func': 'install_end4_hyprland_dots', 'group': 'Hyprland Core', 'description': 'Installs the core Hyprland configuration files and dependencies from end-4.'},
             {'type': 'essential', 'text': 'Install xorg-xhost and set root access', 'func': 'install_xorg_xhost_and_xhost_rule', 'group': 'Hyprland Core', 'description': 'Installs xorg-xhost for X server access control and sets a rule to allow root to connect to the X server.'},
-            {'type': 'special', 'text': 'Load all configurations (GPU, cursor, etc)', 'func': f'bash {self.repo_dir}/cli/load_configs.sh', 'group': 'Hyprland Configuration', 'description': 'Loads and applies various system configurations, including GPU settings, cursor themes, and other dotfiles.'},
+            {'type': 'essential', 'text': 'Load all configurations (GPU, cursor, etc)', 'func': f'bash {self.repo_dir}/cli/load_configs.sh', 'group': 'Hyprland Configuration', 'description': 'Loads and applies various system configurations, including GPU settings, cursor themes, and other dotfiles.'},
             {'type': 'essential', 'text': 'Install and Run nwg-displays', 'func': 'install_nwg_displays', 'group': 'Hyprland Utilities', 'description': 'Installs and runs nwg-displays, a small utility for managing displays in Wayland compositors like Hyprland.'},
             {'type': 'essential', 'text': 'Install SDDM Astronaut Theme', 'func': 'install_sddm_theme', 'group': 'Login Manager (SDDM)', 'description': 'Installs the Astronaut theme for SDDM, the Simple Desktop Display Manager.'},
             {'type': 'essential', 'text': 'Install Catppuccin Theme for GRUB', 'func': 'select_and_install_catppuccin_grub_theme', 'group': 'Bootloader (GRUB)', 'description': "Installs the Catppuccin theme for GRUB, enhancing the bootloader's appearance."},
             {'type': 'essential', 'text': 'Adjust GRUB menu resolution', 'func': 'adjust_grub_menu', 'group': 'Bootloader (GRUB)', 'description': 'Adjusts the resolution of the GRUB boot menu for better display compatibility.'},
             {'type': 'essential', 'text': 'Enable os-prober for GRUB', 'func': 'enable_os_prober', 'group': 'Bootloader (GRUB)', 'description': 'Enables os-prober in GRUB to detect and list other operating systems installed on the machine.'},
+            {'type': 'essential', 'text': 'Install Fish Shell', 'func': 'install_fish', 'group': 'Shell (Fish)', 'description': 'Installs the Fish shell, a smart and user-friendly command line shell.'},
             {'type': 'essential', 'text': 'Install Catppuccin Fish Theme', 'func': 'install_catppuccin_fish_theme', 'group': 'Shell (Fish)', 'description': 'Installs the Catppuccin theme for the Fish shell, providing a visually pleasing command-line experience.'},
             {'type': 'essential', 'text': 'Install Ulauncher', 'func': 'install_ulauncher', 'group': 'Application Launcher', 'description': 'Installs Ulauncher, a fast application launcher for Linux.'},
             {'type': 'essential', 'text': 'Install Ulauncher Catppuccin Theme', 'func': 'install_ulauncher_catppuccin_theme', 'group': 'Application Launcher', 'description': 'Installs the Catppuccin theme for Ulauncher.'},
@@ -245,18 +332,22 @@ class InstallerApp(QWidget):
             {'type': 'optional', 'text': 'Install Waydroid Helper', 'func': 'install_waydroid_helper', 'group': 'Android Emulation', 'description': 'Installs Waydroid Helper, a utility to simplify Waydroid management.'},
             {'type': 'optional', 'text': 'Install Waydroid Extra Script', 'func': 'install_waydroid_extra_script', 'group': 'Android Emulation', 'description': 'Installs the Waydroid Extra Script for enhanced Waydroid management.'},
             {'type': 'essential', 'text': 'Install Virtualization (libvirt, virt-manager, QEMU)', 'func': 'install_virt_packages', 'group': 'Virtualization', 'description': 'Installs essential virtualization tools including libvirt, virt-manager, QEMU, dnsmasq, and dmidecode, and enables the libvirtd service.'},
+            {'type': 'essential', 'text': 'Install jq', 'func': 'install_jq', 'group': 'CLI Utilities', 'description': 'Installs jq, a lightweight and flexible command-line JSON processor.'},
+            {'type': 'optional', 'text': 'Install Fisher', 'func': 'install_fisher', 'group': 'CLI Utilities', 'description': 'Installs Fisher, a plugin manager for the Fish shell.'},
+            {'type': 'optional', 'text': 'Install Gemini CLI', 'func': 'install_gemini_cli', 'group': 'CLI Utilities', 'description': 'Installs the Google Gemini CLI for interacting with Gemini models.'},
+            {'type': 'essential', 'text': 'Set up Git Credential Management', 'func': 'setup_git_credential_management', 'group': 'Git Credentials', 'description': 'Sets up Git Credential Manager to securely store and manage Git credentials.'}, 
             {'type': 'header', 'text': '--- Hardware & Peripherals ---'},
             {'type': 'essential', 'text': 'Install v4l2loopback (for Droidcam/OBS)', 'func': 'install_v4l2loopback', 'group': 'Drivers & Modules', 'description': 'Installs v4l2loopback, a kernel module that creates virtual video devices, useful for Droidcam or OBS.'},
             {'type': 'optional', 'text': 'Install Droidcam', 'func': 'install_droidcam', 'group': 'Webcam', 'description': 'Installs Droidcam, allowing you to use your Android phone as a webcam.'},
             {'type': 'optional', 'text': 'Install MX002 Tablet Driver', 'func': 'install_mx002_driver', 'group': 'Drivers & Modules', 'description': 'Installs the necessary drivers for MX002 series drawing tablets.'},
             {'type': 'essential', 'text': 'Install CoolerControl', 'func': 'install_coolercontrol', 'group': 'Hardware Control', 'description': 'Installs CoolerControl, a GUI application for controlling fan speeds and RGB lighting on various liquid coolers.'},
             {'type': 'optional', 'text': 'Install Linux Wallpaper Engine', 'func': 'install_wallpaper_engine', 'group': 'Wallpaper Engine', 'description': 'Installs Linux Wallpaper Engine, a port of the popular Wallpaper Engine for Linux.'},
-            {'type': 'optional', 'text': 'Install LWE GUI (Manual)', 'func': 'install_wallpaper_engine_gui_manual', 'group': 'Wallpaper Engine', 'description': 'Provides instructions for manually installing the GUI for Linux Wallpaper Engine.'},
+            {'type': 'optional', 'text': 'Install Linux Wallpaper Engine GUI (Manual)', 'func': 'install_wallpaper_engine_gui_manual', 'group': 'Wallpaper Engine', 'description': 'Provides instructions for manually installing the GUI for Linux Wallpaper Engine.'},
         ]
 
-    #-------------------------------------------------------
+    # -------------------------------------------------------
     # Core Logic & Event Handlers
-    #-------------------------------------------------------
+    # -------------------------------------------------------
     def run_installation(self):
         commands_to_run = self._get_selected_commands()
         if not commands_to_run:
@@ -284,23 +375,86 @@ class InstallerApp(QWidget):
                     if item_data:
                         commands.append(item_data["func"])
         return commands
-    
+
     def _generate_install_script(self, commands):
         modules_dir = os.path.join(self.repo_dir, "scripts", "install_modules")
-        script_lines = ["#!/bin/bash", "set -e", f"export repo_dir=\"{self.repo_dir}\"\n"]
-        script_lines.append("trap 'echo; read -p \"--- Script finished. Press Enter to close terminal. --- \"' EXIT\n")
+
+        # The new run_command function for the bash script
+        run_command_func = """
+run_command() {
+    local command_to_run="$1"
+    
+    echo -e "\\n\\e[1;34m--- Running: ${command_to_run} ---\\e[0m"
+    
+    while true; do
+        # Execute the command and capture output
+        eval "${command_to_run}"
+        local exit_code=$?
+
+        if [ $exit_code -eq 0 ]; then
+            # Success
+            echo -e "\\n\\e[1;32m--- Finished: ${command_to_run} ---\\e[0m"
+            return 0
+        else
+            # Failure
+            echo -e "\\n\\e[1;31m--- ERROR: Command \\"${command_to_run}\\" failed with exit code $exit_code. ---\\e[0m"
+            read -p "      [R]etry, [I]gnore, or [A]bort? " choice
+            case "$choice" in
+                [rR])
+                    echo -e "\n\e[1;33m--- Retrying... ---\e[0m"
+                    continue
+                    ;; 
+                [iI])
+                    echo -e "\n\e[1;33m--- Ignoring and continuing... ---\e[0m"
+                    return 0 # Pretend it succeeded to continue the script
+                    ;; 
+                [aA])
+                    echo -e "\n\e[1;31m--- Aborting installation. ---\e[0m"
+                    exit 1
+                    ;; 
+                *)
+                    echo -e "\n\e[1;33m--- Invalid option. Retrying by default. ---\e[0m"
+                    continue
+                    ;; 
+            esac
+        fi
+    done
+}
+"""
+        # Initial script setup. Note the removal of "set -e".
+        script_lines = ["#!/bin/bash", f"export repo_dir=\"{self.repo_dir}\"\n"]
+        script_lines.append("trap 'echo; read -p \"--- Script finished. Press Enter to close terminal. ---\"' EXIT\n")
+        script_lines.append(run_command_func)
+
+        # Define core dependencies that must be installed first.
+        core_deps = ["install_paru", "install_flatpak", "install_pnpm"]
+
+        # Create a new list for sorted commands
+        sorted_commands = []
+
+        # Add core dependencies first if they are selected
+        for dep in core_deps:
+            if dep in commands:
+                sorted_commands.append(dep)
+                commands.remove(dep)
+
+        # Add the rest of the commands
+        sorted_commands.extend(commands)
+
         for filename in sorted(os.listdir(modules_dir)):
             if filename.endswith(".sh"):
                 script_lines.append(f"source {os.path.join(modules_dir, filename)}")
-        for command in commands:
-            script_lines.append(f"echo -e '\n\e[1;34m--- Running: {command} ---\e[0m'")
-            script_lines.append(f"{command}")
-            script_lines.append(f"echo -e '\n\e[1;32m--- Finished: {command} ---\\e[0m'")
+
+        for command in sorted_commands:
+            # Wrap each command in the run_command function
+            # Quote the command to handle spaces correctly.
+            script_lines.append(f"run_command '{command}'")
+
         return "\n".join(script_lines)
 
-    #-------------------------------------------------------
+    # -------------------------------------------------------
     # Selection Methods
-    #-------------------------------------------------------
+    # -------------------------------------------------------
     def select_essential(self):
         self._set_all_items_checked(False)
         for list_widget in self.all_list_widgets:
@@ -327,9 +481,9 @@ class InstallerApp(QWidget):
                 if item.flags() & Qt.ItemFlag.ItemIsUserCheckable:
                     item.setCheckState(check_state)
 
-#-------------------------------------------------------
+# -------------------------------------------------------
 # Application Entry Point
-#-------------------------------------------------------
+# -------------------------------------------------------
 def main():
     try:
         from PyQt6.QtWidgets import QApplication
