@@ -66,7 +66,7 @@ launch_app "Linux Wallpaper Engine GUI" "sleep 1 && linux-wallpaperengine-gui --
 
 launch_messenger
 
-launch_app "Vesktop" "hyprctl dispatch exec \"[workspace 1 silent] flatpak run dev.vencord.Vesktop\"" 2
+launch_app "Discord" "hyprctl dispatch exec \"[workspace 1 silent] discord\"" 2
 launch_app "Edge App" "hyprctl dispatch exec '[tile;] microsoft-edge-dev --app=chrome-extension://ophjlpahpchlmihnnnihgmmeilfjmjjc/index.html'"
 #launch_app "Wineboot (Delayed)" "hyprctl dispatch exec \"[workspace 4 silent] sh -c 'sleep 10 && wineboot'\""
 

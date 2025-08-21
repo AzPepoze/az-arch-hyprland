@@ -15,6 +15,7 @@ CURRENT_SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && p
 # Get the parent directory of the current script (e.g., /home/azpepoze/az-arch-hyprland)
 REPO_DIR="$(dirname "$CURRENT_SCRIPT_DIR")"
 CONFIGS_DIR_REPO="$REPO_DIR/dots"
+CUSTOM_CONFIGS_DIR_REPO="$REPO_DIR/dots-custom"
 CONFIGS_DIR_SYSTEM="$HOME"
 
 # Source helper functions
@@ -275,6 +276,82 @@ patch_quickshell_background() {
 }
 
 #-------------------------------------------------------
+# Load Configurations from a Source Directory
+#-------------------------------------------------------
+load_configs_from_source() {
+    local source_dir=$1
+    local label_suffix=$2 # e.g., " (custom)"
+
+    if [ ! -d "$source_dir" ]; then
+        # Don't log if it's the custom dir and it doesn't exist, as this is an expected scenario.
+        if [[ ! "$label_suffix" == *"custom"* ]]; then
+             _log WARN "Configuration source directory not found at '$source_dir'. Skipping."
+        fi
+        return
+    fi
+
+    echo "============================================================"
+    echo "Loading configurations from: $source_dir"
+    echo "============================================================"
+
+    # Loop through each type of config (.config, .local, etc.)
+    for config_type_dir in "$source_dir"/*; do
+        if [ ! -d "$config_type_dir" ]; then
+            continue
+        fi
+
+        local type_name
+        type_name=$(basename "$config_type_dir") # e.g., "config" or "local"
+
+        #-------------------------------------------------------
+        # Handle .gemini folder specifically
+        #-------------------------------------------------------
+        if [ "$type_name" == "gemini" ]; then
+            local repo_path="$config_type_dir"
+            local system_path="$CONFIGS_DIR_SYSTEM/.$type_name"
+
+            echo "--- Loading '$type_name'$label_suffix ---"
+            if [ ! -d "$repo_path" ]; then
+                _log WARN "Source directory for '$type_name' not found at '$repo_path'. Skipping."
+                continue
+            fi
+
+            mkdir -p "$system_path"
+            rsync -av --exclude="instruction.md" "$repo_path/" "$system_path/"
+
+            if [ -f "$repo_path/instruction.md" ]; then
+                cp "$repo_path/instruction.md" "$system_path/GEMINI.md"
+                _log SUCCESS "Copied instruction.md${label_suffix} to $system_path/GEMINI.md"
+            else
+                _log WARN "instruction.md not found in $repo_path. Skipping specific copy."
+            fi
+            echo "---------------------------"
+            continue
+        fi
+
+        #-------------------------------------------------------
+        # General processing for other config types
+        #-------------------------------------------------------
+        for config_app_dir in "$config_type_dir"/*; do
+            if [ -d "$config_app_dir" ]; then
+                local app_name
+                app_name=$(basename "$config_app_dir")
+
+                local repo_path="$config_app_dir"
+                local system_path="$CONFIGS_DIR_SYSTEM/.$type_name/$app_name"
+                local exclude_arg=""
+
+                if [[ "$app_name" == "quickshell" && "$type_name" == "local" ]]; then
+                    exclude_arg="user/generated/colors.json"
+                fi
+
+                sync_files "$repo_path" "$system_path" "$app_name$label_suffix" "$exclude_arg"
+            fi
+        done
+    done
+}
+
+#-------------------------------------------------------
 # Main Logic
 #-------------------------------------------------------
 main() {
@@ -312,77 +389,10 @@ main() {
          _log INFO "Skipping cursor configuration due to --skip-cursor flag."
     fi
 
-    if [ ! -d "$CONFIGS_DIR_REPO" ]; then
-        _log ERROR "Repository configs directory not found at '$CONFIGS_DIR_REPO'."
-        exit 1
-    fi
+    # Load base and custom configurations
+    load_configs_from_source "$CONFIGS_DIR_REPO" ""
+    load_configs_from_source "$CUSTOM_CONFIGS_DIR_REPO" " (custom)"
 
-    echo "============================================================"
-    echo "Loading configurations from Repo to System."
-    echo "Repo Dir:   $CONFIGS_DIR_REPO"
-    echo "System Dir: $CONFIGS_DIR_SYSTEM"
-    echo "============================================================"
-
-    # Loop through each type of config (.config, .local, etc.)
-    for config_type_dir in "$CONFIGS_DIR_REPO"/*; do
-        if [ ! -d "$config_type_dir" ]; then
-            continue
-        fi
-
-        local type_name
-        type_name=$(basename "$config_type_dir") # e.g., "config" or "local"
-
-        #-------------------------------------------------------
-        # Handle .gemini folder specifically
-        #-------------------------------------------------------
-        if [ "$type_name" == "gemini" ]; then
-            local repo_path="$config_type_dir" # This is dots/gemini
-            local system_path="$CONFIGS_DIR_SYSTEM/.$type_name" # This is $HOME/.gemini
-
-            echo "--- Loading '$type_name' ---"
-            if [ ! -d "$repo_path" ]; then
-                _log WARN "Source directory for '$type_name' not found at '$repo_path'. Skipping."
-                continue
-            fi
-
-            mkdir -p "$system_path"
-
-            # Use rsync to copy all files except instruction.md
-            rsync -av --exclude="instruction.md" "$repo_path/" "$system_path/"
-
-            # Copy instruction.md and rename it to GEMINI.md at destination
-            if [ -f "$repo_path/instruction.md" ]; then
-                cp "$repo_path/instruction.md" "$system_path/GEMINI.md"
-                _log SUCCESS "Copied instruction.md to $system_path/GEMINI.md"
-            else
-                _log WARN "instruction.md not found in $repo_path. Skipping specific copy."
-            fi
-            echo "---------------------------"
-            continue # Skip general processing for gemini
-        fi
-
-        #-------------------------------------------------------
-        # General processing for other config types (.config, .local, etc.)
-        #-------------------------------------------------------
-        # Loop through each application's config within the type
-        for config_app_dir in "$config_type_dir"/*; do
-            if [ -d "$config_app_dir" ]; then
-                local app_name
-                app_name=$(basename "$config_app_dir") # e.g., "hypr" or "kitty"
-
-                local repo_path="$config_app_dir"
-                local system_path="$CONFIGS_DIR_SYSTEM/.$type_name/$app_name"
-
-                local exclude_arg=""
-                # Specifically handle quickshell colors.json to be merged, not overwritten.
-                if [[ "$app_name" == "quickshell" && "$type_name" == "local" ]]; then
-                    exclude_arg="user/generated/colors.json"
-                fi
-
-                sync_files "$repo_path" "$system_path" "$app_name" "$exclude_arg"
-            fi
-        done
-    done
 
     # Update device-specific config files
     if [ -n "$selected_gpu_device" ]; then
