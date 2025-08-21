@@ -123,3 +123,7 @@ install_power_options() {
 install_mission_center() {
      install_paru_package "mission-center" "Mission Center"
 }
+
+install_pavucontrol() {
+    install_paru_package "pavucontrol" "Pavucontrol"
+}
