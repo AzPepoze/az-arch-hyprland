@@ -4,18 +4,16 @@
 # Group: Applications
 #-------------------------------------------------------
 
-install_vesktop() {
-    install_flatpak_package "dev.vencord.Vesktop" "Vesktop"
+install_discord() {
+    install_paru_package "discord" "Discord"
 }
 
-setup_vesktop_rpc() {
-    echo "Setting up Vencord/Vesktop Activity Status (for Flatpak)..."
-    mkdir -p ~/.config/user-tmpfiles.d
-
-    echo 'L %t/discord-ipc-0 - - - - .flatpak/dev.vencord.Vesktop/xdg-run/discord-ipc-0' >~/.config/user-tmpfiles.d/discord-rpc.conf
-    systemctl --user enable --now systemd-tmpfiles-setup.service
-    _log SUCCESS "Activity Status setup completed successfully."
+install_vencord() {
+    echo "Installing Vencord (Discord Mod)..."
+    sh -c "$(curl -sS https://raw.githubusercontent.com/Vendicated/VencordInstaller/main/install.sh)"
+    _log SUCCESS "Vencord installation script executed."
 }
+
 
 install_youtube_music() {
     install_paru_package "youtube-music-bin" "YouTube Music"
