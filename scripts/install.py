@@ -295,6 +295,8 @@ class InstallerApp(QWidget):
             {'type': 'essential_laptop', 'text': 'Install Power Options (TLP)', 'func': 'install_power_options', 'group': 'Power Management', 'description': 'Installs TLP, an advanced power management tool for Linux, optimized for laptops to save battery power.'},
             {'type': 'essential', 'text': 'Install Reflector and Enable Timer', 'func': 'install_reflector_and_enable_timer', 'group': 'System Optimization', 'description': 'Installs Reflector, a script to find the fastest Arch Linux mirror servers, and enables its systemd timer for automatic updates.'},
             {'type': 'essential', 'text': 'Install FUSE', 'func': 'install_fuse', 'group': 'System Libraries', 'description': 'Installs FUSE (Filesystem in Userspace), allowing non-privileged users to create their own file systems.'},
+            {'type': 'essential', 'text': 'Install Fish Shell', 'func': 'install_fish', 'group': 'Shell (Fish)', 'description': 'Installs the Fish shell, a smart and user-friendly command line shell.'},
+            
             {'type': 'header', 'text': '--- Desktop & Theming ---'},
             {'type': 'essential', 'text': "Install end-4's Hyprland Dots", 'func': 'install_end4_hyprland_dots', 'group': 'Hyprland Core', 'description': 'Installs the core Hyprland configuration files and dependencies from end-4.'},
             {'type': 'essential', 'text': 'Install xorg-xhost and set root access', 'func': 'install_xorg_xhost_and_xhost_rule', 'group': 'Hyprland Core', 'description': 'Installs xorg-xhost for X server access control and sets a rule to allow root to connect to the X server.'},
@@ -304,8 +306,9 @@ class InstallerApp(QWidget):
             {'type': 'essential', 'text': 'Install Catppuccin Theme for GRUB', 'func': 'select_and_install_catppuccin_grub_theme', 'group': 'Bootloader (GRUB)', 'description': "Installs the Catppuccin theme for GRUB, enhancing the bootloader's appearance."},
             {'type': 'essential', 'text': 'Adjust GRUB menu resolution', 'func': 'adjust_grub_menu', 'group': 'Bootloader (GRUB)', 'description': 'Adjusts the resolution of the GRUB boot menu for better display compatibility.'},
             {'type': 'essential', 'text': 'Enable os-prober for GRUB', 'func': 'enable_os_prober', 'group': 'Bootloader (GRUB)', 'description': 'Enables os-prober in GRUB to detect and list other operating systems installed on the machine.'},
-            {'type': 'essential', 'text': 'Install Fish Shell', 'func': 'install_fish', 'group': 'Shell (Fish)', 'description': 'Installs the Fish shell, a smart and user-friendly command line shell.'},
             {'type': 'essential', 'text': 'Install Catppuccin Fish Theme', 'func': 'install_catppuccin_fish_theme', 'group': 'Shell (Fish)', 'description': 'Installs the Catppuccin theme for the Fish shell, providing a visually pleasing command-line experience.'},
+            
+            {'type': 'header', 'text': '--- Applications ---'},
             {'type': 'essential', 'text': 'Install Ulauncher', 'func': 'install_ulauncher', 'group': 'Application Launcher', 'description': 'Installs Ulauncher, a fast application launcher for Linux.'},
             {'type': 'essential', 'text': 'Install Ulauncher Catppuccin Theme', 'func': 'install_ulauncher_catppuccin_theme', 'group': 'Application Launcher', 'description': 'Installs the Catppuccin theme for Ulauncher.'},
             {'type': 'optional', 'text': 'Install VS Code Insiders', 'func': 'install_vscode_insiders', 'group': 'Development Tools', 'description': 'Installs VS Code Insiders, the daily updated version of Visual Studio Code with the latest features.'},
@@ -366,15 +369,20 @@ class InstallerApp(QWidget):
             QMessageBox.critical(self, "Error", f"Failed to launch installer script: {e}")
 
     def _get_selected_commands(self):
-        commands = []
+        selected_funcs = set()
         for list_widget in self.all_list_widgets:
             for i in range(list_widget.count()):
                 item = list_widget.item(i)
                 if item.checkState() == Qt.CheckState.Checked:
                     item_data = item.data(Qt.ItemDataRole.UserRole)
-                    if item_data:
-                        commands.append(item_data["func"])
-        return commands
+                    if item_data and "func" in item_data:
+                        selected_funcs.add(item_data["func"])
+
+        ordered_commands = []
+        for item_data in self.installation_items:
+            if "func" in item_data and item_data["func"] in selected_funcs:
+                ordered_commands.append(item_data["func"])
+        return ordered_commands
 
     def _generate_install_script(self, commands):
         modules_dir = os.path.join(self.repo_dir, "scripts", "install_modules")
@@ -426,26 +434,13 @@ run_command() {
         script_lines.append("trap 'echo; read -p \"--- Script finished. Press Enter to close terminal. ---\"' EXIT\n")
         script_lines.append(run_command_func)
 
-        # Define core dependencies that must be installed first.
-        core_deps = ["install_paru", "install_flatpak", "install_pnpm"]
-
-        # Create a new list for sorted commands
-        sorted_commands = []
-
-        # Add core dependencies first if they are selected
-        for dep in core_deps:
-            if dep in commands:
-                sorted_commands.append(dep)
-                commands.remove(dep)
-
-        # Add the rest of the commands
-        sorted_commands.extend(commands)
+        # No sorting needed, commands are already ordered by _get_selected_commands
 
         for filename in sorted(os.listdir(modules_dir)):
             if filename.endswith(".sh"):
                 script_lines.append(f"source {os.path.join(modules_dir, filename)}")
 
-        for command in sorted_commands:
+        for command in commands:
             # Wrap each command in the run_command function
             # Quote the command to handle spaces correctly.
             script_lines.append(f"run_command '{command}'")

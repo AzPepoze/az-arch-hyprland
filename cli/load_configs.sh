@@ -199,7 +199,7 @@ main() {
     local skip_cursor=false
 
     # Parse command-line arguments
-    for arg in "$@"_ do
+    for arg in "$@"; do
         case $arg in
             --skip-gpu)
             skip_gpu=true
