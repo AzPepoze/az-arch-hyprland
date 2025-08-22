@@ -282,6 +282,7 @@ class InstallerApp(QWidget):
         self.installation_items = [
             {'type': 'header', 'text': '--- Package Management ---'},
             {'type': 'essential', 'text': 'Install paru (AUR Helper)', 'func': 'install_paru', 'group': 'Package Managers', 'description': 'Installs paru, an AUR helper that simplifies installing and managing packages from the Arch User Repository.'},
+            {'type': 'essential', 'text': 'Install Chaotic AUR', 'func': f'bash {self.repo_dir}/cli/install_chaotic_aur.sh', 'group': 'Package Managers', 'description': 'Installs the Chaotic-AUR repository, providing a large collection of pre-built AUR packages.'},
             {'type': 'essential', 'text': 'Install Flatpak', 'func': 'install_flatpak', 'group': 'Package Managers', 'description': 'Installs Flatpak, a universal packaging system for Linux applications, providing sandboxed environments.'},
             {'type': 'essential', 'text': 'Install npm', 'func': 'install_npm', 'group': 'Development Runtimes', 'description': 'Installs npm (Node Package Manager), a package manager for JavaScript.'},
             {'type': 'essential', 'text': 'Install pnpm', 'func': 'install_pnpm', 'group': 'Development Runtimes', 'description': 'Installs pnpm, a fast, disk-space efficient package manager for Node.js.'},
