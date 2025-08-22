@@ -33,15 +33,6 @@ else
     }
 fi
 
-# Source list_gpu.sh for GPU detection and validation functions
-GPU_SCRIPT="$REPO_DIR/scripts/utils/list_gpu.sh"
-if [ -f "$GPU_SCRIPT" ]; then
-    source "$GPU_SCRIPT"
-else
-    _log ERROR "GPU detection script not found at '$GPU_SCRIPT'. Please ensure it exists."
-    exit 1
-fi
-
 #-------------------------------------------------------
 # Helper Functions
 #-------------------------------------------------------
@@ -67,158 +58,6 @@ sync_files() {
     # Removed --delete flag to prevent deleting files in the destination
     rsync "${rsync_args[@]}" "$source_dir/" "$dest_dir/"
     echo "---------------------------"
-}
-
-configure_gpu_device() {
-    echo "Detecting available GPUs..." >&2
-
-    declare -A lspci_line_to_device_path
-    local menu_options=()
-
-    while read -r pci_addr device_path; do
-        local lspci_line
-        lspci_line=$(lspci -s "$pci_addr" | head -n 1) # Get the full lspci line for display
-        lspci_line_to_device_path["$lspci_line"]="$device_path"
-        menu_options+=("$lspci_line")
-    done <<< "$(list_available_gpus)"
-
-    if [ ${#menu_options[@]} -eq 0 ]; then
-        echo "No display controllers found. Skipping GPU configuration." >&2
-        return
-    fi
-
-    menu_options+=("Exit")
-    echo "Please select the primary GPU for Hyprland:" >&2
-    select selected_lspci_line in "${menu_options[@]}"; do
-        if [[ "$selected_lspci_line" == "Exit" ]]; then
-            echo "Exiting GPU configuration." >&2
-            break
-        elif [[ -n "$selected_lspci_line" ]]; then
-            local selected_gpu_path=${lspci_line_to_device_path["$selected_lspci_line"]}
-            echo "You selected: $selected_lspci_line" >&2
-
-            # Ensure the selected GPU is the first in the list
-            local ordered_devices=("$selected_gpu_path")
-            for device in "${lspci_line_to_device_path[@]}"; do
-                if [[ "$device" != "$selected_gpu_path" ]]; then
-                    ordered_devices+=("$device")
-                fi
-            done
-
-            local final_device_string
-            final_device_string=$(printf "%s:" "${ordered_devices[@]}")
-            final_device_string=${final_device_string%:}
-            
-            echo "$final_device_string"
-            break
-        else
-            _log ERROR "Invalid selection. Please try again."
-        fi
-    done
-}
-
-update_gpu_conf() {
-    local gpu_device_string=$1
-
-    if [ -z "$gpu_device_string" ]; then
-        _log WARN "No GPU device provided. Skipping Hyprland GPU configuration."
-        return
-    fi
-
-    # Extract the primary GPU device (the first one in the colon-separated string)
-    local primary_gpu_device
-    primary_gpu_device=$(echo "$gpu_device_string" | cut -d: -f1)
-
-    # Validate the primary GPU device path before writing to config
-    if ! check_gpu_device_path "$primary_gpu_device"; then
-        _log ERROR "Provided primary GPU device '$primary_gpu_device' from string '$gpu_device_string' is not valid or detected. Aborting GPU configuration update."
-        return 1
-    fi
-
-    local env_var_line="env = AQ_DRM_DEVICES,$gpu_device_string"
-    local gpu_conf_file="$CONFIGS_DIR_SYSTEM/.config/hypr/gpu.conf"
-
-    mkdir -p "$(dirname "$gpu_conf_file")"
-
-    echo "# GPU settings managed by config-loader" > "$gpu_conf_file"
-    _log INFO "Adding '$env_var_line' to $gpu_conf_file"
-    echo "$env_var_line" >> "$gpu_conf_file"
-}
-
-update_cursor_conf() {
-    local theme=$1
-    local size=$2
-
-    if [ -z "$theme" ]; then
-        _log WARN "No cursor theme provided. Skipping cursor.conf generation."
-        return
-    fi
-    
-    _log INFO "Updating cursor configuration..."
-
-    local cursor_conf_file="$CONFIGS_DIR_SYSTEM/.config/hypr/cursor.conf"
-    mkdir -p "$(dirname "$cursor_conf_file")"
-
-    # Write the configuration to the file
-    cat > "$cursor_conf_file" <<- EOL
-# Cursor settings managed by config-loader
-env = XCURSOR_THEME,$theme
-exec-once = hyprctl setcursor $theme $size
-EOL
-
-    _log SUCCESS "Successfully generated '$cursor_conf_file' for theme '$theme' with size $size."
-}
-
-configure_cursor_theme() {
-    # All status messages are redirected to stderr (>&2)
-    # to avoid being captured by command substitution.
-        echo "" >&2
-    echo "Starting Cursor Theme Installation..." >&2
-
-    local built_themes_dir="$REPO_DIR/dist/cursors"
-    local user_icon_dir="$HOME/.local/share/icons"
-
-    if [ ! -d "$built_themes_dir" ] || [ -z "$(ls -A "$built_themes_dir")" ]; then
-        _log ERROR "Built cursor themes not found in '$built_themes_dir'."
-        echo "Please run the './build_cursors.sh' script from the project root first." >&2
-        return 1
-    fi
-
-    mapfile -t themes < <(find "$built_themes_dir" -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
-    if [ ${#themes[@]} -eq 0 ]; then
-        _log ERROR "No themes found in '$built_themes_dir'."
-        return 1
-    fi
-
-    themes+=("Exit")
-
-    echo "Select the cursor theme to install:" >&2
-    select theme_name in "${themes[@]}"; do
-        case "$theme_name" in
-            "Exit")
-                echo "Exiting without installation." >&2
-                return 0
-                ;;
-            *)
-                if [[ " ${themes[*]} " =~ " ${theme_name} " ]]; then
-                    echo "Installing theme: $theme_name" >&2
-
-                    mkdir -p "$user_icon_dir"
-                    echo "Ensured icon directory exists at '$user_icon_dir'" >&2
-
-                    cp -r "$built_themes_dir/$theme_name" "$user_icon_dir/"
-                    # THIS IS THE FIX: Redirect the _log output to stderr
-                    _log SUCCESS "Copied '$theme_name' to '$user_icon_dir'" >&2
-                    
-                    # This is the only echo to stdout, serving as the return value.
-                    echo "$theme_name"
-                    break
-                else
-                    _log ERROR "Invalid option '$REPLY'. Please try again."
-                fi
-                ;;
-        esac
-    done
 }
 
 merge_quickshell_colors() {
@@ -248,7 +87,7 @@ merge_quickshell_colors() {
         local temp_file
         temp_file=$(mktemp)
         # Merge system file with repo file, where the repo file (.[1]) takes precedence over the system file (.[0])
-        if jq -s '.[0] * .[1]' "$system_colors_file" "$repo_colors_file" > "$temp_file"; then
+        if jq -s '[.[0] * .[1]]' "$system_colors_file" "$repo_colors_file" > "$temp_file"; then
             mv "$temp_file" "$system_colors_file"
             _log SUCCESS "Successfully merged colors.json."
         else
@@ -360,7 +199,7 @@ main() {
     local skip_cursor=false
 
     # Parse command-line arguments
-    for arg in "$@"; do
+    for arg in "$@"_ do
         case $arg in
             --skip-gpu)
             skip_gpu=true
@@ -374,17 +213,15 @@ main() {
     done
 
     # GPU Configuration
-    local selected_gpu_device=""
     if [ "$skip_gpu" = false ]; then
-        selected_gpu_device=$(configure_gpu_device)
+        "$CURRENT_SCRIPT_DIR/configs/gpu.sh"
     else
         _log INFO "Skipping GPU configuration due to --skip-gpu flag."
     fi
 
     # Cursor Theme Configuration
-    local selected_cursor_theme=""
     if [ "$skip_cursor" = false ]; then
-        selected_cursor_theme=$(configure_cursor_theme)
+        "$CURRENT_SCRIPT_DIR/configs/cursor.sh"
     else
          _log INFO "Skipping cursor configuration due to --skip-cursor flag."
     fi
@@ -392,16 +229,6 @@ main() {
     # Load base and custom configurations
     load_configs_from_source "$CONFIGS_DIR_REPO" ""
     load_configs_from_source "$CUSTOM_CONFIGS_DIR_REPO" " (custom)"
-
-
-    # Update device-specific config files
-    if [ -n "$selected_gpu_device" ]; then
-        update_gpu_conf "$selected_gpu_device"
-    fi
-
-    if [ -n "$selected_cursor_theme" ]; then
-        update_cursor_conf "$selected_cursor_theme" "24" # Default cursor size is 24
-    fi
     
     # Handle special cases
     merge_quickshell_colors
