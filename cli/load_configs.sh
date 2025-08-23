@@ -231,7 +231,7 @@ main() {
     load_configs_from_source "$CUSTOM_CONFIGS_DIR_REPO" " (custom)"
     
     # Handle special cases
-    merge_quickshell_colors
+    # merge_quickshell_colors
     patch_quickshell_background
 
     _log INFO "Reloading Hyprland configuration..."
