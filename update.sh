@@ -168,6 +168,19 @@ update_dots_hyprland() {
     echo "============================================================="
     echo " Updating dots-hyprland"
     echo "============================================================="
+
+    local monitor_config_path="$HOME/.config/hypr/monitors.conf"
+    local temp_dir
+    temp_dir=$(mktemp -d)
+    local backup_monitor_config_path="$temp_dir/monitors.conf"
+
+    if [ -f "$monitor_config_path" ]; then
+        _log INFO "Backing up '$monitor_config_path'..."
+        cp "$monitor_config_path" "$backup_monitor_config_path"
+    else
+        _log WARN "Warning: '$monitor_config_path' not found. Nothing to back up."
+    fi
+
     if [ ! -d "$HOME/dots-hyprland" ]; then
         _log WARN "dots-hyprland directory not found. Skipping dots-hyprland update."
         _log INFO "Please install dots-hyprland first if you wish to update it."
@@ -221,6 +234,12 @@ expect {
 }
 
 expect {
+    -re "Conflict detected:.*monitors\\.conf" {
+        expect -re "Enter your choice \\(1-7\\):" {
+            send "2\r"
+        }
+        exp_continue
+    }
     -re "Enter your choice \\(1-7\\):" {
         send "1\r"
         exp_continue
@@ -242,6 +261,12 @@ END_OF_EXPECT
             ;; 
     esac
     cd - >/dev/null
+
+    if [ -f "$backup_monitor_config_path" ]; then
+        _log INFO "Restoring '$monitor_config_path'..."
+        mkdir -p "$(dirname "$monitor_config_path")"
+        cp "$backup_monitor_config_path" "$monitor_config_path"
+    fi
 }
 
 
@@ -251,20 +276,9 @@ load_configs() {
     echo " Load Configurations"
     echo "============================================================="
 
-    local monitor_config_path="$HOME/.config/hypr/monitors.conf"
-    local temp_dir
-    temp_dir=$(mktemp -d)
-    local backup_monitor_config_path="$temp_dir/monitors.conf"
     local config_script="./cli/load_configs.sh"
     local gpu_conf_file="$HOME/.config/hypr/gpu.conf"
     local skip_gpu_flag=""
-
-    if [ -f "$monitor_config_path" ]; then
-        _log INFO "Backing up '$monitor_config_path'..."
-        cp "$monitor_config_path" "$backup_monitor_config_path"
-    else
-        _log WARN "Warning: '$monitor_config_path' not found. Nothing to back up."
-    fi
 
     # Validate existing GPU configuration before loading
     local check_gpu_script="$repo_dir/scripts/utils/check_valid_gpu.sh"
@@ -284,12 +298,6 @@ load_configs() {
         fi
     else
         _log WARN "'$config_script' not found. Skipping config load."
-    fi
-
-    if [ -f "$backup_monitor_config_path" ]; then
-        _log INFO "Restoring '$monitor_config_path'..."
-        mkdir -p "$(dirname "$monitor_config_path")"
-        cp "$backup_monitor_config_path" "$monitor_config_path"
     fi
 
     rm -rf "$temp_dir"
