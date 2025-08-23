@@ -180,9 +180,9 @@ load_configs_from_source() {
                 local system_path="$CONFIGS_DIR_SYSTEM/.$type_name/$app_name"
                 local exclude_arg=""
 
-                if [[ "$app_name" == "quickshell" && "$type_name" == "local" ]]; then
-                    exclude_arg="user/generated/colors.json"
-                fi
+                # if [[ "$app_name" == "quickshell" && "$type_name" == "local" ]]; then
+                #     exclude_arg="user/generated/colors.json"
+                # fi
 
                 sync_files "$repo_path" "$system_path" "$app_name$label_suffix" "$exclude_arg"
             fi
