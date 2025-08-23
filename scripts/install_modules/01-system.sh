@@ -47,8 +47,31 @@ install_fuse() {
      install_paru_package "fuse" "FUSE (Filesystem in Userspace)"
 }
 
+install_fish() {
+    _log INFO "Installing Fish shell..."
+    install_pacman_package "fish" "Fish Shell"
+    
+    if command -v fish &>/dev/null; then
+        local user_shell=$(getent passwd $USER | cut -d: -f7)
+        if [ "$user_shell" != "$(which fish)" ]; then
+            _log INFO "Setting Fish as default shell..."
+            chsh -s "$(which fish)"
+            _log SUCCESS "Fish shell is now your default shell. Please log out and back in for changes to take effect."
+        else
+            _log INFO "Fish is already your default shell."
+        fi
+    else
+        _log ERROR "Fish installation appears to have failed."
+        return 1
+    fi
+}
+
 install_npm() {
      install_pacman_package "npm" "npm"
+}
+
+install_git() {
+     install_pacman_package "git" "Git Version Control System"
 }
 
 install_pnpm() {
@@ -70,6 +93,38 @@ install_pnpm() {
 
 install_linux_headers() {
     install_pacman_package "linux-headers" "Linux Headers"
+}
+
+install_nvidia_drivers() {
+    _log INFO "Installing NVIDIA drivers and utilities..."
+
+    # Install NVIDIA packages
+    _log INFO "Installing NVIDIA packages..."
+    local nvidia_packages=(
+        "nvidia"           # Main NVIDIA driver
+        "nvidia-utils"     # NVIDIA utilities
+        "nvidia-settings" # NVIDIA settings GUI
+        "libva"           # Video Acceleration API
+        "libva-nvidia-driver" # NVIDIA VA-API driver
+    )
+
+    for package in "${nvidia_packages[@]}"; do
+        install_paru_package "$package" "$package"
+    done
+
+    # Enable DRM kernel mode setting
+    local nvidia_conf="/etc/modprobe.d/nvidia.conf"
+    if [ ! -f "$nvidia_conf" ]; then
+        _log INFO "Creating NVIDIA configuration for DRM KMS..."
+        echo "options nvidia-drm modeset=1" | sudo tee "$nvidia_conf" > /dev/null
+    fi
+
+    # Update initramfs
+    _log INFO "Updating initramfs..."
+    sudo mkinitcpio -P
+
+    _log SUCCESS "NVIDIA drivers installation completed. Please reboot your system to apply changes."
+    _log INFO "After reboot, you can verify the installation by running: nvidia-smi"
 }
 
 #-------------------------------------------------------

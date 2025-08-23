@@ -123,5 +123,5 @@ install_mission_center() {
 }
 
 install_pavucontrol() {
-    install_paru_package "pavucontrol" "Pavucontrol"
+    install_paru_package "pavucontrol-qt" "Pavucontrol"
 }
