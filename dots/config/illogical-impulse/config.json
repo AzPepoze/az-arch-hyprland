@@ -53,10 +53,12 @@
         "clockX": -500,
         "clockY": -500,
         "fixedClockPosition": false,
+        "hideWhenFullscreen": true,
         "mantra": "",
         "parallax": {
             "enableSidebar": false,
             "enableWorkspace": false,
+            "vertical": false,
             "workspaceZoom": 1.1
         },
         "thumbnailPath": "",
@@ -83,7 +85,11 @@
         "showBackground": false,
         "topLeftIcon": "spark",
         "tray": {
-            "monochromeIcons": true
+            "invertPinnedItems": false,
+            "monochromeIcons": true,
+            "pinnedItems": [
+                "Fcitx"
+            ]
         },
         "utilButtons": {
             "showColorPicker": false,
@@ -198,7 +204,11 @@
         "prefix": {
             "action": "/",
             "clipboard": ";",
-            "emojis": ":"
+            "emojis": ":",
+            "math": "=",
+            "shellCommand": "$",
+            "showDefaultActionsWithoutPrefix": true,
+            "webSearch": "?"
         },
         "sloppy": false
     },
