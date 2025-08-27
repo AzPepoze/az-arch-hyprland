@@ -115,9 +115,9 @@ update_gemini_cli() {
     echo " Update Gemini CLI"
     echo "============================================================="
 
-    if ! command -v pnpm &> /dev/null; then
-        _log WARN "pnpm command not found. Skipping Gemini CLI update."
-        _log INFO "Please install pnpm to enable this feature."
+    if ! command -v npm &> /dev/null; then
+        _log WARN "npm command not found. Skipping Gemini CLI update."
+        _log INFO "Please install npm to enable this feature."
         return
     fi
 
@@ -134,7 +134,7 @@ update_gemini_cli() {
 
     if [ -z "$current_version" ]; then
         _log INFO "Gemini CLI not found. Attempting installation."
-        pnpm install -g @google/gemini-cli
+        npm install -g @google/gemini-cli
         _log SUCCESS "Gemini CLI installed."
         return
     fi
@@ -147,7 +147,7 @@ update_gemini_cli() {
     # Compare versions numerically
     if [[ "$current_version" < "$latest_version" ]]; then
         _log INFO "Gemini CLI (current: $current_version) is not latest (latest: $latest_version). Updating..."
-        pnpm install -g @google/gemini-cli
+        npm install -g @google/gemini-cli
         _log SUCCESS "Gemini CLI updated to $latest_version."
     else
         _log INFO "Gemini CLI is already up-to-date (version: $current_version)."
