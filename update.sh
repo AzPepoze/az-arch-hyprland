@@ -134,7 +134,7 @@ update_gemini_cli() {
 
     if [ -z "$current_version" ]; then
         _log INFO "Gemini CLI not found. Attempting installation."
-        npm install -g @google/gemini-cli
+        sudo npm install -g @google/gemini-cli
         _log SUCCESS "Gemini CLI installed."
         return
     fi
