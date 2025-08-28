@@ -132,22 +132,14 @@ update_gemini_cli() {
     local latest_version
     latest_version=$(npm show @google/gemini-cli version 2>/dev/null)
 
-    if [ -z "$current_version" ]; then
-        _log INFO "Gemini CLI not found. Attempting installation."
-        sudo npm install -g @google/gemini-cli
-        _log SUCCESS "Gemini CLI installed."
-        return
-    fi
-
     if [ -z "$latest_version" ]; then
         _log WARN "Could not determine latest Gemini CLI version. Skipping update."
         return
     fi
 
-    # Compare versions numerically
     if [[ "$current_version" < "$latest_version" ]]; then
         _log INFO "Gemini CLI (current: $current_version) is not latest (latest: $latest_version). Updating..."
-        npm install -g @google/gemini-cli
+        sudo npm install -g @google/gemini-cli
         _log SUCCESS "Gemini CLI updated to $latest_version."
     else
         _log INFO "Gemini CLI is already up-to-date (version: $current_version)."
