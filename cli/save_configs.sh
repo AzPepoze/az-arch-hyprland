@@ -25,20 +25,37 @@ CONFIGS_DIR_SYSTEM="$HOME"
 #-------------------------------------------------------
 # Helper Functions
 #-------------------------------------------------------
-sync_files() {
-    local source_dir=$1
-    local dest_dir=$2
-    local config_name=$3
 
-    echo "--- Saving '$config_name' ---"
-    if [ ! -d "$source_dir" ]; then
-        _log WARN "Source directory for '$config_name' not found at '$source_dir'. Skipping."
+
+# This function will sync a single file or directory
+sync_file_or_dir() {
+    local system_source_path=$1
+    local repo_dest_path=$2
+    local item_name=$3 # For logging
+
+    echo "--- Saving '$item_name' ---"
+    if [ ! -e "$system_source_path" ]; then # Use -e for file or directory existence
+        _log WARN "Source item for '$item_name' not found at '$system_source_path'. Skipping."
         return
     fi
 
-    mkdir -p "$dest_dir"
+    # Determine if sudo is needed
+    local use_sudo=""
+    if [[ "$system_source_path" == "/etc"* ]]; then
+        use_sudo="sudo"
+        _log INFO "Using sudo for operations on $system_source_path"
+    fi
 
-    rsync -avc --existing "$source_dir/" "$dest_dir/"
+    # Ensure the destination directory exists in the repo
+    $use_sudo mkdir -p "$(dirname "$repo_dest_path")" # sudo for mkdir if parent is /etc
+
+    # Use rsync to copy the specific item
+    # If it's a directory, add a trailing slash to source_path to copy contents
+    if [ -d "$system_source_path" ]; then
+        $use_sudo rsync -avc --existing "$system_source_path/" "$repo_dest_path/"
+    else
+        $use_sudo rsync -avc --existing "$system_source_path" "$repo_dest_path"
+    fi
     echo "---------------------------"
 }
 
@@ -57,63 +74,92 @@ main() {
     echo "System Dir: $CONFIGS_DIR_SYSTEM"
     echo "============================================================"
 
-    # Loop through each type of config (.config, .local, etc.)
-    for config_type_dir in "$CONFIGS_DIR_REPO"/*; do
-        if [ ! -d "$config_type_dir" ]; then
+    # Loop through each top-level directory in 'dots' (e.g., 'home', 'etc')
+    for base_type_dir in "$CONFIGS_DIR_REPO"/*; do
+        if [ ! -d "$base_type_dir" ]; then
             continue
         fi
 
-        local type_name
-        type_name=$(basename "$config_type_dir") # e.g., "config" or "local"
+        local base_type_name
+        base_type_name=$(basename "$base_type_dir") # e.g., "home" or "etc"
 
-        #-------------------------------------------------------
-        # Handle .gemini folder specifically
-        #-------------------------------------------------------
-        if [ "$type_name" == "gemini" ]; then
-            local repo_path="$config_type_dir" # This is dots/gemini
-            local system_path="$CONFIGS_DIR_SYSTEM/.$type_name" # This is $HOME/.gemini
+        local system_base_path=""
+        case "$base_type_name" in
+            "home")
+                system_base_path="$HOME"
+                ;;
+            "etc")
+                system_base_path="/etc"
+                ;;
+            *)
+                _log WARN "Unknown base configuration type '$base_type_name'. Skipping."
+                continue
+                ;;
+        esac
 
-            echo "--- Saving '$type_name' ---"
-            if [ ! -d "$system_path" ]; then
-                _log WARN "Source directory for '$type_name' not found at '$system_path'. Skipping."
+        # Now loop through the actual config directories/files within 'home' or 'etc' in the REPO
+        # This loop will iterate over items like dots/home/config, dots/home/local, dots/etc/power-options
+        for repo_item_path in "$base_type_dir"/*; do
+            if [ ! -e "$repo_item_path" ]; then # Use -e for file or directory existence
                 continue
             fi
 
-            mkdir -p "$repo_path"
+            local item_name
+            item_name=$(basename "$repo_item_path") # e.g., "config", "local", "power-options", "gemini"
 
-            # Use rsync to copy all files except GEMINI.md
-            rsync -avc --existing --exclude="GEMINI.md" "$system_path/" "$repo_path/"
+            local system_source_prefix="" # The prefix on the system side
+            local repo_dest_prefix="$repo_item_path" # The prefix on the repo side
 
-            # Copy GEMINI.md and rename it to instruction.md at repo
-            if [ -f "$system_path/GEMINI.md" ]; then
-                cp "$system_path/GEMINI.md" "$repo_path/instruction.md"
-                _log SUCCESS "Copied GEMINI.md to $repo_path/instruction.md"
-            else
-                _log WARN "GEMINI.md not found in $system_path. Skipping specific copy."
-            fi
-            echo "---------------------------"
-        else
-            #-------------------------------------------------------
-            # General processing for other config types (.config, .local, etc.)
-            #-------------------------------------------------------
-            # Determine the system path for this config type (e.g., ~/.config or ~/.local)
-            local system_config_type_dir="$CONFIGS_DIR_SYSTEM/.$type_name" # e.g., /home/azpepoze/.config or /home/azpepoze/.local
+            # Special handling for .gemini folder (which is under home/gemini)
+            if [ "$base_type_name" == "home" ] && [ "$item_name" == "gemini" ]; then
+                system_source_prefix="$system_base_path/.gemini"
+                local repo_gemini_dir="$repo_item_path" # dots/home/gemini
 
-            # Loop through each specific config directory within the repo's config type directory
-            for specific_config_repo_dir in "$config_type_dir"/*; do
-                if [ ! -d "$specific_config_repo_dir" ]; then
+                echo "--- Saving '.gemini' ---"
+                if [ ! -d "$system_source_prefix" ]; then
+                    _log WARN "Source directory for '.gemini' not found at '$system_source_prefix'. Skipping."
                     continue
                 fi
 
-                local specific_config_name
-                specific_config_name=$(basename "$specific_config_repo_dir") # e.g., "bleachbit" or "state"
+                mkdir -p "$repo_gemini_dir"
 
-                local source_path="$system_config_type_dir/$specific_config_name" # e.g., /home/azpepoze/.config/bleachbit
-                local dest_path="$specific_config_repo_dir" # e.g., /home/azpepoze/az-arch-hyprland/dots/config/bleachbit
+                # Sync all files except GEMINI.md from system to repo
+                rsync -avc --existing --exclude="GEMINI.md" "$system_source_prefix/" "$repo_gemini_dir/"
 
-                sync_files "$source_path" "$dest_path" "$type_name/$specific_config_name"
+                # Copy GEMINI.md and rename it to instruction.md at repo
+                if [ -f "$system_source_prefix/GEMINI.md" ]; then
+                    cp "$system_source_prefix/GEMINI.md" "$repo_gemini_dir/instruction.md"
+                    _log SUCCESS "Copied GEMINI.md to $repo_gemini_dir/instruction.md"
+                else
+                    _log WARN "GEMINI.md not found in $system_source_prefix. Skipping specific copy."
+                fi
+                echo "---------------------------"
+                continue # Skip general sync_file_or_dir for gemini
+            fi
+
+            # For other configurations, determine the system source prefix
+            if [ "$base_type_name" == "home" ]; then
+                system_source_prefix="$system_base_path/.$item_name" # e.g., $HOME/.config, $HOME/.local
+            elif [ "$base_type_name" == "etc" ]; then
+                system_source_prefix="$system_base_path/$item_name" # e.g., /etc/power-options
+            fi
+
+            # Now, iterate through the actual files/directories *within* the repo's config directory
+            # and sync them individually. This ensures we only save what's already in the repo.
+            for repo_sub_item_path in "$repo_item_path"/*; do
+                if [ ! -e "$repo_sub_item_path" ]; then
+                    continue
+                fi
+
+                local sub_item_name
+                sub_item_name=$(basename "$repo_sub_item_path")
+
+                local system_source_full_path="$system_source_prefix/$sub_item_name"
+                local repo_dest_full_path="$repo_sub_item_path"
+
+                sync_file_or_dir "$system_source_full_path" "$repo_dest_full_path" "$base_type_name/$item_name/$sub_item_name"
             done
-        fi
+        done
     done
 
     echo "============================================================"

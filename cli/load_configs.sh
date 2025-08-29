@@ -48,7 +48,14 @@ sync_files() {
         return
     fi
 
-    mkdir -p "$dest_dir"
+    # Determine if sudo is needed
+    local use_sudo=""
+    if [[ "$dest_dir" == "/etc"* ]]; then
+        use_sudo="sudo"
+        _log INFO "Using sudo for operations in $dest_dir"
+    fi
+
+    $use_sudo mkdir -p "$dest_dir"
 
     local rsync_args=("-av")
     if [ -n "$exclude_path" ]; then
@@ -56,7 +63,7 @@ sync_files() {
     fi
 
     # Removed --delete flag to prevent deleting files in the destination
-    rsync "${rsync_args[@]}" "$source_dir/" "$dest_dir/"
+    $use_sudo rsync "${rsync_args[@]}" "$source_dir/" "$dest_dir/"
     echo "---------------------------"
 }
 
@@ -133,59 +140,73 @@ load_configs_from_source() {
     echo "Loading configurations from: $source_dir"
     echo "============================================================"
 
-    # Loop through each type of config (.config, .local, etc.)
-    for config_type_dir in "$source_dir"/*; do
-        if [ ! -d "$config_type_dir" ]; then
+    # Loop through each top-level directory in 'dots' (e.g., 'home', 'etc')
+    for base_type_dir in "$source_dir"/*; do
+        if [ ! -d "$base_type_dir" ]; then
             continue
         fi
 
-        local type_name
-        type_name=$(basename "$config_type_dir") # e.g., "config" or "local"
+        local base_type_name
+        base_type_name=$(basename "$base_type_dir") # e.g., "home" or "etc"
 
-        #-------------------------------------------------------
-        # Handle .gemini folder specifically
-        #-------------------------------------------------------
-        if [ "$type_name" == "gemini" ]; then
-            local repo_path="$config_type_dir"
-            local system_path="$CONFIGS_DIR_SYSTEM/.$type_name"
+        local system_base_path=""
+        case "$base_type_name" in
+            "home")
+                system_base_path="$HOME"
+                ;;
+            "etc")
+                system_base_path="/etc"
+                ;;
+            *)
+                _log WARN "Unknown base configuration type '$base_type_name'. Skipping."
+                continue
+                ;;
+        esac
 
-            echo "--- Loading '$type_name'$label_suffix ---"
-            if [ ! -d "$repo_path" ]; then
-                _log WARN "Source directory for '$type_name' not found at '$repo_path'. Skipping."
+        # Now loop through the actual config types within 'home' or 'etc'
+        # e.g., 'dots/home/config', 'dots/home/local', 'dots/etc/power-options'
+        for config_source_path in "$base_type_dir"/*; do
+            if [ ! -d "$config_source_path" ]; then
                 continue
             fi
 
-            mkdir -p "$system_path"
-            rsync -av --exclude="instruction.md" "$repo_path/" "$system_path/"
+            local config_name
+            config_name=$(basename "$config_source_path") # e.g., "config", "local", "power-options"
 
-            if [ -f "$repo_path/instruction.md" ]; then
-                cp "$repo_path/instruction.md" "$system_path/GEMINI.md"
-                _log SUCCESS "Copied instruction.md${label_suffix} to $system_path/GEMINI.md"
-            else
-                _log WARN "instruction.md not found in $repo_path. Skipping specific copy."
+            local repo_path="$config_source_path"
+            local system_dest_path=""
+
+            # Special handling for .gemini folder (which is under home/gemini)
+            if [ "$base_type_name" == "home" ] && [ "$config_name" == "gemini" ]; then
+                system_dest_path="$system_base_path/.gemini" # This will be $HOME/.gemini
+                echo "--- Loading '.gemini'$label_suffix ---"
+                if [ ! -d "$repo_path" ]; then
+                    _log WARN "Source directory for '.gemini' not found at '$repo_path'. Skipping."
+                    continue
+                fi
+
+                mkdir -p "$system_dest_path"
+                rsync -av --exclude="instruction.md" "$repo_path/" "$system_dest_path/"
+
+                if [ -f "$repo_path/instruction.md" ]; then
+                    cp "$repo_path/instruction.md" "$system_dest_path/GEMINI.md"
+                    _log SUCCESS "Copied instruction.md${label_suffix} to $system_dest_path/GEMINI.md"
+                else
+                    _log WARN "instruction.md not found in $repo_path. Skipping specific copy."
+                fi
+                echo "---------------------------"
+                continue
             fi
-            echo "---------------------------"
-            continue
-        fi
 
-        #-------------------------------------------------------
-        # General processing for other config types
-        #-------------------------------------------------------
-        for config_app_dir in "$config_type_dir"/*; do
-            if [ -d "$config_app_dir" ]; then
-                local app_name
-                app_name=$(basename "$config_app_dir")
-
-                local repo_path="$config_app_dir"
-                local system_path="$CONFIGS_DIR_SYSTEM/.$type_name/$app_name"
-                local exclude_arg=""
-
-                # if [[ "$app_name" == "quickshell" && "$type_name" == "local" ]]; then
-                #     exclude_arg="user/generated/colors.json"
-                # fi
-
-                sync_files "$repo_path" "$system_path" "$app_name$label_suffix" "$exclude_arg"
+            # For other configurations, determine the destination path
+            if [ "$base_type_name" == "home" ]; then
+                system_dest_path="$system_base_path/.$config_name" # e.g., $HOME/.config, $HOME/.local
+            elif [ "$base_type_name" == "etc" ]; then
+                system_dest_path="$system_base_path/$config_name" # e.g., /etc/power-options
             fi
+
+            local exclude_arg=""
+            sync_files "$repo_path" "$system_dest_path" "$config_name$label_suffix" "$exclude_arg"
         done
     done
 }
