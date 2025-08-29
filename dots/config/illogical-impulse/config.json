@@ -54,13 +54,13 @@
         "clockY": -500,
         "fixedClockPosition": false,
         "hideWhenFullscreen": true,
-        "mantra": "",
         "parallax": {
             "enableSidebar": false,
             "enableWorkspace": false,
             "vertical": false,
             "workspaceZoom": 1.1
         },
+        "quote": "",
         "thumbnailPath": "",
         "wallpaperPath": "/home/azpepoze/GoogleDrive/Needed Programs/1353704.jpeg"
     },
@@ -78,7 +78,10 @@
         "cornerStyle": 0,
         "resources": {
             "alwaysShowCpu": true,
-            "alwaysShowSwap": true
+            "alwaysShowSwap": true,
+            "cpuWarningThreshold": 90,
+            "memoryWarningThreshold": 95,
+            "swapWarningThreshold": 85
         },
         "screenList": [
         ],
@@ -123,8 +126,8 @@
         "suspend": 3
     },
     "conflictKiller": {
-        "autoKillNotificationDaemons": false,
-        "autoKillTrays": false
+        "autoKillNotificationDaemons": true,
+        "autoKillTrays": true
     },
     "dock": {
         "enable": true,
@@ -156,7 +159,8 @@
             "engine": "auto",
             "sourceLanguage": "auto",
             "targetLanguage": "th"
-        }
+        },
+        "ui": "auto"
     },
     "light": {
         "night": {
@@ -167,7 +171,7 @@
         }
     },
     "media": {
-        "filterDuplicatePlayers": true
+        "filterDuplicatePlayers": false
     },
     "networking": {
         "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
@@ -221,7 +225,16 @@
                 "username": "[unset]"
             }
         },
-        "keepRightSidebarLoaded": false,
+        "cornerOpen": {
+            "bottom": false,
+            "clickless": false,
+            "cornerRegionHeight": 2,
+            "cornerRegionWidth": 60,
+            "enable": true,
+            "valueScroll": true,
+            "visualize": false
+        },
+        "keepRightSidebarLoaded": true,
         "translator": {
             "delay": 300
         }
