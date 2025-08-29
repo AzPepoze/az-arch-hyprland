@@ -115,7 +115,7 @@ install_coolercontrol() {
 }
 
 install_power_options() {
-     install_paru_package "power-options-gtk-git" "Power Options"
+     install_paru_package "power-options-gtk" "Power Options"
 }
 
 install_mission_center() {
