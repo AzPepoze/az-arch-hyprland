@@ -105,6 +105,8 @@ run_bisync() {
         --progress \
         --drive-acknowledge-abuse \
         --exclude "node_modules/**" \
+        --s3-upload-concurrency 32 \
+        --s3-chunk-size 128000 \
         $resync_flag 2>&1 | tee "$output_file"
 
     # Get the exit code from rclone, not tee
@@ -135,6 +137,22 @@ run_bisync() {
             else
                 _log ERROR "Could not extract lock file path from rclone output. Please check the logs and remove it manually."
                 rm "$output_file"
+                return 1
+            fi
+        fi
+
+        # Check for Quota Exceeded error
+        if grep -q "Quota exceeded" "$output_file"; then
+            local current_retry_attempt=${2:-0} # Get current retry attempt, default to 0
+            if [ "$current_retry_attempt" -lt "$MAX_QUOTA_RETRY_ATTEMPTS" ]; then
+                _log WARN "Quota exceeded error detected. Retrying in ${QUOTA_RETRY_DELAY_SECONDS} seconds (Attempt $((current_retry_attempt + 1)) of $MAX_QUOTA_RETRY_ATTEMPTS)..."
+                rm "$output_file" # Clean up before waiting
+                sleep "$QUOTA_RETRY_DELAY_SECONDS"
+                run_bisync "$resync_flag" $((current_retry_attempt + 1)) # Retry with incremented attempt count
+                return $?
+            else
+                _log ERROR "Quota exceeded error persisted after $MAX_QUOTA_RETRY_ATTEMPTS attempts. Please check your Google Drive API quota."
+                rm "$output_file" # Clean up the temp file
                 return 1
             fi
         fi
