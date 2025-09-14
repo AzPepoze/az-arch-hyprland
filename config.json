@@ -1,0 +1,5 @@
+{
+	"model": "pc",
+	"remove_end4_background": true,
+	"replace_end4_color_to_catpuccin": true
+}

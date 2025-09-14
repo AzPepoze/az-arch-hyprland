@@ -14,9 +14,8 @@ set -e
 CURRENT_SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 # Get the parent directory of the current script (e.g., /home/azpepoze/az-arch-hyprland)
 REPO_DIR="$(dirname "$CURRENT_SCRIPT_DIR")"
-CONFIGS_DIR_REPO="$REPO_DIR/dots"
-CUSTOM_CONFIGS_DIR_REPO="$REPO_DIR/dots-custom"
 CONFIGS_DIR_SYSTEM="$HOME"
+CONFIG_FILE="$REPO_DIR/config.json" # Path to the new config.json
 
 # Source helper functions
 HELPER_SCRIPT="$REPO_DIR/scripts/install_modules/helpers.sh"
@@ -33,93 +32,8 @@ else
     }
 fi
 
-#-------------------------------------------------------
-# Helper Functions
-#-------------------------------------------------------
-sync_files() {
-    local source_dir=$1
-    local dest_dir=$2
-    local config_name=$3
-    local exclude_path=$4 # New optional parameter
-
-    echo "--- Loading '$config_name' ---"
-    if [ ! -d "$source_dir" ]; then
-        _log WARN "Source directory for '$config_name' not found at '$source_dir'. Skipping."
-        return
-    fi
-
-    # Determine if sudo is needed
-    local use_sudo=""
-    if [[ "$dest_dir" == "/etc"* ]]; then
-        use_sudo="sudo"
-        _log INFO "Using sudo for operations in $dest_dir"
-    fi
-
-    $use_sudo mkdir -p "$dest_dir"
-
-    local rsync_args=("-av")
-    if [ -n "$exclude_path" ]; then
-        rsync_args+=("--exclude=$exclude_path")
-    fi
-
-    # Removed --delete flag to prevent deleting files in the destination
-    $use_sudo rsync "${rsync_args[@]}" "$source_dir/" "$dest_dir/"
-    echo "---------------------------"
-}
-
-merge_quickshell_colors() {
-    echo "--- Merging QuickShell colors.json ---"
-
-    if ! command -v jq &> /dev/null; then
-        _log WARN "'jq' command not found. Cannot merge colors.json. Please install it first (e.g., 'sudo pacman -S jq'). Skipping."
-        return
-    fi
-
-    local repo_colors_file="$CONFIGS_DIR_REPO/local/state/quickshell/user/generated/colors.json"
-    local system_colors_file="$CONFIGS_DIR_SYSTEM/.local/state/quickshell/user/generated/colors.json"
-
-    if [ ! -f "$repo_colors_file" ]; then
-        _log WARN "Repo colors.json not found at '$repo_colors_file'. Skipping."
-        return
-    fi
-
-    # Ensure destination directory exists
-    mkdir -p "$(dirname "$system_colors_file")"
-
-    if [ ! -f "$system_colors_file" ]; then
-        _log INFO "No existing colors.json found at '$system_colors_file'. Copying from repo."
-        cp "$repo_colors_file" "$system_colors_file"
-    else
-        _log INFO "Existing colors.json found. Merging with repo version."
-        local temp_file
-        temp_file=$(mktemp)
-        # Merge system file with repo file, where the repo file (.[1]) takes precedence over the system file (.[0])
-        if jq -s '[.[0] * .[1]]' "$system_colors_file" "$repo_colors_file" > "$temp_file"; then
-            mv "$temp_file" "$system_colors_file"
-            _log SUCCESS "Successfully merged colors.json."
-        else
-            _log ERROR "Failed to merge colors.json with jq."
-            rm -f "$temp_file"
-        fi
-    fi
-    echo "------------------------------------"
-}
-
-patch_quickshell_background() {
-    echo "--- Patching QuickShell Background ---"
-    local qml_file="$HOME/.config/quickshell/ii/modules/background/Background.qml"
-
-    if [ -f "$qml_file" ]; then
-        _log INFO "Found QuickShell Background.qml at '$qml_file'. Patching..."
-        sed -i 's#visible: opacity > 0#visible: false // opacity > 0#g' "$qml_file"
-        # sed -i '/clockX/s/leftMargin:.*/leftMargin: implicitWidth \/ 2/' "$qml_file"
-        # sed -i '/clockY/s/topMargin:.*/topMargin: implicitHeight/' "$qml_file"
-        _log SUCCESS "Successfully patched QuickShell Background.qml."
-    else
-        _log WARN "QuickShell Background.qml not found at '$qml_file'. Skipping patch."
-    fi
-    echo "------------------------------------"
-}
+# Source loader helper functions
+source "$CURRENT_SCRIPT_DIR/load_helpers.sh"
 
 #-------------------------------------------------------
 # Load Configurations from a Source Directory
@@ -163,50 +77,52 @@ load_configs_from_source() {
                 ;;
         esac
 
-        # Now loop through the actual config types within 'home' or 'etc'
-        # e.g., 'dots/home/config', 'dots/home/local', 'dots/etc/power-options'
-        for config_source_path in "$base_type_dir"/*; do
-            if [ ! -d "$config_source_path" ]; then
-                continue
-            fi
-
-            local config_name
-            config_name=$(basename "$config_source_path") # e.g., "config", "local", "power-options"
-
-            local repo_path="$config_source_path"
+        # Now iterate through all items (files and directories) within the base_type_dir
+        # e.g., 'dots/base/home/config', 'dots/base/home/local', 'dots/base/etc/power-options'
+        find "$base_type_dir" -mindepth 1 -print0 | while IFS= read -r -d $'\0' item; do
+            local relative_path="${item#$base_type_dir/}" # Path relative to base_type_dir
             local system_dest_path=""
 
             # Special handling for .gemini folder (which is under home/gemini)
-            if [ "$base_type_name" == "home" ] && [ "$config_name" == "gemini" ]; then
-                system_dest_path="$system_base_path/.gemini" # This will be $HOME/.gemini
+            if [[ "$relative_path" == "home/gemini"* ]]; then
+                local gemini_repo_path="$source_dir/home/gemini"
+                local gemini_system_dest_path="$system_base_path/.gemini" # This will be $HOME/.gemini
+
                 echo "--- Loading '.gemini'$label_suffix ---"
-                if [ ! -d "$repo_path" ]; then
-                    _log WARN "Source directory for '.gemini' not found at '$repo_path'. Skipping."
+                if [ ! -d "$gemini_repo_path" ]; then
+                    _log WARN "Source directory for '.gemini' not found at '$gemini_repo_path'. Skipping."
                     continue
                 fi
 
-                mkdir -p "$system_dest_path"
-                rsync -av --exclude="instruction.md" "$repo_path/" "$system_dest_path/"
+                mkdir -p "$gemini_system_dest_path"
+                rsync -av --exclude="instruction.md" "$gemini_repo_path/" "$gemini_system_dest_path/"
 
-                if [ -f "$repo_path/instruction.md" ]; then
-                    cp "$repo_path/instruction.md" "$system_dest_path/GEMINI.md"
-                    _log SUCCESS "Copied instruction.md${label_suffix} to $system_dest_path/GEMINI.md"
+                if [ -f "$gemini_repo_path/instruction.md" ]; then
+                    cp "$gemini_repo_path/instruction.md" "$gemini_system_dest_path/GEMINI.md"
+                    _log SUCCESS "Copied instruction.md${label_suffix} to $gemini_system_dest_path/GEMINI.md"
                 else
-                    _log WARN "instruction.md not found in $repo_path. Skipping specific copy."
+                    _log WARN "instruction.md not found in $gemini_repo_path. Skipping specific copy."
                 fi
                 echo "---------------------------"
-                continue
+                continue # Skip further processing for gemini as it's handled
             fi
 
-            # For other configurations, determine the destination path
+            # Construct the system destination path
             if [ "$base_type_name" == "home" ]; then
-                system_dest_path="$system_base_path/.$config_name" # e.g., $HOME/.config, $HOME/.local
+                # For home, if relative_path starts with "config/" or "local/", prepend a dot
+                if [[ "$relative_path" == "config/"* ]]; then
+                    system_dest_path="$system_base_path/.$relative_path"
+                elif [[ "$relative_path" == "local/"* ]]; then
+                    system_dest_path="$system_base_path/.$relative_path"
+                else
+                    system_dest_path="$system_base_path/$relative_path"
+                fi
             elif [ "$base_type_name" == "etc" ]; then
-                system_dest_path="$system_base_path/$config_name" # e.g., /etc/power-options
+                system_dest_path="$system_base_path/$relative_path"
             fi
 
-            local exclude_arg=""
-            sync_files "$repo_path" "$system_dest_path" "$config_name$label_suffix" "$exclude_arg"
+            # Call sync_files for each item
+            sync_files "$item" "$system_dest_path" "$(basename "$item")$label_suffix" ""
         done
     done
 }
@@ -247,13 +163,36 @@ main() {
          _log INFO "Skipping cursor configuration due to --skip-cursor flag."
     fi
 
-    # Load base and custom configurations
-    load_configs_from_source "$CONFIGS_DIR_REPO" ""
-    load_configs_from_source "$CUSTOM_CONFIGS_DIR_REPO" " (custom)"
-    
+    # Get user model from config.json
+    local USER_MODEL
+    USER_MODEL=$(get_user_model)
+    _log INFO "User model detected: $USER_MODEL"
+
+    # Load base configurations
+    load_configs_from_source "$REPO_DIR/dots/base" " (base)"
+
+    # Load model-specific configurations
+    if [ -n "$USER_MODEL" ]; then
+        local MODEL_CONFIG_DIR="$REPO_DIR/dots/$USER_MODEL"
+        if [ -d "$MODEL_CONFIG_DIR" ]; then
+            load_configs_from_source "$MODEL_CONFIG_DIR" " ($USER_MODEL)"
+        else
+            _log WARN "Model-specific configuration directory '$MODEL_CONFIG_DIR' not found. Skipping."
+        fi
+    fi
+
+    if [[ "$(get_config_bool 'remove_end4_background' 'true')" == "true" ]]; then
+        patch_quickshell_background
+    else
+        _log INFO "Skipping QuickShell background patch based on config.json setting."
+    fi
+
     # Handle special cases
-    # merge_quickshell_colors
-    patch_quickshell_background
+    if [[ "$(get_config_bool 'replace_end4_color_to_catpuccin' 'true')" == "true" ]]; then
+        merge_quickshell_colors
+    else
+        _log INFO "Skipping QuickShell color merge based on config.json setting."
+    fi
 
     _log INFO "Reloading Hyprland configuration..."
     hyprctl reload 2>/dev/null || _log WARN "Hyprland is not running. Skipping reload."
