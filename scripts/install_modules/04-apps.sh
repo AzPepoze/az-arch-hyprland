@@ -35,7 +35,7 @@ fix_vscode_permissions() {
     echo "Attempting to fix permissions for VS Code Insiders..."
     local vscode_path="/usr/share/code-insiders"
     if [ -d "$vscode_path" ]; then
-        sudo chown -R $(whoami):$(whoami) "$vscode_path"
+        sudo chown -R $(whoami):$(whoami) /usr/share/code-insiders
         _log SUCCESS "Fixed permissions for VS Code Insiders at $vscode_path"
     else
         _log INFO "VS Code Insiders installation path $vscode_path not found. Skipping permission fix."

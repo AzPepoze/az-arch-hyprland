@@ -65,7 +65,7 @@ class InstallerApp(QWidget):
         button_layout = QHBoxLayout(selection_group_box)
         button_layout.setSpacing(10)
 
-        self.select_essential_btn = QPushButton("Select Essentials")
+        self.select_essential_btn = QPushButton("Select Essentials (PC)")
         self.select_essential_laptop_btn = QPushButton("Select Essentials (Laptop)")
         self.select_all_btn = QPushButton("Select All")
         self.deselect_all_btn = QPushButton("Deselect All")
@@ -247,6 +247,7 @@ class InstallerApp(QWidget):
                 group_box_layout.setSpacing(0)
 
                 list_widget = QListWidget()
+                list_widget.setMinimumHeight(200)
                 self.all_list_widgets.append(list_widget)
 
                 for item_data in items_in_group:
