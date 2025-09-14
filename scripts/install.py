@@ -283,10 +283,10 @@ class InstallerApp(QWidget):
         self.installation_items = [
             {'type': 'header', 'text': '--- Core ---'},
             {'type': 'essential', 'text': 'Install git', 'func': 'install_git', 'group': 'General', 'description': 'A distributed version control system.'},
-            {'type': 'essential', 'text': 'Set up Git Credential Management', 'func': 'setup_git_credential_management', 'group': 'Git Credentials', 'description': 'Sets up Git Credential Manager to securely store and manage Git credentials.'}, 
             {'type': 'essential', 'text': 'Install paru (AUR Helper)', 'func': 'install_paru', 'group': 'Package Managers', 'description': 'Installs paru, an AUR helper that simplifies installing and managing packages from the Arch User Repository.'},
             {'type': 'essential', 'text': 'Install Reflector and Enable Timer', 'func': 'install_reflector_and_enable_timer', 'group': 'System Optimization', 'description': 'Installs Reflector, a script to find the fastest Arch Linux mirror servers, and enables its systemd timer for automatic updates.'},
             {'type': 'essential', 'text': 'Install Chaotic AUR', 'func': f'bash {self.repo_dir}/cli/install_chaotic_aur.sh', 'group': 'Package Managers', 'description': 'Installs the Chaotic-AUR repository, providing a large collection of pre-built AUR packages.'},
+            {'type': 'essential', 'text': 'Set up Git Credential Management', 'func': 'setup_git_credential_management', 'group': 'Git Credentials', 'description': 'Sets up Git Credential Manager to securely store and manage Git credentials.'},
             {'type': 'essential', 'text': 'Install Fish Shell', 'func': 'install_fish', 'group': 'Shell (Fish)', 'description': 'Installs the Fish shell, a smart and user-friendly command line shell.'},
             {'type': 'essential', 'text': "Install end-4's Hyprland Dots", 'func': 'install_end4_hyprland_dots', 'group': 'Hyprland Core', 'description': 'Installs the core Hyprland configuration files and dependencies from end-4.'},
             {'type': 'essential', 'text': 'Load all configurations (GPU, cursor, etc)', 'func': f'bash {self.repo_dir}/cli/load_configs.sh', 'group': 'Hyprland Configuration', 'description': 'Loads and applies various system configurations, including GPU settings, cursor themes, and other dotfiles.'},
