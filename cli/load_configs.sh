@@ -196,6 +196,7 @@ main() {
 
     _log INFO "Reloading Hyprland configuration..."
     hyprctl reload 2>/dev/null || _log WARN "Hyprland is not running. Skipping reload."
+    bash "$REPO_DIR/cli/force_reload_quickshell.sh" || _log WARN "Failed to force reload QuickShell."
 
     echo "============================================================"
     _log SUCCESS "Configuration loading finished successfully."
