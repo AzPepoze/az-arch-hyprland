@@ -1,3 +1,4 @@
 scripts/rclone/*.log
 logs
 config.json
+__pycache__/

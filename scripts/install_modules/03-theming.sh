@@ -162,3 +162,10 @@ copy_thai_fonts_css() {
     cp -v "$source_file" "$dest_file"
     _log SUCCESS "Successfully copied thai_fonts.css to the Vesktop directory."
 }
+
+#-------------------------------------------------------
+# Qt5 Theming
+#-------------------------------------------------------
+install_qt5ct() {
+    install_paru_package "qt5ct" "Qt5 Configuration Tool"
+}
