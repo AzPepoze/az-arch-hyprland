@@ -2,3 +2,4 @@ scripts/rclone/*.log
 logs
 config.json
 __pycache__/
+dots-custom
