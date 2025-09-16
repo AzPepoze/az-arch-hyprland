@@ -137,6 +137,13 @@ def get_install_items(repo_dir):
             "description": "Installs Flatpak, a universal packaging system for Linux applications, providing sandboxed environments.",
         },
         {
+            "type": "essential",
+            "text": "Install `downgrade` utility",
+            "func": "install_downgrade",
+            "group": "Package Managers",
+            "description": "Installs `downgrade`, a utility to downgrade one or more packages to a version in your cache or from the Arch Linux Archive.",
+        },
+        {
             "type": "optional",
             "text": "Install npm",
             "func": "install_npm",

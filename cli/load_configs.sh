@@ -7,9 +7,9 @@
 
 set -e
 
-#-------------------------------------------------------
+#------------------------------------------------------- 
 # Configuration
-#-------------------------------------------------------
+#------------------------------------------------------- 
 # Get the directory of the current script (e.g., /home/azpepoze/az-arch-hyprland/cli)
 CURRENT_SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 # Get the parent directory of the current script (e.g., /home/azpepoze/az-arch-hyprland)
@@ -35,9 +35,9 @@ fi
 # Source loader helper functions
 source "$CURRENT_SCRIPT_DIR/load_helpers.sh"
 
-#-------------------------------------------------------
+#------------------------------------------------------- 
 # Load Configurations from a Source Directory
-#-------------------------------------------------------
+#------------------------------------------------------- 
 load_configs_from_source() {
     local source_dir=$1
     local label_suffix=$2 # e.g., " (custom)"
@@ -67,14 +67,14 @@ load_configs_from_source() {
         case "$base_type_name" in
             "home")
                 system_base_path="$HOME"
-                ;;
+                ;; 
             "etc")
                 system_base_path="/etc"
-                ;;
+                ;; 
             *)
                 _log WARN "Unknown base configuration type '$base_type_name'. Skipping."
                 continue
-                ;;
+                ;; 
         esac
 
         # Now iterate through all items (files and directories) within the base_type_dir
@@ -127,13 +127,109 @@ load_configs_from_source() {
     done
 }
 
-#-------------------------------------------------------
+#------------------------------------------------------- 
+# Update dots-hyprland
+#------------------------------------------------------- 
+update_dots_hyprland() {
+    echo
+    echo "============================================================="
+    echo " Updating dots-hyprland"
+    echo "============================================================="
+
+    local monitor_config_path="$HOME/.config/hypr/monitors.conf"
+    local temp_dir
+    temp_dir=$(mktemp -d)
+    local backup_monitor_config_path="$temp_dir/monitors.conf"
+
+    if [ -f "$monitor_config_path" ]; then
+        _log INFO "Backing up '$monitor_config_path'வுகளை..."
+        cp "$monitor_config_path" "$backup_monitor_config_path"
+    else
+        _log WARN "Warning: '$monitor_config_path' not found. Nothing to back up."
+    fi
+
+    if [ ! -d "$HOME/dots-hyprland" ]; then
+        _log WARN "dots-hyprland directory not found. Skipping dots-hyprland update."
+        _log INFO "Please install dots-hyprland first if you wish to update it."
+        return
+    fi
+
+    cd "$HOME/dots-hyprland" && git pull
+    _log SUCCESS "dots-hyprland repository updated."
+
+    if [ "$FULL_MODE" = true ]; then
+        _log INFO "Full mode enabled. Running full install..."
+        ./install.sh -c -f
+        _log SUCCESS "dots-hyprland full install finished."
+    else
+        _log INFO "Running unstable update (automated with expect)..."
+
+        if ! command -v expect &> /dev/null; then
+            _log ERROR "Error: 'expect' command not found."
+            _log INFO "This automation requires 'expect'. Please install it first."
+            _log INFO "On Arch Linux, you can run: sudo pacman -Syu expect"
+            cd - >/dev/null
+            return 1
+        fi
+
+        expect <<'END_OF_EXPECT'
+set timeout 120
+
+spawn bash update.sh -f
+
+expect {
+    timeout {
+        puts "\nError: Timeout waiting for the initial (y/N) prompt."
+        exit 1
+    }
+    -re "\[(y/N)\]:" {
+        send "y\r"
+    }
+}
+
+expect {
+    -re "Conflict detected:.*monitors\\.conf" {
+        expect -re "Enter your choice \\(1-7\\):" {
+            send "2\r"
+        }
+        exp_continue
+    }
+    -re "Enter your choice \\(1-7\\):" {
+        send "1\r"
+        exp_continue
+    }
+    eof {
+        exit 0
+    }
+    timeout {
+        puts "\nError: Timeout while waiting for a prompt or for the script to finish."
+        exit 1
+    }
+}
+END_OF_EXPECT
+
+        _log SUCCESS "dots-hyprland unstable update finished."
+    fi
+
+    cd - >/dev/null
+
+    if [ -f "$backup_monitor_config_path" ]; then
+        _log INFO "Restoring '$monitor_config_path'..."
+        mkdir -p "$(dirname "$monitor_config_path")"
+        cp "$backup_monitor_config_path" "$monitor_config_path"
+    fi
+    
+    rm -rf "$temp_dir"
+}
+
+#------------------------------------------------------- 
 # Main Logic
-#-------------------------------------------------------
+#------------------------------------------------------- 
 main() {
     # Default values for flags
     local skip_gpu=false
     local skip_cursor=false
+    local FULL_MODE=false
 
     # Parse command-line arguments
     for arg in "$@"; do
@@ -141,13 +237,20 @@ main() {
             --skip-gpu)
             skip_gpu=true
             shift
-            ;;
+            ;; 
             --skip-cursor)
             skip_cursor=true
             shift
-            ;;
+            ;; 
+            --full)
+            FULL_MODE=true
+            shift
+            ;; 
         esac
     done
+
+    # Update dots-hyprland if it exists
+    update_dots_hyprland
 
     # GPU Configuration
     if [ "$skip_gpu" = false ]; then
@@ -203,7 +306,7 @@ main() {
     echo "============================================================"
 }
 
-#-------------------------------------------------------
+#------------------------------------------------------- 
 # Script Execution
-#-------------------------------------------------------
+#------------------------------------------------------- 
 main "$@"

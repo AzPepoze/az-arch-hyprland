@@ -48,6 +48,15 @@ install_jq() {
 }
 
 #-------------------------------------------------------
+# downgrade utility Installation
+#-------------------------------------------------------
+install_downgrade() {
+    echo "Installing downgrade utility..."
+    install_paru_package "downgrade" "downgrade"
+    _log SUCCESS "downgrade utility installation completed successfully."
+}
+
+#-------------------------------------------------------
 # Git Credential Management Setup
 #-------------------------------------------------------
 setup_git_credential_management() {

@@ -5,20 +5,18 @@
 #-------------------------------------------------------
 AUTO_MODE=false
 SKIP_CODE_INSIDERS=false
+LOAD_CONFIGS_ARGS=()
 
 for arg in "$@"; do
     case $arg in
         --auto) 
             AUTO_MODE=true
-            shift
             ;; 
         --skip-code-insiders) 
             SKIP_CODE_INSIDERS=true
-            shift
             ;; 
         *) 
-            # Unknown option
-            shift
+            LOAD_CONFIGS_ARGS+=("$arg")
             ;; 
     esac
 done
@@ -155,111 +153,7 @@ load_v4l2loopback_module() {
     _log SUCCESS "v4l2loopback module loaded."
 }
 
-update_dots_hyprland() {
-    echo
-    echo "============================================================="
-    echo " Updating dots-hyprland"
-    echo "============================================================="
 
-    local monitor_config_path="$HOME/.config/hypr/monitors.conf"
-    local temp_dir
-    temp_dir=$(mktemp -d)
-    local backup_monitor_config_path="$temp_dir/monitors.conf"
-
-    if [ -f "$monitor_config_path" ]; then
-        _log INFO "Backing up '$monitor_config_path'..."
-        cp "$monitor_config_path" "$backup_monitor_config_path"
-    else
-        _log WARN "Warning: '$monitor_config_path' not found. Nothing to back up."
-    fi
-
-    if [ ! -d "$HOME/dots-hyprland" ]; then
-        _log WARN "dots-hyprland directory not found. Skipping dots-hyprland update."
-        _log INFO "Please install dots-hyprland first if you wish to update it."
-        return
-    fi
-
-    cd "$HOME/dots-hyprland" && git pull
-    _log SUCCESS "dots-hyprland repository updated."
-
-    local update_choice
-    if [ "$AUTO_MODE" = true ]; then
-        _log INFO "Auto mode enabled. Selecting 'Update (unstable)'."
-        update_choice=2
-    else
-        _log INFO "Please choose the update type:"
-        _log INFO "  1) Install (fully update)"
-        _log INFO "  2) Update (unstable)"
-        read -p "Enter your choice [1-2]: " update_choice
-    fi
-
-    case $update_choice in
-        1) 
-            _log INFO "Running full install..."
-            ./install.sh -c -f
-            _log SUCCESS "dots-hyprland updated successfully."
-            ;; 
-        2)
-            _log INFO "Running unstable update (automated with expect)..."
-
-            if ! command -v expect &> /dev/null; then
-                _log ERROR "Error: 'expect' command not found."
-                _log INFO "This automation requires 'expect'. Please install it first."
-                _log INFO "On Arch Linux, you can run: sudo pacman -Syu expect"
-                cd - >/dev/null
-                return 1
-            fi
-
-            expect <<'END_OF_EXPECT'
-set timeout 120
-
-spawn bash update.sh -f
-
-expect {
-    timeout {
-        puts "\nError: Timeout waiting for the initial (y/N) prompt."
-        exit 1
-    }
-    -re "\[(y/N)\]:" {
-        send "y\r"
-    }
-}
-
-expect {
-    -re "Conflict detected:.*monitors\\.conf" {
-        expect -re "Enter your choice \\(1-7\\):" {
-            send "2\r"
-        }
-        exp_continue
-    }
-    -re "Enter your choice \\(1-7\\):" {
-        send "1\r"
-        exp_continue
-    }
-    eof {
-        exit 0
-    }
-    timeout {
-        puts "\nError: Timeout while waiting for a prompt or for the script to finish."
-        exit 1
-    }
-}
-END_OF_EXPECT
-
-            _log SUCCESS "dots-hyprland update process finished."
-            ;; 
-        *) 
-            _log WARN "Invalid choice. Skipping dots-hyprland script execution."
-            ;; 
-    esac
-    cd - >/dev/null
-
-    if [ -f "$backup_monitor_config_path" ]; then
-        _log INFO "Restoring '$monitor_config_path'..."
-        mkdir -p "$(dirname "$monitor_config_path")"
-        cp "$backup_monitor_config_path" "$monitor_config_path"
-    fi
-}
 
 
 load_configs() {
@@ -269,30 +163,13 @@ load_configs() {
     echo "============================================================="
 
     local config_script="./cli/load_configs.sh"
-    local gpu_conf_file="$HOME/.config/hypr/gpu.conf"
-    local skip_gpu_flag=""
-
-    # Validate existing GPU configuration before loading
-    local check_gpu_script="$repo_dir/scripts/utils/check_valid_gpu.sh"
-    _log INFO "Validating existing GPU configuration..."
-    if bash "$check_gpu_script"; then
-        _log SUCCESS "Existing GPU configuration is valid. Skipping GPU selection."
-        skip_gpu_flag="--skip-gpu"
-    else
-        _log WARN "Existing GPU configuration is invalid. GPU selection will be required during config load."
-    fi
 
     if [ -f "$config_script" ]; then
-        if [ "$AUTO_MODE" = true ]; then
-            bash "$config_script" "$skip_gpu_flag" --skip-cursor
-        else
-            bash "$config_script"
-        fi
+        # Pass filtered arguments to load_configs.sh
+        bash "$config_script" "${LOAD_CONFIGS_ARGS[@]}"
     else
         _log WARN "'$config_script' not found. Skipping config load."
     fi
-
-    rm -rf "$temp_dir"
     _log SUCCESS "Configuration load process finished."
 }
 
@@ -315,7 +192,6 @@ fix_vscode_permissions
 update_flatpak
 update_gemini_cli
 load_v4l2loopback_module
-update_dots_hyprland
 load_configs
 bash ./cli/cleanup.sh
 
