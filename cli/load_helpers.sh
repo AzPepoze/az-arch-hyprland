@@ -185,7 +185,7 @@ patch_quickshell_background() {
     if [ -f "$qml_file" ]; then
         _log INFO "Found QuickShell Background.qml at '$qml_file'. Patching..."
         sed -i 's#visible: opacity > 0#visible: false // opacity > 0#g' "$qml_file"
-        sed -i 's#CF.ColorUtils.mix(Appearance.colors.colLayer0, Appearance.colors.colPrimary, 0.75)#"transparent" // CF.ColorUtils.mix(Appearance.colors.colLayer0, Appearance.colors.colPrimary, 0.75)#' "$qml_file"
+        sed -i 's#CF.ColorUtils.transparentize(CF.ColorUtils.mix(Appearance.colors.colLayer0, Appearance.colors.colPrimary, 0.75), (bgRoot.wallpaperIsVideo ? 1 : 0))#"transparent"#' "$qml_file"
         # sed -i '/clockX/s/leftMargin:.*/leftMargin: implicitWidth \/ 2/' "$qml_file"
         # sed -i '/clockY/s/topMargin:.*/topMargin: implicitHeight/' "$qml_file"
         _log SUCCESS "Successfully patched QuickShell Background.qml."
