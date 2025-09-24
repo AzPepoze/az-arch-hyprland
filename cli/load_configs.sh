@@ -175,7 +175,7 @@ update_dots_hyprland() {
         expect <<'END_OF_EXPECT'
 set timeout 120
 
-spawn bash update.sh -f
+spawn bash update.sh
 
 expect {
     timeout {
@@ -230,6 +230,7 @@ main() {
     local skip_gpu=false
     local skip_cursor=false
     local FULL_MODE=false
+    local POST_INSTALL_MODE=false
 
     # Parse command-line arguments
     for arg in "$@"; do
@@ -246,6 +247,10 @@ main() {
             FULL_MODE=true
             shift
             ;; 
+            --post)
+            POST_INSTALL_MODE=true
+            shift
+            ;;
         esac
     done
 
@@ -270,6 +275,11 @@ main() {
     local USER_MODEL
     USER_MODEL=$(get_user_model)
     _log INFO "User model detected: $USER_MODEL"
+
+    # Load custom configurations first if in post-install mode
+    if [ "$POST_INSTALL_MODE" = true ]; then
+        load_configs_from_source "$REPO_DIR/dots/post-install" " (post-install)"
+    fi
 
     # Load base configurations
     load_configs_from_source "$REPO_DIR/dots/base" " (base)"
