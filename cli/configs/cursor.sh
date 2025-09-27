@@ -38,15 +38,17 @@ update_cursor_conf() {
     local theme=$1
     local size=$2
 
+    local cursor_conf_file="$CONFIGS_DIR_SYSTEM/.config/hypr/cursor.conf"
+    mkdir -p "$(dirname "$cursor_conf_file")"
+
     if [ -z "$theme" ]; then
-        _log WARN "No cursor theme provided. Skipping cursor.conf generation."
+        _log INFO "No cursor theme provided. Creating blank cursor.conf."
+        cat /dev/null > "$cursor_conf_file"
+        _log SUCCESS "Successfully created blank '$cursor_conf_file'."
         return
     fi
     
     _log INFO "Updating cursor configuration..."
-
-    local cursor_conf_file="$CONFIGS_DIR_SYSTEM/.config/hypr/cursor.conf"
-    mkdir -p "$(dirname "$cursor_conf_file")"
 
     # Write the configuration to the file
     cat > "$cursor_conf_file" <<- EOL
@@ -79,14 +81,20 @@ configure_cursor_theme() {
         return 1
     fi
 
+    themes+=("None")
     themes+=("Exit")
 
     echo "Select the cursor theme to install:" >&2
     select theme_name in "${themes[@]}"; do
         case "$theme_name" in
+            "None")
+                echo "No cursor theme selected. Creating blank configuration." >&2
+                echo "" # Return empty string to main
+                return 0
+                ;;
             "Exit")
                 echo "Exiting without installation." >&2
-                return 0
+                return 1
                 ;;
             *)
                 if [[ " ${themes[*]} " =~ " ${theme_name} " ]]; then
@@ -117,10 +125,12 @@ main() {
     local selected_cursor_theme
     selected_cursor_theme=$(configure_cursor_theme)
 
-    if [ -n "$selected_cursor_theme" ]; then
+    local configure_status=$?
+
+    if [ "$configure_status" -eq 0 ]; then
         update_cursor_conf "$selected_cursor_theme" "24" # Default cursor size is 24
     else
-        _log INFO "No cursor theme selected or installation was exited. Skipping update."
+        _log INFO "Cursor configuration was exited. No changes made."
     fi
 }
 
