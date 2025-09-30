@@ -177,7 +177,7 @@ load_configs() {
 # Script Execution
 #-------------------------------------------------------
 
-fastfetch
+# fastfetch
 
 update_repo
 

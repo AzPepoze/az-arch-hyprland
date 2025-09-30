@@ -12,6 +12,11 @@ install_dependencies() {
         sudo pacman -S --noconfirm python-pyqt6
     fi
 
+    if ! command -v fastfetch &> /dev/null; then
+        echo "fastfetch not found. Installing..."
+        sudo pacman -S --noconfirm fastfetch
+    fi
+
     echo "Dependencies check complete."
 }
 
@@ -20,24 +25,27 @@ install_dependencies
 #-------------------------------------------------------
 # Menu Display
 #-------------------------------------------------------
+
 show_menu() {
-    echo "========================================"
-    echo "  Az Arch Hyprland Management Script  "
-    echo "========================================"
-    echo "Please choose an option:"
-    echo "  1) Run Installer"
-    echo "  2) Open Configuration Editor"
-    echo "  3) Load Dotfile Configurations"
-    echo "  4) Update"
-    echo "  5) Update (Full)"
-    echo "  q) Quit"
-    echo "----------------------------------------"
+    fastfetch
+    echo -e "\e[1m\e[34m========================================\e[0m"
+    echo -e "\e[1m\e[32m  Az Arch Hyprland Management Script  \e[0m"
+    echo -e "\e[1m\e[34m========================================\e[0m"
+    echo -e "\e[1mPlease choose an option:\e[0m"
+    echo -e "  \e[32m1)\e[0m Run Installer"
+    echo -e "  \e[32m2)\e[0m Open Configuration Editor"
+    echo -e "  \e[32m3)\e[0m Load Dotfile Configurations"
+    echo -e "  \e[32m4)\e[0m Update"
+    echo -e "  \e[32m5)\e[0m Update (Full)"
+    echo -e "  \e[32mq)\e[0m Quit"
+    echo -e "\e[1m\e[34m----------------------------------------\e[0m"
 }
 
 #-------------------------------------------------------
 # Main Script Logic
 #-------------------------------------------------------
 while true; do
+    clear # Clear the screen before showing the menu
     show_menu
     read -p "Enter your choice [1-5, q]: " choice
 
@@ -50,7 +58,6 @@ while true; do
         2)
             echo "Starting Configuration Editor..."
             python scripts/config.py
-            break
             ;;
         3)
             echo "Loading configurations..."
@@ -72,6 +79,11 @@ while true; do
             ;;
         5)
             echo "Starting Full Update..."
+            if [ -f "cli/rank-mirrors.sh" ]; then
+                bash cli/rank-mirrors.sh
+            else
+                echo "Error: cli/rank-mirrors.sh not found!"
+            fi
             if [ -f "update.sh" ]; then
                 bash update.sh --full
             else

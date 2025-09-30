@@ -152,24 +152,42 @@ class ConfigApp(QWidget):
 
         try:
             # Save the file
-            with open(self.config_path, 'w') as f:
+            with open(self.config_path, "w") as f:
                 json.dump(updated_data, f, indent=4)
             self.config_data = updated_data
 
             # Run the script
-            script_path = os.path.join(self.repo_dir, 'cli', 'load_configs.sh')
+            script_path = os.path.join(
+                self.repo_dir, "cli", "load_configs.sh --skip-gpu --skip-cursor"
+            )
             if not os.path.exists(script_path):
-                QMessageBox.warning(self, "Warning", "Configuration saved, but load_configs.sh not found. Please run it manually.")
+                QMessageBox.warning(
+                    self,
+                    "Warning",
+                    "Configuration saved, but load_configs.sh not found. Please run it manually.",
+                )
                 return
 
             try:
                 # Launch the script in a new kitty terminal
-                subprocess.Popen(['kitty', '-e', 'bash', script_path])
-                QMessageBox.information(self, "Success", "Configuration saved. Reloading in a new terminal window.")
+                subprocess.Popen(["kitty", "-e", "bash", script_path])
+                QMessageBox.information(
+                    self,
+                    "Success",
+                    "Configuration saved. Reloading in a new terminal window.",
+                )
             except FileNotFoundError:
-                QMessageBox.warning(self, "Terminal Not Found", "Configuration saved, but 'kitty' terminal was not found. Please run 'load_configs.sh' manually.")
+                QMessageBox.warning(
+                    self,
+                    "Terminal Not Found",
+                    "Configuration saved, but 'kitty' terminal was not found. Please run 'load_configs.sh' manually.",
+                )
             except Exception as e:
-                QMessageBox.critical(self, "Launch Error", f"Configuration saved, but failed to open new terminal.\n\nError: {e}")
+                QMessageBox.critical(
+                    self,
+                    "Launch Error",
+                    f"Configuration saved, but failed to open new terminal.\n\nError: {e}",
+                )
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save configuration: {e}")
@@ -185,7 +203,11 @@ class ConfigApp(QWidget):
 
         if reply == QMessageBox.StandardButton.Yes:
             self.load_config(from_defaults=True)
-            QMessageBox.information(self, "Defaults Loaded", "Default settings have been loaded. Please click 'Save Changes' to apply them.")
+            QMessageBox.information(
+                self,
+                "Defaults Loaded",
+                "Default settings have been loaded. Please click 'Save Changes' to apply them.",
+            )
 
 
 def main():
