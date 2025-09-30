@@ -11,11 +11,11 @@ cleanup_system_packages() {
     echo "============================================================="
     if command -v paru &> /dev/null; then
         echo "Removing orphan packages..."
-        paru -c --noconfirm
+        yes | paru -c
 
         echo
         echo "Cleaning package cache..."
-        paru -Sccd --noconfirm
+        yes | paru -Sccd
     else
         echo "paru command not found. Skipping system package cleanup."
     fi
