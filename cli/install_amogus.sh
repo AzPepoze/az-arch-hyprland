@@ -7,6 +7,19 @@ DEST_FILE="$DEST_DIR/amogus"
 
 echo "Starting installation of amogus..."
 
+# Check if cowsay is installed, if not, install it using paru
+if ! command -v cowsay &> /dev/null
+then
+    echo "cowsay not found. Installing cowsay using paru..."
+    paru -S cowsay --noconfirm
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to install cowsay. Please check paru installation and permissions."
+        exit 1
+    fi
+else
+    echo "cowsay is already installed."
+fi
+
 # Check if the source file exists
 if [ ! -f "$SOURCE_FILE" ]; then
     echo "Error: Source file '$SOURCE_FILE' not found."
