@@ -157,9 +157,7 @@ class ConfigApp(QWidget):
             self.config_data = updated_data
 
             # Run the script
-            script_path = os.path.join(
-                self.repo_dir, "cli", "load_configs.sh --skip-gpu --skip-cursor"
-            )
+            script_path = os.path.join(self.repo_dir, "cli", "load_configs.sh")
             if not os.path.exists(script_path):
                 QMessageBox.warning(
                     self,
@@ -170,7 +168,9 @@ class ConfigApp(QWidget):
 
             try:
                 # Launch the script in a new kitty terminal
-                subprocess.Popen(["kitty", "-e", "bash", script_path])
+                subprocess.Popen(
+                    ["kitty", "-e", "bash", script_path, "--skip-gpu", "--skip-cursor"]
+                )
                 QMessageBox.information(
                     self,
                     "Success",

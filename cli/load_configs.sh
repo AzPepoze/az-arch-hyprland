@@ -175,7 +175,7 @@ update_dots_hyprland() {
         expect <<'END_OF_EXPECT'
 set timeout 120
 
-spawn bash update.sh
+spawn bash update.sh -f
 
 expect {
     timeout {
