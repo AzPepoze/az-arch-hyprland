@@ -1,0 +1,110 @@
+configuration {
+    modi:                    "drun";
+    show-icons:              true;
+    icon-theme:              "Papirus";
+    drun-display-format:     "{name}";
+    fullscreen:              false;
+    scroll-method:           0;
+}
+
+* {
+    background:              argb:901A1B26;
+    input-bar:               argb:CC24283B;
+    text-main:               #ECEFF4;
+    text-faded:              #c0cbfbff;
+    tile-hover:              #414868;
+    tile-active:             #E0E0E0;
+    separator-color:         @text-faded;
+    background-color:        transparent;
+    font:                    "sans 11";
+    border:                  0;
+}
+
+window {
+    background-color:        @background;
+    width:                   90%;
+    height:                  90%;
+
+    border-radius:           12px;
+    border-color:            @tile-hover;
+}
+
+mainbox {
+    children:                [ inputbar, listview ];
+    spacing:                 2.5%;
+    padding:                 4% 6%;
+}
+
+inputbar {
+    children:                [ entry ];
+    background-color:        @input-bar;
+    border-radius:           12px;
+    padding:                 12px;
+    margin:                  0 32%;
+    border:                  2px;
+    border-color:            @tile-hover;
+}
+
+entry {
+    placeholder:             "Filter applications...";
+    placeholder-color:       @text-faded;
+    text-color:              @text-main;
+    horizontal-align:        0.5;
+}
+
+listview {
+    columns:                 6;
+    lines:                   5;
+    layout:                  vertical;
+    cycle:                   true;
+    dynamic:                 true;
+    spacing:                 1.5%;
+    scrollbar:               false;
+    border:                  0 0 0 0;
+    border-color:            @separator-color;
+    margin:                  0 0 0 0;
+}
+
+element {
+    orientation:             vertical;
+    padding:                 12px;
+    border-radius:           16px;
+}
+
+element-icon {
+    size:                    42px;
+    margin:                  10px;
+}
+
+element-text {
+    horizontal-align:        0.5;
+    vertical-align:          0.5;
+}
+
+element normal.normal {
+    background-color:        transparent;
+    text-color:              @text-faded;
+}
+
+element selected.normal {
+    background-color:        @tile-hover;
+    text-color:              @text-main;
+}
+
+element alternate.normal,
+element alternate.active {
+    background-color:        transparent;
+    text-color:              @text-faded;
+}
+
+element normal.active {
+    background-color:        @tile-active;
+    text-color:              @text-faded;
+    border:                  2px;
+    border-color:            @tile-hover;
+}
+
+element selected.active {
+    background-color:        @tile-hover;
+    text-color:              @text-main;
+}
