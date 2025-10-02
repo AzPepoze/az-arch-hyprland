@@ -25,6 +25,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from installer_components.install_data import get_install_items
 from installer_components.stylesheet import get_stylesheet
+from installer_components.installer_core import InstallerCore
 
 
 # -------------------------------------------------------
@@ -34,11 +35,10 @@ class InstallerApp(QWidget):
     def __init__(self):
         super().__init__()
         self.repo_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        self.installation_items = []
+        self.installer_core = InstallerCore(self.repo_dir)
         self.all_list_widgets = []
         self.grid_columns = 2
 
-        self.populate_install_items()
         self.init_ui()
         self._apply_stylesheet()  # Apply custom styles
 
@@ -112,7 +112,7 @@ class InstallerApp(QWidget):
     def populate_tabs_and_groups(self):
         tabs_data = defaultdict(lambda: defaultdict(list))
         current_tab_name = "Unknown"
-        for item_data in self.installation_items:
+        for item_data in self.installer_core.get_display_items():
             if item_data["type"] == "header":
                 current_tab_name = item_data["text"].replace("---", "").strip()
             else:
@@ -153,6 +153,7 @@ class InstallerApp(QWidget):
 
                 list_widget = QListWidget()
                 list_widget.setMinimumHeight(200)
+                list_widget.itemChanged.connect(self._on_item_checked)
                 self.all_list_widgets.append(list_widget)
 
                 for item_data in items_in_group:
@@ -170,7 +171,10 @@ class InstallerApp(QWidget):
                     list_item.setFlags(
                         list_item.flags() | Qt.ItemFlag.ItemIsUserCheckable
                     )
-                    list_item.setCheckState(Qt.CheckState.Unchecked)
+                    # Set initial check state from InstallerCore
+                    list_item.setCheckState(
+                        Qt.CheckState.Checked if item_data["is_selected"] else Qt.CheckState.Unchecked
+                    )
                     list_widget.addItem(list_item)
 
                 group_box_layout.addWidget(list_widget)
@@ -185,8 +189,12 @@ class InstallerApp(QWidget):
             tab_layout.setRowStretch(current_row + 1, 1)
             self.tab_widget.addTab(tab_content_widget, tab_name)
 
-    def populate_install_items(self):
-        self.installation_items = get_install_items(self.repo_dir)
+    def _on_item_checked(self, item):
+        item_data = item.data(Qt.ItemDataRole.UserRole)
+        if item_data and "_id" in item_data:
+            is_selected = item.checkState() == Qt.CheckState.Checked
+            self.installer_core.update_item_selection(item_data["_id"], is_selected)
+
 
     # -------------------------------------------------------
     # Core Logic & Event Handlers
@@ -221,20 +229,7 @@ class InstallerApp(QWidget):
             )
 
     def _get_selected_commands(self):
-        selected_funcs = set()
-        for list_widget in self.all_list_widgets:
-            for i in range(list_widget.count()):
-                item = list_widget.item(i)
-                if item.checkState() == Qt.CheckState.Checked:
-                    item_data = item.data(Qt.ItemDataRole.UserRole)
-                    if item_data and "func" in item_data:
-                        selected_funcs.add(item_data["func"])
-
-        ordered_commands = []
-        for item_data in self.installation_items:
-            if "func" in item_data and item_data["func"] in selected_funcs:
-                ordered_commands.append(item_data["func"])
-        return ordered_commands
+        return self.installer_core.get_selected_commands()
 
     def _generate_install_script(self, commands):
         modules_dir = os.path.join(self.repo_dir, "scripts", "install_modules")
@@ -305,30 +300,59 @@ run_command() {
     # Selection Methods
     # -------------------------------------------------------
     def select_essential(self):
-        self._set_all_items_checked(False)
-        for list_widget in self.all_list_widgets:
-            for i in range(list_widget.count()):
-                item = list_widget.item(i)
-                item_data = item.data(Qt.ItemDataRole.UserRole)
-                if item_data and item_data["type"] == "essential":
-                    item.setCheckState(Qt.CheckState.Checked)
+        self.installer_core.select_essential()
+        self._refresh_ui_selections()
 
     def select_essential_laptop(self):
-        self._set_all_items_checked(False)
-        for list_widget in self.all_list_widgets:
-            for i in range(list_widget.count()):
-                item = list_widget.item(i)
-                item_data = item.data(Qt.ItemDataRole.UserRole)
-                if item_data and item_data["type"] in ["essential", "essential_laptop"]:
-                    item.setCheckState(Qt.CheckState.Checked)
+        self.installer_core.select_essential_laptop()
+        self._refresh_ui_selections()
 
     def _set_all_items_checked(self, is_checked):
-        check_state = Qt.CheckState.Checked if is_checked else Qt.CheckState.Unchecked
+        if is_checked:
+            self.installer_core.select_all()
+        else:
+            self.installer_core.deselect_all()
+        self._refresh_ui_selections()
+
+    def _refresh_ui_selections(self):
+        # Temporarily block signals to prevent _on_item_checked from being called
+        # repeatedly during UI refresh.
         for list_widget in self.all_list_widgets:
-            for i in range(list_widget.count()):
-                item = list_widget.item(i)
-                if item.flags() & Qt.ItemFlag.ItemIsUserCheckable:
-                    item.setCheckState(check_state)
+            list_widget.blockSignals(True)
+
+        for item_data in self.installer_core.get_display_items():
+            if item_data["type"] != "header":
+                for list_widget in self.all_list_widgets:
+                    for i in range(list_widget.count()):
+                        list_item = list_widget.item(i)
+                        # Ensure we are comparing the correct item_data
+                        if list_item.data(Qt.ItemDataRole.UserRole).get("_id") == item_data.get("_id"):
+                            check_state = Qt.CheckState.Checked if item_data["is_selected"] else Qt.CheckState.Unchecked
+                            list_item.setCheckState(check_state)
+                            break # Found the item, move to next item_data
+
+        for list_widget in self.all_list_widgets:
+            list_widget.blockSignals(False)
+
+
+    def _refresh_ui_selections(self):
+        # Temporarily block signals to prevent _on_item_checked from being called
+        # repeatedly during UI refresh.
+        for list_widget in self.all_list_widgets:
+            list_widget.blockSignals(True)
+
+        for item_data in self.installer_core.get_display_items():
+            if item_data["type"] != "header":
+                for list_widget in self.all_list_widgets:
+                    for i in range(list_widget.count()):
+                        list_item = list_widget.item(i)
+                        if list_item.data(Qt.ItemDataRole.UserRole).get("_id") == item_data.get("_id"):
+                            check_state = Qt.CheckState.Checked if item_data["is_selected"] else Qt.CheckState.Unchecked
+                            list_item.setCheckState(check_state)
+                            break # Found the item, move to next item_data
+
+        for list_widget in self.all_list_widgets:
+            list_widget.blockSignals(False)
 
 
 # -------------------------------------------------------

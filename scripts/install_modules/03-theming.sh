@@ -169,3 +169,18 @@ copy_thai_fonts_css() {
 install_qt5ct() {
     install_paru_package "qt5ct" "Qt5 Configuration Tool"
 }
+
+install_nwg_look() {
+    _log INFO "Installing nwg-look..."
+    install_paru_package "nwg-look" "nwg-look"
+}
+
+install_qt6ct() {
+    _log INFO "Installing qt6ct..."
+    install_paru_package "qt6ct" "qt6ct"
+}
+
+install_rofi() {
+    _log INFO "Installing Rofi..."
+    install_paru_package "rofi" "Rofi"
+}

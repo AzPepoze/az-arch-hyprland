@@ -114,9 +114,6 @@ install_coolercontrol() {
     _log SUCCESS "coolercontrold.service enabled."
 }
 
-install_power_options() {
-     install_paru_package "power-options-gtk" "Power Options"
-}
 
 install_mission_center() {
      install_paru_package "mission-center" "Mission Center"

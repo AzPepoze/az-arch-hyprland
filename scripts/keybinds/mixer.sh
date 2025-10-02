@@ -10,17 +10,17 @@ PROJECT_ROOT="$DIR/../.."
 HELPER_SCRIPT="$PROJECT_ROOT/scripts/install_modules/helpers.sh"
 source "$HELPER_SCRIPT"
 
-if pgrep -x "pavucontrol" >/dev/null; then
+if pgrep -x "pavucontrol-qt" >/dev/null; then
     echo "Pavucontrol is running. Killing it..."
-    killall pavucontrol
+    killall pavucontrol-qt
     _log SUCCESS "Pavucontrol killed."
 else
     echo "Pavucontrol is not running. Launching it..."
-    pavucontrol &
+    pavucontrol-qt &
 
     local window_address=""
     for i in {1..50}; do
-        window_address=$(hyprctl -j clients | jq -r '.[] | select(.class | test("pavucontrol"; "i")) | .address')
+        window_address=$(hyprctl -j clients | jq -r '.[] | select(.class | test("pavucontrol-qt"; "i")) | .address')
         if [ -n "$window_address" ]; then
             echo "Pavucontrol window found at address: $window_address"
             break

@@ -11,11 +11,12 @@ def get_install_items(repo_dir):
         },
         {
             "type": "essential",
-            "text": "Install Reflector and Enable Timer",
-            "func": "install_reflector_and_enable_timer",
+            "text": "Install rate-mirrors and Rank Mirrors",
+            "func": "install_rate_mirrors_and_rank",
             "group": "System Optimization",
-            "description": "Installs Reflector, a script to find the fastest Arch Linux mirror servers, and enables its systemd timer for automatic updates.",
+            "description": "Installs rate-mirrors and then runs the script to rank Arch Linux mirrors for optimal performance.",
         },
+
         {
             "type": "essential",
             "text": "Install Chaotic AUR",
@@ -166,7 +167,7 @@ def get_install_items(repo_dir):
             "description": "Installs inotify-tools, a set of command-line programs for monitoring filesystem events.",
         },
         {
-            "type": "essential_laptop",
+            "type": "essential",
             "text": "Install Power Options (TLP)",
             "func": "install_power_options",
             "group": "Power Management",
@@ -182,10 +183,24 @@ def get_install_items(repo_dir):
         {"type": "header", "text": "--- Desktop & Theming ---"},
         {
             "type": "essential",
+            "text": "Install nwg-look",
+            "func": "install_nwg_look",
+            "group": "Hyprland Utilities",
+            "description": "Installs nwg-look, a GTK settings editor for Wayland.",
+        },
+        {
+            "type": "essential",
             "text": "Install qt5ct",
             "func": "install_qt5ct",
             "group": "Qt Theming",
             "description": "Installs qt5ct, a tool to configure Qt5 application appearance.",
+        },
+        {
+            "type": "essential",
+            "text": "Install qt6ct",
+            "func": "install_qt6ct",
+            "group": "Qt Theming",
+            "description": "Installs qt6ct, a tool to configure Qt6 application appearance.",
         },
         {
             "type": "essential",
@@ -209,6 +224,13 @@ def get_install_items(repo_dir):
             "description": "Installs the Catppuccin theme for the Fish shell, providing a visually pleasing command-line experience.",
         },
         {"type": "header", "text": "--- Applications ---"},
+        {
+            "type": "essential",
+            "text": "Install Rofi",
+            "func": "install_rofi",
+            "group": "Application Launcher",
+            "description": "Installs Rofi, a window switcher, application launcher, and dmenu replacement.",
+        },
         {
             "type": "essential",
             "text": "Install Ulauncher Catppuccin Theme",
@@ -429,7 +451,7 @@ def get_install_items(repo_dir):
         },
         {
             "type": "optional",
-            "text": "Install Linux Wallpaper Engine GUI (Manual)",
+            "text": "Install Linux Wallpaper Engine GUI",
             "func": "install_wallpaper_engine_gui_manual",
             "group": "Wallpaper Engine",
             "description": "Provides instructions for manually installing the GUI for Linux Wallpaper Engine.",

@@ -147,18 +147,36 @@ install_ananicy_cpp() {
     _log SUCCESS "ananicy-cpp installed and enabled."
 }
 
-install_reflector_and_enable_timer() {
-    echo "Installing reflector..."
-    paru -S --needed --noconfirm reflector
+install_power_options() {
+    _log INFO "Installing Power Options (TLP) and removing conflicting packages..."
 
-    echo "Enabling reflector.timer..."
-    sudo systemctl enable reflector.timer
+    local conflicting_packages=("power-profiles-daemon" "auto-cpufreq")
 
-    echo "Starting reflector.timer..."
-    sudo systemctl start reflector.timer
+    for pkg in "${conflicting_packages[@]}"; do
+        if pacman -Qs "$pkg" > /dev/null; then
+            _log WARN "Conflicting package '$pkg' found. Removing..."
+            sudo pacman -Rns --noconfirm "$pkg"
+        fi
+    done
 
-    echo "Reflector installation and timer setup complete."
+    install_paru_package "tlp" "TLP"
+    install_paru_package "tlp-rdw" "TLP Radio Device Wizard"
+
+    _log INFO "Enabling and starting tlp.service..."
+    sudo systemctl enable --now tlp.service
+    _log SUCCESS "TLP installed and configured. Conflicting packages removed."
 }
+
+install_rate_mirrors_and_rank() {
+    _log INFO "Installing rate-mirrors..."
+    install_paru_package "rate-mirrors" "rate-mirrors"
+
+    _log INFO "Running cli/rank-mirrors.sh to rank mirrors..."
+    bash "$repo_dir/cli/rank-mirrors.sh"
+    _log SUCCESS "rate-mirrors installed and mirrors ranked."
+}
+
+
 
 #-------------------------------------------------------
 # Group: System Configuration - GRUB
