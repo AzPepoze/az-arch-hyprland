@@ -83,8 +83,10 @@ load_configs_from_source() {
             local relative_path="${item#$base_type_dir/}" # Path relative to base_type_dir
             local system_dest_path=""
 
+            echo $relative_path
+
             # Special handling for .gemini folder (which is under home/gemini)
-            if [[ "$relative_path" == "home/gemini"* ]]; then
+            if [[ "$relative_path" == "gemini"* ]]; then
                 local gemini_repo_path="$source_dir/home/gemini"
                 local gemini_system_dest_path="$system_base_path/.gemini" # This will be $HOME/.gemini
 
