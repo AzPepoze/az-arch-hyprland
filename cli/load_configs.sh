@@ -7,9 +7,9 @@
 
 set -e
 
-#------------------------------------------------------- 
+#-------------------------------------------------------
 # Configuration
-#------------------------------------------------------- 
+#-------------------------------------------------------
 # Get the directory of the current script (e.g., /home/azpepoze/az-arch-hyprland/cli)
 CURRENT_SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 # Get the parent directory of the current script (e.g., /home/azpepoze/az-arch-hyprland)
@@ -35,9 +35,9 @@ fi
 # Source loader helper functions
 source "$CURRENT_SCRIPT_DIR/load_helpers.sh"
 
-#------------------------------------------------------- 
+#-------------------------------------------------------
 # Load Configurations from a Source Directory
-#------------------------------------------------------- 
+#-------------------------------------------------------
 load_configs_from_source() {
     local source_dir=$1
     local label_suffix=$2 # e.g., " (custom)"
@@ -67,14 +67,14 @@ load_configs_from_source() {
         case "$base_type_name" in
             "home")
                 system_base_path="$HOME"
-                ;; 
+                ;;
             "etc")
                 system_base_path="/etc"
-                ;; 
+                ;;
             *)
                 _log WARN "Unknown base configuration type '$base_type_name'. Skipping."
                 continue
-                ;; 
+                ;;
         esac
 
         # Now iterate through all items (files and directories) within the base_type_dir
@@ -129,9 +129,9 @@ load_configs_from_source() {
     done
 }
 
-#------------------------------------------------------- 
+#-------------------------------------------------------
 # Update dots-hyprland
-#------------------------------------------------------- 
+#-------------------------------------------------------
 update_dots_hyprland() {
     echo
     echo "============================================================="
@@ -177,7 +177,7 @@ update_dots_hyprland() {
         expect <<'END_OF_EXPECT'
 set timeout 120
 
-spawn bash update.sh -f
+spawn bash ./setup exp-update -f
 
 expect {
     timeout {
@@ -191,12 +191,12 @@ expect {
 
 expect {
     -re "Conflict detected:.*monitors\\.conf" {
-        expect -re "Enter your choice \\(1-7\\):" {
+        expect -re "Enter your choice \\(1-8\\):" {
             send "2\r"
         }
         exp_continue
     }
-    -re "Enter your choice \\(1-7\\):" {
+    -re "Enter your choice \\(1-8\\):" {
         send "1\r"
         exp_continue
     }
@@ -220,13 +220,13 @@ END_OF_EXPECT
         mkdir -p "$(dirname "$monitor_config_path")"
         cp "$backup_monitor_config_path" "$monitor_config_path"
     fi
-    
+
     rm -rf "$temp_dir"
 }
 
-#------------------------------------------------------- 
+#-------------------------------------------------------
 # Main Logic
-#------------------------------------------------------- 
+#-------------------------------------------------------
 main() {
     # Default values for flags
     local skip_gpu=false
@@ -240,15 +240,15 @@ main() {
             --skip-gpu)
             skip_gpu=true
             shift
-            ;; 
+            ;;
             --skip-cursor)
             skip_cursor=true
             shift
-            ;; 
+            ;;
             --full)
             FULL_MODE=true
             shift
-            ;; 
+            ;;
             --post)
             POST_INSTALL_MODE=true
             shift
@@ -318,7 +318,7 @@ main() {
     echo "============================================================"
 }
 
-#------------------------------------------------------- 
+#-------------------------------------------------------
 # Script Execution
-#------------------------------------------------------- 
+#-------------------------------------------------------
 main "$@"

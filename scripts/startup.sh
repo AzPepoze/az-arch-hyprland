@@ -62,7 +62,7 @@ bash $HOME/az-arch-hyprland/scripts/utils/notification_logger.sh &
 #-------------------------------------------------------
 # Startup Programs
 #-------------------------------------------------------
-launch_app "Linux Wallpaper Engine GUI" "sleep 1 && linux-wallpaperengine-gui --minimized &"
+# launch_app "Linux Wallpaper Engine GUI" "sleep 1 && linux-wallpaperengine-gui --minimized &"
 
 launch_messenger
 
