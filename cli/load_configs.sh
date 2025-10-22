@@ -164,6 +164,8 @@ update_dots_hyprland() {
         ./install.sh -c -f
         _log SUCCESS "dots-hyprland full install finished."
     else
+        _log INFO "Cleaning working directory and untracked files..."
+        git clean -xdf
         _log INFO "Running unstable update (automated with expect)..."
 
         if ! command -v expect &> /dev/null; then
