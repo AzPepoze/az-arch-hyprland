@@ -77,8 +77,8 @@ install_bleachbit() {
     install_paru_package "bleachbit" "BleachBit"
 }
 
-install_gwenview() {
-    install_paru_package "gwenview" "Gwenview"
+install_nomacs() {
+    install_paru_package "nomacs" "Nomacs"
 }
 
 install_qdirstat() {

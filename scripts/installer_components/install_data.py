@@ -282,10 +282,10 @@ def get_install_items(repo_dir):
         },
         {
             "type": "essential",
-            "text": "Install Gwenview",
-            "func": "install_gwenview",
+            "text": "Install Nomacs",
+            "func": "install_nomacs",
             "group": "Graphics & Media",
-            "description": "Installs Gwenview, a fast and easy-to-use image viewer by KDE.",
+            "description": "Installs Nomacs, a fast and easy-to-use image viewer.",
         },
         {
             "type": "essential",
