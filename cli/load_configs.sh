@@ -161,7 +161,7 @@ update_dots_hyprland() {
 
     if [ "$FULL_MODE" = true ]; then
         _log INFO "Full mode enabled. Running full install..."
-        ./install.sh -c -f
+        ./setup install -c -f
         _log SUCCESS "dots-hyprland full install finished."
     else
         _log INFO "Cleaning working directory and untracked files..."
@@ -190,6 +190,15 @@ expect {
         send "y\r"
     }
 }
+
+set timeout 1
+expect {
+    -re "\[(y/N)\]:" {
+        send "y\r"
+    }
+}
+
+set timeout 120
 
 expect {
     -re "Conflict detected:.*monitors\\.conf" {

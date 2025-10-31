@@ -122,3 +122,7 @@ install_mission_center() {
 install_pavucontrol() {
     install_paru_package "pavucontrol-qt" "Pavucontrol"
 }
+
+install_gparted() {
+    install_paru_package "gparted" "GParted (Partition Editor)"
+}

@@ -36,11 +36,11 @@ if [ ! -d "$DEST_DIR" ]; then
     fi
 fi
 
-# Copy the file
-echo "Copying '$SOURCE_FILE' to '$DEST_FILE'..."
-sudo cp "$SOURCE_FILE" "$DEST_FILE"
+# Create a symbolic link
+echo "Creating symbolic link from '$SOURCE_FILE' to '$DEST_FILE'..."
+sudo ln -sf "$SOURCE_FILE" "$DEST_FILE"
 if [ $? -ne 0 ]; then
-    echo "Error: Failed to copy file. Please check permissions."
+    echo "Error: Failed to create symbolic link. Please check permissions."
     exit 1
 fi
 

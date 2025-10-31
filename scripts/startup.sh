@@ -32,7 +32,7 @@ launch_app() {
     echo "Starting $app_name..."
     eval "$launch_command"
     _log SUCCESS "$app_name started."
-    
+
     if [ "$sleep_after" -gt 0 ]; then
         sleep "$sleep_after"
     fi
@@ -62,13 +62,13 @@ bash $HOME/az-arch-hyprland/scripts/utils/notification_logger.sh &
 #-------------------------------------------------------
 # Startup Programs
 #-------------------------------------------------------
-# launch_app "Linux Wallpaper Engine GUI" "sleep 1 && linux-wallpaperengine-gui --minimized &"
+launch_app "Linux Wallpaper Engine GUI" "sleep 1 && linux-wallpaperengine-gui --minimized &"
 
 launch_messenger
 
 launch_app "Discord" "hyprctl dispatch exec \"[workspace 1 silent] discord\"" 2
 launch_app "Edge App" "hyprctl dispatch exec '[tile;] microsoft-edge-dev --app=chrome-extension://ophjlpahpchlmihnnnihgmmeilfjmjjc/index.html'"
-#launch_app "Wineboot (Delayed)" "hyprctl dispatch exec \"[workspace 4 silent] sh -c 'sleep 10 && wineboot'\""
+launch_app "Wineboot (Delayed)" "hyprctl dispatch exec \"[workspace 4 silent] sh -c 'sleep 10 && wineboot'\""
 
 # scratchpad
 launch_app "YouTube Music" "hyprctl dispatch exec \"[workspace special silent; float; size 30% 100%; move 0 0] youtube-music\""

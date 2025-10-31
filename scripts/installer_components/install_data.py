@@ -180,6 +180,13 @@ def get_install_items(repo_dir):
             "group": "System Libraries",
             "description": "Installs FUSE (Filesystem in Userspace), allowing non-privileged users to create their own file systems.",
         },
+        {
+            "type": "essential",
+            "text": "Install NTFS-3G (NTFS Filesystem Driver)",
+            "func": "install_ntfs_3g",
+            "group": "System Libraries",
+            "description": "Installs NTFS-3G, a free and open-source implementation of the NTFS filesystem that allows Linux to read and write to NTFS partitions.",
+        },
         {"type": "header", "text": "--- Desktop & Theming ---"},
         {
             "type": "essential",
@@ -349,6 +356,13 @@ def get_install_items(repo_dir):
             "func": "install_qdirstat",
             "group": "Disk Usage",
             "description": "Installs QDirStat, a graphical disk usage display.",
+        },
+        {
+            "type": "essential",
+            "text": "Install GParted (Partition Editor)",
+            "func": "install_gparted",
+            "group": "System Utilities",
+            "description": "Installs GParted, a graphical partition editor for creating, reorganizing, and deleting disk partitions.",
         },
         {
             "type": "essential",

@@ -70,6 +70,10 @@ install_npm() {
      install_pacman_package "npm" "npm"
 }
 
+install_ntfs_3g() {
+     install_pacman_package "ntfs-3g" "NTFS-3G (NTFS Filesystem Driver)"
+}
+
 install_git() {
      install_pacman_package "git" "Git Version Control System"
 }
