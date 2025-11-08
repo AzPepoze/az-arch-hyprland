@@ -53,3 +53,13 @@
 -    When working with libraries, ensure knowledge of the current version. If not, search the internet or visit the wiki/web page for usage. Do not change the library if not needed.
 -    When the user asks to commit and push, do not make any further code changes because they have already verified the code works.
 -    The user prefers that I do not ask for confirmation before committing and pushing changes.
+-    ฉันสามารถใช้ gcalcli เพื่อจัดการปฏิทินของผู้ใช้ได้
+-    ในการเพิ่มกิจกรรมลงใน Google Calendar โดยใช้ gcalcli:
+-    สำหรับกิจกรรมวันเดียว: gcalcli add --title "ชื่อกิจกรรม" --when "YYYY-MM-DD" --allday --duration 1 --noprompt --calendar "ชื่อปฏิทิน"
+-    สำหรับกิจกรรมหลายวัน: gcalcli add --title "ชื่อกิจกรรม" --when "YYYY-MM-DD" --duration จำนวนวัน --allday --noprompt --calendar "ชื่อปฏิทิน"
+-    ต้องระบุ --calendar "ชื่อปฏิทิน" เพื่อเลือกปฏิทินที่ต้องการ
+-    ใช้ --noprompt เพื่อไม่ให้ gcalcli ถามข้อมูลเพิ่มเติม
+-    ใช้ --allday และ --duration จำนวนวัน สำหรับกิจกรรมตลอดทั้งวัน (ทั้งวันเดียวและหลายวัน)
+-    สามารถดูรายการปฏิทินได้ด้วย gcalcli list
+-    สามารถดู help ของคำสั่ง add ได้ด้วย gcalcli add --help
+-    To list all events from the user's calendars, I need to iterate through each calendar obtained from `gcalcli list`. For each calendar, I should use the command `gcalcli agenda "YYYY-MM-DD_start" "YYYY-MM-DD_end" --calendar "Calendar Name"` with a broad date range (e.g., one year in the past to one year in the future) to ensure all events are captured. The `start` and `end` dates are positional arguments.
