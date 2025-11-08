@@ -427,6 +427,13 @@ def get_install_items(repo_dir):
             "group": "CLI Utilities",
             "description": "Installs the Google Gemini CLI for interacting with Gemini models.",
         },
+        {
+            "type": "optional",
+            "text": "Install gcalcli",
+            "func": "install_gcalcli",
+            "group": "CLI Utilities",
+            "description": "Installs gcalcli, a command-line tool for Google Calendar.",
+        },
         {"type": "header", "text": "--- Hardware & Peripherals ---"},
         {
             "type": "optional",

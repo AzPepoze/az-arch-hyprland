@@ -106,3 +106,12 @@ setup_rclone_gdrive() {
 
      _log SUCCESS "rclone configuration Google Drive finished."
 }
+
+#-------------------------------------------------------
+# gcalcli Installation
+#-------------------------------------------------------
+install_gcalcli() {
+    echo "Installing gcalcli..."
+    install_paru_package "gcalcli" "gcalcli"
+    _log SUCCESS "gcalcli installation completed successfully."
+}
