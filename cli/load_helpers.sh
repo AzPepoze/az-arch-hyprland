@@ -180,7 +180,7 @@ merge_quickshell_colors() {
 
 patch_quickshell_background() {
     echo "--- Patching QuickShell Background ---"
-    local qml_file="$HOME/.config/quickshell/ii/modules/background/Background.qml"
+    local qml_file="$HOME/.config/quickshell/ii/modules/ii/background/Background.qml"
 
     if [ -f "$qml_file" ]; then
         _log INFO "Found QuickShell Background.qml at '$qml_file'. Patching..."
