@@ -9,15 +9,15 @@ LOAD_CONFIGS_ARGS=()
 
 for arg in "$@"; do
     case $arg in
-        --auto) 
+        --auto)
             AUTO_MODE=true
-            ;; 
-        --skip-code-insiders) 
+            ;;
+        --skip-code-insiders)
             SKIP_CODE_INSIDERS=true
-            ;; 
-        *) 
+            ;;
+        *)
             LOAD_CONFIGS_ARGS+=("$arg")
-            ;; 
+            ;;
     esac
 done
 
@@ -52,16 +52,17 @@ update_repo() {
 }
 
 update_system_packages() {
+    if ! command -v paru &> /dev/null; then
+        _log WARN "paru command not found. Skipping system package update."
+        _log INFO "Please install paru to enable this feature."
+        return
+    fi
+    
     echo
     echo "============================================================="
     echo " Updating System & AUR Packages (paru)"
     echo "============================================================="
-    if command -v paru &> /dev/null; then
-        paru -Syu --noconfirm
-    else
-        _log WARN "paru command not found. Skipping system package update."
-        _log INFO "Please install paru to enable this feature."
-    fi
+    paru -Syu --noconfirm
 }
 
 update_vscode_insiders() {
@@ -70,10 +71,6 @@ update_vscode_insiders() {
         return
     fi
 
-    echo
-    echo "============================================================="
-    echo " Updating VS Code Insiders (code-insiders-bin)"
-    echo "============================================================="
     if ! command -v paru &> /dev/null; then
         _log WARN "paru command not found. Skipping VS Code Insiders update."
         _log INFO "Please install paru to enable this feature."
@@ -84,6 +81,11 @@ update_vscode_insiders() {
         _log INFO "VS Code Insiders (code-insiders) command not found. Skipping update."
         return
     fi
+
+    echo
+    echo "============================================================="
+    echo " Updating VS Code Insiders (code-insiders-bin)"
+    echo "============================================================="
 
     # Check if code-insiders-bin is outdated using paru
     if paru -Qqu code-insiders-bin &> /dev/null; then
@@ -96,52 +98,32 @@ update_vscode_insiders() {
 }
 
 update_flatpak() {
+    if ! command -v flatpak &> /dev/null; then
+        _log WARN "flatpak command not found. Skipping Flatpak update."
+        return
+    fi
+
     echo
     echo "============================================================="
     echo " Updating Flatpak Packages"
     echo "============================================================="
-    if command -v flatpak &> /dev/null; then
-        flatpak update -y
-    else
-        _log WARN "flatpak command not found. Skipping Flatpak update."
-    fi
+    flatpak update -y
 }
 
-update_gemini_cli() {
-    echo
-    echo "============================================================="
-    echo " Update Gemini CLI"
-    echo "============================================================="
-
+update_npm_global_packages() {
     if ! command -v npm &> /dev/null; then
-        _log WARN "npm command not found. Skipping Gemini CLI update."
+        _log WARN "npm command not found. Skipping global package update."
         _log INFO "Please install npm to enable this feature."
         return
     fi
 
-    if ! command -v gemini &> /dev/null; then
-        _log INFO "Gemini CLI not found. Skipping update."
-        return
-    fi
-
-    local current_version
-    current_version=$(gemini -v 2>/dev/null)
-
-    local latest_version
-    latest_version=$(npm show @google/gemini-cli version 2>/dev/null)
-
-    if [ -z "$latest_version" ]; then
-        _log WARN "Could not determine latest Gemini CLI version. Skipping update."
-        return
-    fi
-
-    if [[ "$current_version" < "$latest_version" ]]; then
-        _log INFO "Gemini CLI (current: $current_version) is not latest (latest: $latest_version). Updating..."
-        sudo npm install -g @google/gemini-cli
-        _log SUCCESS "Gemini CLI updated to $latest_version."
-    else
-        _log INFO "Gemini CLI is already up-to-date (version: $current_version)."
-    fi
+    echo
+    echo "============================================================="
+    echo " Updating Global NPM Packages"
+    echo "============================================================="
+    _log INFO "Updating all global npm packages..."
+    sudo npm update -g
+    _log SUCCESS "Global npm packages updated."
 }
 
 load_v4l2loopback_module() {
@@ -153,23 +135,21 @@ load_v4l2loopback_module() {
     _log SUCCESS "v4l2loopback module loaded."
 }
 
-
-
-
 load_configs() {
+    local config_script="./cli/load_configs.sh"
+
+    if [ ! -f "$config_script" ]; then
+        _log WARN "'$config_script' not found. Skipping config load."
+        return
+    fi
+
     echo
     echo "============================================================="
     echo " Load Configurations"
     echo "============================================================="
 
-    local config_script="./cli/load_configs.sh"
-
-    if [ -f "$config_script" ]; then
-        # Pass filtered arguments to load_configs.sh
-        bash "$config_script" "${LOAD_CONFIGS_ARGS[@]}"
-    else
-        _log WARN "'$config_script' not found. Skipping config load."
-    fi
+    # Pass filtered arguments to load_configs.sh
+    bash "$config_script" "${LOAD_CONFIGS_ARGS[@]}"
     _log SUCCESS "Configuration load process finished."
 }
 
@@ -190,7 +170,7 @@ update_system_packages
 update_vscode_insiders
 fix_vscode_permissions
 update_flatpak
-update_gemini_cli
+update_npm_global_packages
 load_v4l2loopback_module
 load_configs
 bash ./cli/cleanup.sh
