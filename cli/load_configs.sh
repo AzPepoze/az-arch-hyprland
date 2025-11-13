@@ -181,8 +181,6 @@ set timeout 120
 
 spawn bash ./setup exp-update -f
 
-send "\r"
-
 expect {
     timeout {
         puts "\nError: Timeout waiting for the initial (y/N) prompt."
