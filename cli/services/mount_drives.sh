@@ -52,17 +52,17 @@ for partition in $unmounted_partitions; do
 
     # Create the mount point directory if it doesn't exist.
     # This script must be run with root privileges (e.g., via sudo) to perform mount operations.
-    mkdir -p "$mount_point"
+    sudo mkdir -p "$mount_point"
 
     # Mount the device. The filesystem type is auto-detected.
-    if mount "$device_path" "$mount_point"; then
+    if sudo mount "$device_path" "$mount_point"; then
         # Change ownership of the mount point to the target user for access.
-        chown "$TARGET_UID:$TARGET_GID" "$mount_point"
+        sudo chown "$TARGET_UID:$TARGET_GID" "$mount_point"
         echo "✅ [Auto-Mount Service] Successfully mounted $device_path to $mount_point"
     else
         echo "❌ [Auto-Mount Service] Failed to mount $device_path. Check dmesg for errors." >&2
         # Clean up the created directory if mount fails.
-        rmdir "$mount_point" 2>/dev/null
+        sudo rmdir "$mount_point" 2>/dev/null
     fi
 done
 
