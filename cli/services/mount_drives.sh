@@ -5,20 +5,24 @@
 
 echo "🔎 [Auto-Mount Service] Checking for unmounted drives..."
 
-# If running with sudo, use the original user's name. Otherwise, use the current user.
-TARGET_USER=${SUDO_USER:-$USER}
+# The user is passed as the first argument from the systemd service instance.
+if [ -z "$1" ]; then
+    echo "❌ [Auto-Mount Service] No user specified as an argument. Exiting." >&2
+    exit 1
+fi
+TARGET_USER=$1
 
 # Get the user's details.
 TARGET_UID=$(id -u "$TARGET_USER")
 TARGET_GID=$(id -g "$TARGET_USER")
 
 if [ -z "$TARGET_USER" ] || [ -z "$TARGET_UID" ] || [ -z "$TARGET_GID" ]; then
-    echo "❌ [Auto-Mount Service] Could not determine target user. Exiting." >&2
+    echo "❌ [Auto-Mount Service] Could not determine details for user '$TARGET_USER'. Exiting." >&2
     exit 1
 fi
 
 # Get a list of all block devices that are partitions and are not currently mounted.
-unmounted_partitions=$(lsblk -l -n -o NAME,TYPE,MOUNTPOINT | awk '$2=="part" && $3=="" {print $1}')
+unmounted_partitions=$(lsblk -l -n -o NAME,FSTYPE,TYPE,MOUNTPOINT | awk '$2!="" && $3=="part" && $4=="" {print $1}')
 
 if [ -z "$unmounted_partitions" ]; then
     echo "✅ [Auto-Mount Service] All detected partitions are already mounted."
@@ -52,17 +56,17 @@ for partition in $unmounted_partitions; do
 
     # Create the mount point directory if it doesn't exist.
     # This script must be run with root privileges (e.g., via sudo) to perform mount operations.
-    sudo mkdir -p "$mount_point"
+    mkdir -p "$mount_point"
 
     # Mount the device. The filesystem type is auto-detected.
-    if sudo mount "$device_path" "$mount_point"; then
+    if mount "$device_path" "$mount_point"; then
         # Change ownership of the mount point to the target user for access.
-        sudo chown "$TARGET_UID:$TARGET_GID" "$mount_point"
+        chown "$TARGET_UID:$TARGET_GID" "$mount_point"
         echo "✅ [Auto-Mount Service] Successfully mounted $device_path to $mount_point"
     else
         echo "❌ [Auto-Mount Service] Failed to mount $device_path. Check dmesg for errors." >&2
         # Clean up the created directory if mount fails.
-        sudo rmdir "$mount_point" 2>/dev/null
+        rmdir "$mount_point" 2>/dev/null
     fi
 done
 

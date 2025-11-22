@@ -1,16 +1,14 @@
 #!/bin/bash
 
-# This script manages a systemd user service for auto-mounting drives,
-# including the necessary Polkit rule for permissions.
+# This script manages a SYSTEM-WIDE systemd service for auto-mounting drives.
 
 #-------------------------------------------------------
 # Configuration
 #-------------------------------------------------------
-SERVICE_NAME="automount.service"
-SERVICE_FILE_PATH="$HOME/.config/systemd/user/$SERVICE_NAME"
-POLKIT_RULE_PATH="/etc/polkit-1/rules.d/49-allow-udisks2-mount.rules"
+SERVICE_NAME="automount@.service"
+SERVICE_INSTANCE="automount@$USER.service"
+SERVICE_FILE_PATH="/etc/systemd/system/$SERVICE_NAME"
 
-# IMPORTANT: This path must be absolute. It points to the script the service will run.
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 SERVICE_SCRIPT_PATH="$SCRIPT_DIR/../services/mount_drives.sh"
 
@@ -18,94 +16,60 @@ SERVICE_SCRIPT_PATH="$SCRIPT_DIR/../services/mount_drives.sh"
 # Functions
 #-------------------------------------------------------
 
-# Function to enable and start the systemd service.
 enable_service() {
-    # Step 1: Check for and create the Polkit rule if it doesn't exist.
-    if [ ! -f "$POLKIT_RULE_PATH" ]; then
-        echo "INFO: Polkit rule for password-less mounting is not found."
-        echo "This script needs to create a rule at $POLKIT_RULE_PATH."
-        echo "This will allow any user in the 'wheel' group to mount drives without a password."
-        echo "--- You will be prompted for your password to grant permission. ---"
-        
-        sudo tee "$POLKIT_RULE_PATH" > /dev/null <<'EOF'
-// Allow users in the 'wheel' group to mount internal drives without a password
-// This is generally safe for a single-user desktop system.
-polkit.addRule(function(action, subject) {
-    if (action.id == "org.freedesktop.udisks2.filesystem-mount-system" &&
-        subject.isInGroup("wheel")) {
-        return polkit.Result.YES;
-    }
-});
-EOF
-
-        if [ $? -ne 0 ]; then
-            echo "ERROR: Failed to create Polkit rule. Aborting."
-            return 1
-        fi
-        echo "OK: Polkit rule created successfully. A reboot is recommended to ensure it takes effect."
-    fi
-
-    # Step 2: Proceed with systemd service setup.
-    if systemctl --user is-enabled "$SERVICE_NAME" &>/dev/null; then
-        echo "OK: Auto-mount service is already enabled."
-        return
-    fi
-
-    echo ">> Creating systemd service file..."
-    mkdir -p "$(dirname "$SERVICE_FILE_PATH")"
-
-    cat > "$SERVICE_FILE_PATH" << EOF
+    echo ">> This will create a system-wide service to mount drives for user '$USER'."
+    echo ">> You will be prompted for your password for 'sudo' commands."
+    
+    echo ">> Creating systemd service file at $SERVICE_FILE_PATH..."
+    sudo tee "$SERVICE_FILE_PATH" > /dev/null << EOF
 [Unit]
-Description=Auto-mount removable drives using udisksctl
-After=graphical-session.target
+Description=Auto-mount drives for user %i
+# Run after the udisks service is ready, ensuring devices are discovered.
+After=udisks2.service
 
 [Service]
 Type=oneshot
-ExecStart=$SERVICE_SCRIPT_PATH
+RemainAfterExit=yes
+ExecStart=$SERVICE_SCRIPT_PATH %i
 
 [Install]
-WantedBy=default.target
+# We want the service to be available, but it will be started on login.
+# The previous template implementation has issues with modern systemd.
+# Let's try a more direct approach by tying it to the multi-user target.
+WantedBy=multi-user.target
 EOF
 
-    echo ">> Reloading systemd user daemon..."
-    systemctl --user daemon-reload
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Failed to create systemd service file. Aborting."
+        return 1
+    fi
 
-    echo ">> Enabling the service to start on login..."
-    systemctl --user enable "$SERVICE_NAME"
+    echo ">> Reloading systemd daemon to recognize the new service..."
+    sudo systemctl daemon-reload
 
-    echo ">> Starting the service now..."
-    systemctl --user start "$SERVICE_NAME"
+    echo ">> Enabling the service for user '$USER' to start on login..."
+    sudo systemctl enable "$SERVICE_INSTANCE"
 
-    echo "OK: Successfully enabled and started the auto-mount service."
+    echo ">> Starting the service now for an initial mount..."
+    sudo systemctl start "$SERVICE_INSTANCE"
+
+    echo "OK: Successfully enabled and started the system-wide auto-mount service for user '$USER'."
 }
 
-# Function to disable and stop the systemd service.
 disable_service() {
-    if ! systemctl --user is-enabled "$SERVICE_NAME" &>/dev/null && ! systemctl --user is-active "$SERVICE_NAME" &>/dev/null; then
-        echo "INFO: Auto-mount service is not active or enabled."
-        return
-    fi
+    echo ">> Disabling the service for user '$USER'..."
+    sudo systemctl disable "$SERVICE_INSTANCE"
 
-    echo ">> Stopping the service..."
-    systemctl --user stop "$SERVICE_NAME"
+    echo ">> Stopping any running instance of the service..."
+    sudo systemctl stop "$SERVICE_INSTANCE"
 
-    echo ">> Disabling the service..."
-    systemctl --user disable "$SERVICE_NAME"
+    echo ">> Removing template file..."
+    sudo rm -f "$SERVICE_FILE_PATH"
+    
+    echo ">> Reloading systemd daemon..."
+    sudo systemctl daemon-reload
 
-    echo ">> Removing systemd service file..."
-    rm -f "$SERVICE_FILE_PATH"
-
-    # Remove the Polkit rule if it exists
-    if [ -f "$POLKIT_RULE_PATH" ]; then
-        echo ">> Removing Polkit rule... (requires sudo)"
-        sudo rm -f "$POLKIT_RULE_PATH"
-        echo "OK: Polkit rule removed."
-    fi
-
-    echo ">> Reloading systemd user daemon..."
-    systemctl --user daemon-reload
-
-    echo "ERROR: Successfully disabled and removed the auto-mount service."
+    echo "OK: Successfully disabled the auto-mount service for user '$USER'."
 }
 
 #-------------------------------------------------------
@@ -113,31 +77,26 @@ disable_service() {
 #-------------------------------------------------------
 main() {
     echo "----------------------------------------"
-    echo "  Auto-Mount Service Manager"
+    echo "  System Auto-Mount Service Manager"
     echo "----------------------------------------"
-    echo "This script will manage a systemd service and the required"
-    echo "Polkit permissions to automatically mount drives at login."
+    echo "This script manages a systemd service to automatically mount"
+    echo "drives for the current user ($USER) at login. This requires sudo."
     echo
     echo "Current Status:"
-    if systemctl --user is-active --quiet "$SERVICE_NAME"; then
-        echo "  - Service is ACTIVE and RUNNING."
+    if sudo systemctl is-enabled --quiet "$SERVICE_INSTANCE"; then
+        echo "  - Service for user '$USER' is ENABLED."
     else
-        echo "  - Service is INACTIVE."
+        echo "  - Service for user '$USER' is DISABLED."
     fi
-    if systemctl --user is-enabled --quiet "$SERVICE_NAME"; then
-        echo "  - Service is ENABLED to start on login."
+    if [ -f "$SERVICE_FILE_PATH" ]; then
+        echo "  - Service template file EXISTS."
     else
-        echo "  - Service is DISABLED."
-    fi
-    if [ -f "$POLKIT_RULE_PATH" ]; then
-        echo "  - Polkit rule EXISTS."
-    else
-        echo "  - Polkit rule NOT FOUND."
+        echo "  - Service template file NOT FOUND."
     fi
     echo
 
-    echo "1) Enable"
-    echo "2) Disable"
+    echo "1) Enable for user '$USER'"
+    echo "2) Disable for user '$USER'"
     echo
     read -p "Choose an option (any other key to cancel): " choice
 
