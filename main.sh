@@ -62,7 +62,7 @@ while true; do
         3)
             echo "Loading configurations..."
             if [ -f "cli/load_configs.sh" ]; then
-                bash cli/load_configs.sh --skip-cursor --skip-gpu
+                bash cli/load_configs.sh
             else
                 echo "Error: cli/load_configs.sh not found!"
             fi
