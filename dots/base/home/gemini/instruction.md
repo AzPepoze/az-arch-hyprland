@@ -63,3 +63,4 @@
 -    สามารถดูรายการปฏิทินได้ด้วย gcalcli list
 -    สามารถดู help ของคำสั่ง add ได้ด้วย gcalcli add --help
 -    To list all events from the user's calendars, I need to iterate through each calendar obtained from `gcalcli list`. For each calendar, I should use the command `gcalcli agenda "YYYY-MM-DD_start" "YYYY-MM-DD_end" --calendar "Calendar Name"` with a broad date range (e.g., one year in the past to one year in the future) to ensure all events are captured. The `start` and `end` dates are positional arguments.
+-    The user does not want me to auto-commit. I should only commit when explicitly asked to.
