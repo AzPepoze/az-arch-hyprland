@@ -124,6 +124,15 @@ update_npm_global_packages() {
     _log INFO "Updating all global npm packages..."
     sudo npm update -g
     _log SUCCESS "Global npm packages updated."
+
+    # Check and update @google/gemini-cli
+    if command -v gemini &> /dev/null; then
+        _log INFO "Gemini CLI found. Updating to nightly version..."
+        sudo npm install -g @google/gemini-cli@nightly
+        _log SUCCESS "Gemini CLI updated to nightly."
+    else
+        _log INFO "Gemini CLI not found. Skipping Gemini CLI update."
+    fi
 }
 
 load_v4l2loopback_module() {
